@@ -1,0 +1,34 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+
+processors:
+  active: true
+
+console-reports:
+  active: true
+
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  WildcardImport:
+    active: false
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 60
+  LargeClass:
+    active: true
+    threshold: 600
+
+# T050 Static Analysis Notes (2025-11-24)
+# Configuration validated for VR Video Library feature
+# Run: ./gradlew :app:lintDebug detekt
+# Expected: 0 new violations in vrvideo package
+

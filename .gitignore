@@ -15,3 +15,13 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Added by automation: ensure common Kotlin/Android and universal ignores
+build/
+out/
+*.class
+*.jar
+*.log
+.env*
+.vscode/
+Thumbs.db

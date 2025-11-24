@@ -3,6 +3,7 @@ plugins {
   alias(libs.plugins.jetbrains.kotlin.android)
   alias(libs.plugins.meta.spatial.plugin)
   alias(libs.plugins.jetbrains.kotlin.plugin.compose)
+  alias(libs.plugins.ksp)
 }
 
 android {
@@ -46,6 +47,12 @@ android {
   kotlinOptions { jvmTarget = "17" }
 }
 
+// KSP configuration (Room schema export)
+ksp {
+  arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+
 //noinspection UseTomlInstead
 dependencies {
   implementation(libs.androidx.core.ktx)
@@ -69,14 +76,32 @@ dependencies {
 
   // Compose Dependencies
   implementation("androidx.compose.material3:material3")
+  implementation("androidx.compose.material:material-icons-extended")
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity.compose)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.ui)
   implementation(libs.androidx.ui.graphics)
   implementation(libs.androidx.ui.tooling.preview)
+  implementation(libs.androidx.navigation.compose)
   androidTestImplementation(platform(libs.androidx.compose.bom))
   androidTestImplementation(libs.androidx.ui.test.junit4)
+
+  // Media3/ExoPlayer
+  implementation(libs.androidx.media3.exoplayer)
+  implementation(libs.androidx.media3.ui)
+
+  // Room (with KSP for compiler)
+  implementation(libs.androidx.room.runtime)
+  implementation(libs.androidx.room.ktx)
+  ksp(libs.androidx.room.compiler)
+
+  // WorkManager
+  implementation(libs.androidx.work.runtime.ktx)
+
+  // DocumentFile (SAF)
+  implementation(libs.androidx.documentfile)
+
   debugImplementation(libs.androidx.ui.tooling)
   debugImplementation(libs.androidx.ui.test.manifest)
 }
