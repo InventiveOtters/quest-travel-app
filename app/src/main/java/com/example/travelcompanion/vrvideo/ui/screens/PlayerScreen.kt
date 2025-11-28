@@ -1,8 +1,17 @@
 package com.example.travelcompanion.vrvideo.ui.screens
 
 import android.net.Uri
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
@@ -12,10 +21,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.travelcompanion.vrvideo.data.db.StereoLayout
 import com.example.travelcompanion.vrvideo.data.db.VideoItem
 import com.example.travelcompanion.vrvideo.ui.viewmodel.PlayerViewModel
+import kotlinx.coroutines.delay
 
 /**
  * Player screen with VR surface and playback controls.
@@ -35,6 +47,15 @@ fun PlayerScreen(
   var showResumeDialog by remember { mutableStateOf(false) }
   var showLayoutDialog by remember { mutableStateOf(false) }
   var hasAskedResume by remember { mutableStateOf(false) }
+  var showControls by remember { mutableStateOf(true) }
+
+  // Auto-hide controls after 3 seconds of inactivity when playing
+  LaunchedEffect(showControls, isPlaying) {
+    if (showControls && isPlaying) {
+      delay(3000)
+      showControls = false
+    }
+  }
 
   // Check if we should show resume dialog
   LaunchedEffect(video.id) {
@@ -129,114 +150,165 @@ fun PlayerScreen(
     )
   }
 
+  // Handler for back button - stops playback before navigating back
+  val handleBack: () -> Unit = {
+    viewModel.pause()
+    onBack()
+  }
+
   Surface(
       modifier = modifier.fillMaxSize(),
       color = MaterialTheme.colorScheme.background,
   ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-      // VR surface placeholder
-      // TODO: In a full VR implementation, this would use SurfaceTexture:
-      // 1. Create SurfaceTexture in VR scene (via Spatial SDK)
-      // 2. Get Surface from SurfaceTexture
-      // 3. Call viewModel.setSurface(surface)
-      // 4. Render texture to VR quad in immersive space
-      // For now, this is a 2D panel placeholder
-      Box(
-          modifier = Modifier.fillMaxSize(),
-          contentAlignment = Alignment.Center,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+              // Tap anywhere to toggle play/pause and show controls
+              viewModel.togglePlayPause()
+              showControls = true
+            }
+    ) {
+      // Video surface using AndroidView with SurfaceView
+      // ExoPlayer renders video frames to this surface
+      AndroidView(
+          factory = { context ->
+            SurfaceView(context).apply {
+              holder.addCallback(object : SurfaceHolder.Callback {
+                override fun surfaceCreated(holder: SurfaceHolder) {
+                  viewModel.setSurface(holder.surface)
+                }
+
+                override fun surfaceChanged(
+                    holder: SurfaceHolder,
+                    format: Int,
+                    width: Int,
+                    height: Int
+                ) {
+                  // Surface dimensions changed, ExoPlayer handles this automatically
+                }
+
+                override fun surfaceDestroyed(holder: SurfaceHolder) {
+                  viewModel.setSurface(null)
+                }
+              })
+            }
+          },
+          modifier = Modifier
+              .fillMaxSize()
+              .background(Color.Black),
+      )
+
+      // Playback controls overlay with fade animation
+      AnimatedVisibility(
+          visible = showControls,
+          enter = fadeIn(),
+          exit = fadeOut(),
+          modifier = Modifier.align(Alignment.BottomCenter)
       ) {
-        Text(
-            text = "VR Video Surface\n(SurfaceTexture integration pending)",
-            style = MaterialTheme.typography.displaySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      }
-
-      // Playback controls overlay
-      Column(
-          modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(32.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-      ) {
-        // Video title
-        Text(
-            text = video.title,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp),
-        )
-
-        // Progress bar
-        if (video.durationMs > 0) {
-          Slider(
-              value = currentPosition.toFloat(),
-              onValueChange = { viewModel.seekTo(it.toLong()) },
-              valueRange = 0f..video.durationMs.toFloat(),
-              modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-          )
-
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
-          ) {
-            Text(
-                text = formatTime(currentPosition),
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Text(
-                text = formatTime(video.durationMs),
-                style = MaterialTheme.typography.bodySmall,
-            )
-          }
-        }
-
-        // Control buttons
-        Row(
-            modifier = Modifier.padding(top = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          Button(onClick = onBack) { Text("Back") }
-
-          // Skip backward
-          IconButton(onClick = { viewModel.skipBackward() }) {
-            Icon(
-                imageVector = Icons.Default.FastRewind,
-                contentDescription = "Skip Backward"
-            )
-          }
-
-          // Play/Pause
-          IconButton(
-              onClick = { viewModel.togglePlayPause() },
-              modifier = Modifier.size(64.dp),
-          ) {
-            Icon(
-                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                contentDescription = if (isPlaying) "Pause" else "Play",
-                modifier = Modifier.size(48.dp),
-            )
-          }
-
-          // Skip forward
-          IconButton(onClick = { viewModel.skipForward() }) {
-            Icon(
-                imageVector = Icons.Default.FastForward,
-                contentDescription = "Skip Forward"
-            )
-          }
-
-          // Stereo layout button
-          IconButton(
-              onClick = { showLayoutDialog = true }
-          ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Stereo Layout"
-            )
-          }
+          // Video title - white text for readability on dark background
           Text(
-              text = currentStereoLayout.name,
-              style = MaterialTheme.typography.bodySmall
+              text = video.title,
+              style = MaterialTheme.typography.titleLarge,
+              color = Color.White,
+              modifier = Modifier.padding(bottom = 16.dp),
           )
+
+          // Progress bar
+          if (video.durationMs > 0) {
+            Slider(
+                value = currentPosition.toFloat(),
+                onValueChange = { viewModel.seekTo(it.toLong()) },
+                valueRange = 0f..video.durationMs.toFloat(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+              Text(
+                  text = formatTime(currentPosition),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = Color.White,
+              )
+              Text(
+                  text = formatTime(video.durationMs),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = Color.White,
+              )
+            }
+          }
+
+          // Control buttons
+          Row(
+              modifier = Modifier.padding(top = 16.dp),
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            // Back button - using IconButton for consistent styling with other controls
+            IconButton(onClick = handleBack) {
+              Icon(
+                  imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                  contentDescription = "Back",
+                  tint = Color.White
+              )
+            }
+
+            // Skip backward
+            IconButton(onClick = { viewModel.skipBackward() }) {
+              Icon(
+                  imageVector = Icons.Default.FastRewind,
+                  contentDescription = "Skip Backward",
+                  tint = Color.White
+              )
+            }
+
+            // Play/Pause
+            IconButton(
+                onClick = { viewModel.togglePlayPause() },
+                modifier = Modifier.size(64.dp),
+            ) {
+              Icon(
+                  imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                  contentDescription = if (isPlaying) "Pause" else "Play",
+                  modifier = Modifier.size(48.dp),
+                  tint = Color.White
+              )
+            }
+
+            // Skip forward
+            IconButton(onClick = { viewModel.skipForward() }) {
+              Icon(
+                  imageVector = Icons.Default.FastForward,
+                  contentDescription = "Skip Forward",
+                  tint = Color.White
+              )
+            }
+
+            // Stereo layout button
+            IconButton(
+                onClick = { showLayoutDialog = true }
+            ) {
+              Icon(
+                  imageVector = Icons.Default.Settings,
+                  contentDescription = "Stereo Layout",
+                  tint = Color.White
+              )
+            }
+            Text(
+                text = currentStereoLayout.name,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White
+            )
+          }
         }
       }
     }
