@@ -42,6 +42,7 @@ fun PlayerScreen(
 ) {
   val isPlaying by viewModel.isPlaying.collectAsState()
   val currentPosition by viewModel.currentPosition.collectAsState()
+  val duration by viewModel.duration.collectAsState()
   val currentStereoLayout by viewModel.currentStereoLayout.collectAsState()
 
   var showResumeDialog by remember { mutableStateOf(false) }
@@ -221,13 +222,35 @@ fun PlayerScreen(
               modifier = Modifier.padding(bottom = 16.dp),
           )
 
-          // Progress bar
-          if (video.durationMs > 0) {
+          // Seek bar / progress bar (uses duration from ExoPlayer, not video metadata)
+          if (duration > 0) {
+            // Track whether user is currently dragging the slider
+            var isSeeking by remember { mutableStateOf(false) }
+            var seekPosition by remember { mutableFloatStateOf(0f) }
+
+            // Use seek position while dragging, otherwise use actual playback position
+            val displayPosition = if (isSeeking) seekPosition else currentPosition.toFloat()
+
             Slider(
-                value = currentPosition.toFloat(),
-                onValueChange = { viewModel.seekTo(it.toLong()) },
-                valueRange = 0f..video.durationMs.toFloat(),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                value = displayPosition,
+                onValueChange = { newValue ->
+                  isSeeking = true
+                  seekPosition = newValue
+                  showControls = true // Keep controls visible while seeking
+                },
+                onValueChangeFinished = {
+                  viewModel.seekTo(seekPosition.toLong())
+                  isSeeking = false
+                },
+                valueRange = 0f..duration.toFloat(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.White,
+                    activeTrackColor = Color.White,
+                    inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                )
             )
 
             Row(
@@ -235,12 +258,12 @@ fun PlayerScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
               Text(
-                  text = formatTime(currentPosition),
+                  text = formatTime(if (isSeeking) seekPosition.toLong() else currentPosition),
                   style = MaterialTheme.typography.bodySmall,
                   color = Color.White,
               )
               Text(
-                  text = formatTime(video.durationMs),
+                  text = formatTime(duration),
                   style = MaterialTheme.typography.bodySmall,
                   color = Color.White,
               )

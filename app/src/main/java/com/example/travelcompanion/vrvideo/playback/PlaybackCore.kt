@@ -67,6 +67,13 @@ class PlaybackCore(context: Context) {
   fun getCurrentPosition(): Long = player.currentPosition
 
   /**
+   * Get the total duration of the current media. No allocations in this hot path.
+   *
+   * @return Duration in milliseconds, or 0 if unknown
+   */
+  fun getDuration(): Long = player.duration.coerceAtLeast(0L)
+
+  /**
    * Set the stereo layout for the current video.
    * This determines how the video is rendered in VR space.
    */

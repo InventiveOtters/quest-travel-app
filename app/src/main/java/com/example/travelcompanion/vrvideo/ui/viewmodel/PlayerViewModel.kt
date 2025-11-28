@@ -36,11 +36,15 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
   private val _currentPosition = MutableStateFlow(0L)
   val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
 
+  private val _duration = MutableStateFlow(0L)
+  val duration: StateFlow<Long> = _duration.asStateFlow()
+
   private val _currentStereoLayout = MutableStateFlow(StereoLayout.TwoD)
   val currentStereoLayout: StateFlow<StereoLayout> = _currentStereoLayout.asStateFlow()
 
   private var currentVideoId: Long? = null
   private var progressUpdateJob: Job? = null
+  private var uiPositionUpdateJob: Job? = null
 
   /**
    * Attach a surface for video rendering.
@@ -105,14 +109,30 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
   /**
    * Start tracking playback progress and periodically save to database.
+   * Also starts a faster UI update loop for smooth seek bar progress.
    */
   private fun startProgressTracking() {
     progressUpdateJob?.cancel()
+    uiPositionUpdateJob?.cancel()
+
+    // Fast UI position updates (every 250ms for smooth seek bar)
+    uiPositionUpdateJob = viewModelScope.launch {
+      while (isActive) {
+        delay(250)
+        _currentPosition.value = playbackCore.getCurrentPosition()
+        // Update duration (it may not be available immediately after prepare)
+        val dur = playbackCore.getDuration()
+        if (dur > 0) {
+          _duration.value = dur
+        }
+      }
+    }
+
+    // Slower database save (every 5 seconds)
     progressUpdateJob = viewModelScope.launch {
       while (isActive) {
-        delay(5000) // Update every 5 seconds
+        delay(5000)
         val position = playbackCore.getCurrentPosition()
-        _currentPosition.value = position
 
         // Save progress to database
         currentVideoId?.let { id ->
@@ -201,6 +221,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     progressUpdateJob?.cancel()
+    uiPositionUpdateJob?.cancel()
     playbackCore.release()
   }
 }

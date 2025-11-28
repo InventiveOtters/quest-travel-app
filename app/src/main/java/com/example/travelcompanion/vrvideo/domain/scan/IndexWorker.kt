@@ -54,20 +54,26 @@ class IndexWorker(
       // Track this URI as found
       foundUris.add(uri.toString())
 
-      // Generate thumbnail if not already present
-      val thumbnailPath = existing?.thumbnailPath ?:
-          com.example.travelcompanion.vrvideo.domain.thumb.ThumbnailGenerator.generate(
-              applicationContext,
-              uri,
-              sig.take(16)
-          )
+      // Generate thumbnail and extract duration if not already present
+      // Only skip regeneration if we have BOTH a valid thumbnail AND duration > 0
+      val (thumbnailPath, durationMs) = if (existing?.thumbnailPath != null && existing.durationMs > 0) {
+        existing.thumbnailPath to existing.durationMs
+      } else {
+        // Regenerate - always use the new result (overwrites old black thumbnails)
+        val result = com.example.travelcompanion.vrvideo.domain.thumb.ThumbnailGenerator.generate(
+            applicationContext,
+            uri,
+            sig.take(16)
+        )
+        result.thumbnailPath to result.durationMs
+      }
 
       val item = VideoItem(
           id = existing?.id ?: 0L,
           folderId = folderId,
           fileUri = uri.toString(),
           title = file.name ?: uri.lastPathSegment ?: "video",
-          durationMs = 0L, // filled later
+          durationMs = durationMs,
           sizeBytes = size,
           contentSignature = sig,
           createdAt = existing?.createdAt ?: now,
