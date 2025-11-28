@@ -32,6 +32,7 @@ fun LibraryScreen(
     onAddFolder: () -> Unit,
     onManageSources: () -> Unit = {},
     onSettings: () -> Unit = {},
+    onWifiTransfer: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
   val videos by viewModel.videos.collectAsState()
@@ -55,6 +56,7 @@ fun LibraryScreen(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           OutlinedButton(onClick = onSettings) { Text("Settings") }
           OutlinedButton(onClick = onManageSources) { Text("Manage Sources") }
+          OutlinedButton(onClick = onWifiTransfer) { Text("📶 WiFi Transfer") }
           Button(onClick = onAddFolder) { Text("Add Folder") }
         }
       }

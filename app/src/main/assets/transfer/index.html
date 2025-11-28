@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Companion - WiFi Transfer</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📶 WiFi Transfer</h1>
+            <p class="subtitle">Upload videos to your Quest headset</p>
+        </header>
+
+        <section class="drop-zone" id="dropZone">
+            <div class="drop-content">
+                <div class="drop-icon">📁</div>
+                <h2>Drag & Drop Videos Here</h2>
+                <p>or click to browse</p>
+                <input type="file" id="fileInput" accept=".mp4,.mkv,video/mp4,video/x-matroska" multiple hidden>
+                <button class="browse-btn" id="browseBtn">Browse Files</button>
+            </div>
+            <div class="drop-active">
+                <div class="drop-icon pulse">⬇️</div>
+                <h2>Drop to Upload</h2>
+            </div>
+        </section>
+
+        <section class="upload-queue" id="uploadQueue">
+            <h3>Upload Queue</h3>
+            <div id="queueList"></div>
+        </section>
+
+        <section class="file-list" id="fileListSection">
+            <h3>Recently Uploaded</h3>
+            <div id="fileList">
+                <p class="empty-state">No files uploaded yet</p>
+            </div>
+        </section>
+
+        <footer>
+            <div class="storage-info">
+                <span id="storageAvailable">Checking storage...</span>
+            </div>
+            <p class="hint">💡 Supported formats: MP4, MKV</p>
+        </footer>
+    </div>
+
+    <script src="/upload.js"></script>
+</body>
+</html>
+

@@ -12,9 +12,11 @@ import com.example.travelcompanion.vrvideo.ui.screens.LibraryScreen
 import com.example.travelcompanion.vrvideo.ui.screens.ManageSourcesScreen
 import com.example.travelcompanion.vrvideo.ui.screens.PlayerScreen
 import com.example.travelcompanion.vrvideo.ui.screens.SettingsScreen
+import com.example.travelcompanion.vrvideo.ui.screens.WiFiTransferScreen
 import com.example.travelcompanion.vrvideo.ui.viewmodel.LibraryViewModel
 import com.example.travelcompanion.vrvideo.ui.viewmodel.PlayerViewModel
 import com.example.travelcompanion.vrvideo.ui.viewmodel.SettingsViewModel
+import com.example.travelcompanion.vrvideo.ui.viewmodel.TransferViewModel
 
 /**
  * Navigation host for VR UI.
@@ -26,6 +28,7 @@ fun VRNavigationHost() {
   val libraryViewModel: LibraryViewModel = viewModel()
   val playerViewModel: PlayerViewModel = viewModel()
   val settingsViewModel: SettingsViewModel = viewModel()
+  val transferViewModel: TransferViewModel = viewModel()
 
   NavHost(navController = navController, startDestination = "library") {
     composable("library") {
@@ -35,6 +38,7 @@ fun VRNavigationHost() {
           onAddFolder = { navController.navigate("addFolder") },
           onManageSources = { navController.navigate("manageSources") },
           onSettings = { navController.navigate("settings") },
+          onWifiTransfer = { navController.navigate("wifiTransfer") },
       )
     }
 
@@ -56,6 +60,13 @@ fun VRNavigationHost() {
     composable("settings") {
       SettingsScreen(
           viewModel = settingsViewModel,
+          onBack = { navController.popBackStack() },
+      )
+    }
+
+    composable("wifiTransfer") {
+      WiFiTransferScreen(
+          viewModel = transferViewModel,
           onBack = { navController.popBackStack() },
       )
     }

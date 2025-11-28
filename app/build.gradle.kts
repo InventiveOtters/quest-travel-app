@@ -102,6 +102,9 @@ dependencies {
   // DocumentFile (SAF)
   implementation(libs.androidx.documentfile)
 
+  // NanoHTTPD (embedded HTTP server for WiFi transfer)
+  implementation(libs.nanohttpd)
+
   debugImplementation(libs.androidx.ui.tooling)
   debugImplementation(libs.androidx.ui.test.manifest)
 }

@@ -49,6 +49,13 @@
   <uses-permission android:name="com.oculus.permission.RENDER_MODEL" />
   <!-- Volume Control -->
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+  <!-- WiFi Transfer Feature -->
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <application android:allowBackup="false" android:label="TravelCompanion">
     <meta-data
       android:name="com.oculus.supportedDevices"
@@ -85,6 +92,13 @@
       android:launchMode="singleTask"
       android:excludeFromRecents="false"
       android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
+      android:exported="false"
+    />
+
+    <!-- WiFi Transfer Service -->
+    <service
+      android:name="com.example.travelcompanion.vrvideo.domain.transfer.TransferService"
+      android:foregroundServiceType="dataSync"
       android:exported="false"
     />
   </application>

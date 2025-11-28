@@ -19,5 +19,8 @@ interface LibraryFolderDao {
 
   @Query("SELECT * FROM library_folders WHERE id = :id")
   suspend fun getById(id: Long): LibraryFolder?
+
+  @Query("SELECT * FROM library_folders WHERE treeUri = :treeUri")
+  suspend fun getByTreeUri(treeUri: String): LibraryFolder?
 }
 
