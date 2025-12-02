@@ -1,5 +1,6 @@
 package com.example.travelcompanion.vrvideo.ui.screens
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,9 +17,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.travelcompanion.vrvideo.data.db.SourceType
 import com.example.travelcompanion.vrvideo.data.db.VideoItem
 import com.example.travelcompanion.vrvideo.ui.viewmodel.LibraryViewModel
-import android.graphics.BitmapFactory
 import java.io.File
 
 /**
@@ -49,7 +50,7 @@ fun LibraryScreen(
           verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
-            text = "VR Video Library",
+            text = "Travel Companion",
             style = MaterialTheme.typography.headlineMedium,
         )
 
@@ -65,16 +66,10 @@ fun LibraryScreen(
 
       // Video grid
       if (videos.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "No videos found",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 16.dp),
-            )
-            Button(onClick = onAddFolder) { Text("Add Your First Folder") }
-          }
-        }
+        EmptyLibraryContent(
+            onAddFolder = onAddFolder,
+            onManageSources = onManageSources,
+        )
       } else {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 200.dp),
@@ -84,6 +79,52 @@ fun LibraryScreen(
         ) {
           items(videos.sortedBy { it.title }) { video -> VideoCard(video = video, onClick = { onVideoSelected(video) }) }
         }
+      }
+    }
+  }
+}
+
+@Composable
+private fun EmptyLibraryContent(
+    onAddFolder: () -> Unit,
+    onManageSources: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+  Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(32.dp).widthIn(max = 400.dp),
+    ) {
+      Text(
+          text = "🎬",
+          style = MaterialTheme.typography.displayLarge,
+      )
+
+      Text(
+          text = "No Videos Found",
+          style = MaterialTheme.typography.headlineSmall,
+      )
+
+      Text(
+          text = "Add videos to your library by enabling auto-scan or selecting folders manually.",
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(bottom = 8.dp),
+      )
+
+      Button(
+          onClick = onManageSources,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text("Enable Auto-Scan")
+      }
+
+      OutlinedButton(
+          onClick = onAddFolder,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text("Add Folder Manually")
       }
     }
   }
@@ -130,19 +171,39 @@ private fun VideoCard(
           )
         }
 
-        // Show unavailable badge
-        if (video.unavailable) {
-          Surface(
-              modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
-              color = MaterialTheme.colorScheme.error,
-              shape = MaterialTheme.shapes.small,
-          ) {
-            Text(
-                text = "Unavailable",
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onError,
-            )
+        // Show status badges
+        Row(
+            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          // Source type badge
+          if (video.sourceType == SourceType.MEDIASTORE) {
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = MaterialTheme.shapes.small,
+            ) {
+              Text(
+                  text = "Auto",
+                  modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                  style = MaterialTheme.typography.labelSmall,
+                  color = MaterialTheme.colorScheme.onPrimaryContainer,
+              )
+            }
+          }
+
+          // Unavailable badge
+          if (video.unavailable) {
+            Surface(
+                color = MaterialTheme.colorScheme.error,
+                shape = MaterialTheme.shapes.small,
+            ) {
+              Text(
+                  text = "Unavailable",
+                  modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                  style = MaterialTheme.typography.labelSmall,
+                  color = MaterialTheme.colorScheme.onError,
+              )
+            }
           }
         }
       }
@@ -156,11 +217,16 @@ private fun VideoCard(
             overflow = TextOverflow.Ellipsis,
         )
 
-        Text(
-            text = formatDuration(video.durationMs),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+              text = formatDuration(video.durationMs),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
       }
     }
   }

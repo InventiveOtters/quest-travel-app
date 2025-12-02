@@ -8,15 +8,21 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.travelcompanion.vrvideo.data.db.ScanSettings
 import com.example.travelcompanion.vrvideo.data.db.VideoItem
 import com.example.travelcompanion.vrvideo.data.db.VideoLibraryDatabase
 import com.example.travelcompanion.vrvideo.data.repo.LibraryRepository
+import com.example.travelcompanion.vrvideo.data.repo.ScanSettingsRepository
 import com.example.travelcompanion.vrvideo.data.repo.VideoRepository
+import com.example.travelcompanion.vrvideo.domain.permission.PermissionStatus
+import com.example.travelcompanion.vrvideo.domain.permission.VideoPermissionManager
 import com.example.travelcompanion.vrvideo.domain.saf.SAFPermissionManager
 import com.example.travelcompanion.vrvideo.domain.scan.IndexWorker
+import com.example.travelcompanion.vrvideo.domain.scan.MediaStoreScanWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,6 +45,7 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
   private val db = VideoLibraryDatabase.getInstance(application)
   private val libraryRepo = LibraryRepository(application, db)
   private val videoRepo = VideoRepository(db)
+  private val scanSettingsRepo = ScanSettingsRepository(db)
   private val workManager = WorkManager.getInstance(application)
 
   // Search and sort state
@@ -47,6 +54,35 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
 
   private val _sortOption = MutableStateFlow(SortOption.RECENTLY_ADDED)
   val sortOption: StateFlow<SortOption> = _sortOption
+
+  // Permission status
+  private val _permissionStatus = MutableStateFlow(
+      VideoPermissionManager.getPermissionStatus(application)
+  )
+  val permissionStatus: StateFlow<PermissionStatus> = _permissionStatus.asStateFlow()
+
+  /**
+   * Flow of scan settings for MediaStore auto-scan.
+   */
+  val scanSettings: StateFlow<ScanSettings?> = scanSettingsRepo.getSettings()
+      .stateIn(
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000),
+          initialValue = null,
+      )
+
+  init {
+    // Ensure scan settings are initialized
+    viewModelScope.launch {
+      scanSettingsRepo.ensureInitialized()
+
+      // Auto-trigger MediaStore scan on launch if enabled and has permission
+      val settings = scanSettingsRepo.getSettingsSync()
+      if (settings.autoScanEnabled && VideoPermissionManager.hasAnyVideoAccess(application)) {
+        triggerMediaStoreScan()
+      }
+    }
+  }
 
   /**
    * Flow of all library folders.
@@ -165,6 +201,38 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
           workRequest,
       )
     }
+  }
+
+  /**
+   * Refreshes the current permission status.
+   * Call this after permission request results.
+   */
+  fun refreshPermissionStatus() {
+    _permissionStatus.value = VideoPermissionManager.getPermissionStatus(getApplication())
+  }
+
+  /**
+   * Enables or disables MediaStore auto-scan.
+   */
+  fun setAutoScanEnabled(enabled: Boolean) {
+    viewModelScope.launch {
+      scanSettingsRepo.setAutoScanEnabled(enabled)
+      if (enabled && VideoPermissionManager.hasAnyVideoAccess(getApplication())) {
+        triggerMediaStoreScan()
+      }
+    }
+  }
+
+  /**
+   * Triggers a MediaStore scan in the background.
+   */
+  fun triggerMediaStoreScan() {
+    val workRequest = OneTimeWorkRequestBuilder<MediaStoreScanWorker>().build()
+    workManager.enqueueUniqueWork(
+        MediaStoreScanWorker.WORK_NAME,
+        ExistingWorkPolicy.REPLACE,
+        workRequest,
+    )
   }
 }
 

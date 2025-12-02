@@ -1,6 +1,7 @@
 package com.example.travelcompanion.vrvideo.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -10,17 +11,19 @@ import androidx.navigation.navArgument
 import com.example.travelcompanion.vrvideo.ui.screens.AddFolderPanel
 import com.example.travelcompanion.vrvideo.ui.screens.LibraryScreen
 import com.example.travelcompanion.vrvideo.ui.screens.ManageSourcesScreen
+import com.example.travelcompanion.vrvideo.ui.screens.OnboardingScreen
 import com.example.travelcompanion.vrvideo.ui.screens.PlayerScreen
 import com.example.travelcompanion.vrvideo.ui.screens.SettingsScreen
 import com.example.travelcompanion.vrvideo.ui.screens.WiFiTransferScreen
 import com.example.travelcompanion.vrvideo.ui.viewmodel.LibraryViewModel
+import com.example.travelcompanion.vrvideo.ui.viewmodel.OnboardingViewModel
 import com.example.travelcompanion.vrvideo.ui.viewmodel.PlayerViewModel
 import com.example.travelcompanion.vrvideo.ui.viewmodel.SettingsViewModel
 import com.example.travelcompanion.vrvideo.ui.viewmodel.TransferViewModel
 
 /**
  * Navigation host for VR UI.
- * Manages navigation between Add Folder → Library → Player screens.
+ * Manages navigation between Onboarding → Library → Player screens.
  */
 @Composable
 fun VRNavigationHost() {
@@ -29,8 +32,29 @@ fun VRNavigationHost() {
   val playerViewModel: PlayerViewModel = viewModel()
   val settingsViewModel: SettingsViewModel = viewModel()
   val transferViewModel: TransferViewModel = viewModel()
+  val onboardingViewModel: OnboardingViewModel = viewModel()
 
-  NavHost(navController = navController, startDestination = "library") {
+  // Determine start destination based on onboarding status
+  val startDestination = remember {
+    if (onboardingViewModel.shouldShowOnboarding()) "onboarding" else "library"
+  }
+
+  NavHost(navController = navController, startDestination = startDestination) {
+    composable("onboarding") {
+      OnboardingScreen(
+          viewModel = onboardingViewModel,
+          onComplete = {
+            navController.navigate("library") {
+              popUpTo("onboarding") { inclusive = true }
+            }
+          },
+          onUseSaf = {
+            navController.navigate("addFolder") {
+              popUpTo("onboarding") { inclusive = true }
+            }
+          },
+      )
+    }
     composable("library") {
       LibraryScreen(
           viewModel = libraryViewModel,
