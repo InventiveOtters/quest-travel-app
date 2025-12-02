@@ -55,6 +55,12 @@ class TransferRepository(private val context: Context) {
     private val _recentUploads = MutableStateFlow<List<UploadedFile>>(emptyList())
     val recentUploads: StateFlow<List<UploadedFile>> = _recentUploads.asStateFlow()
 
+    private val _currentPin = MutableStateFlow<String?>(null)
+    val currentPin: StateFlow<String?> = _currentPin.asStateFlow()
+
+    private val _pinEnabled = MutableStateFlow(false)
+    val pinEnabled: StateFlow<Boolean> = _pinEnabled.asStateFlow()
+
     private var serviceBound = false
     private var transferService: TransferService? = null
 
@@ -63,6 +69,10 @@ class TransferRepository(private val context: Context) {
             val localBinder = binder as? TransferService.LocalBinder
             transferService = localBinder?.getService()
             serviceBound = true
+
+            // Apply pre-configured PIN state to the service
+            applyPinStateToService()
+
             updateStateFromService()
         }
 
@@ -129,12 +139,62 @@ class TransferRepository(private val context: Context) {
     }
 
     /**
+     * Enables PIN protection and returns the generated PIN.
+     * Can be called before or after server starts - PIN will be applied when service connects.
+     */
+    fun enablePinProtection(): String {
+        val pin = generatePin()
+        _currentPin.value = pin
+        _pinEnabled.value = true
+
+        // If service is already running, apply immediately
+        transferService?.let { service ->
+            service.enablePinProtection()
+            // Sync the PIN we generated
+            service.setPin(pin)
+        }
+
+        return pin
+    }
+
+    /**
+     * Disables PIN protection.
+     */
+    fun disablePinProtection() {
+        _currentPin.value = null
+        _pinEnabled.value = false
+        transferService?.disablePinProtection()
+    }
+
+    /**
+     * Generates a 4-digit PIN.
+     */
+    private fun generatePin(): String {
+        return (1000..9999).random().toString()
+    }
+
+    /**
+     * Applies the current PIN state to the service when it connects.
+     */
+    private fun applyPinStateToService() {
+        val service = transferService ?: return
+        val pin = _currentPin.value
+
+        if (_pinEnabled.value && pin != null) {
+            service.enablePinProtection()
+            service.setPin(pin)
+        } else {
+            service.disablePinProtection()
+        }
+    }
+
+    /**
      * Updates the internal state from the bound service.
      * Called when the service connection is established.
      */
     private fun updateStateFromService() {
         val service = transferService ?: return
-        
+
         when (val serviceState = service.state.value) {
             is TransferService.State.Stopped -> {
                 _serverState.value = ServerState.Stopped
@@ -160,6 +220,9 @@ class TransferRepository(private val context: Context) {
             )
         }
         _recentUploads.value = uploads
+
+        // Note: PIN state is managed locally in the repository and applied to the service,
+        // so we don't overwrite it from service state here
     }
 
     /**

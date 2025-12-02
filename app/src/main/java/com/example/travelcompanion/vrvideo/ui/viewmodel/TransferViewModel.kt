@@ -39,7 +39,9 @@ class TransferViewModel(application: Application) : AndroidViewModel(application
         val availableStorage: String = "...",
         val availableStorageBytes: Long = 0L,
         val isWifiConnected: Boolean = true,
-        val error: String? = null
+        val error: String? = null,
+        val pinEnabled: Boolean = false,
+        val currentPin: String? = null
     ) {
         /** Returns the full server URL with http:// prefix */
         val serverUrl: String? get() = if (isServerRunning && ipAddress != null) {
@@ -134,7 +136,34 @@ class TransferViewModel(application: Application) : AndroidViewModel(application
         if (currentState.isServerRunning || currentState.isStarting) {
             repository.stopServer()
         } else {
+            // Check for critical storage before starting
+            if (isStorageCritical()) {
+                _uiState.value = _uiState.value.copy(
+                    error = "Cannot start server: Storage is critically low (< 500 MB). Please free up space first."
+                )
+                return
+            }
             repository.startServer()
+        }
+    }
+
+    /**
+     * Toggles PIN protection on/off.
+     */
+    fun togglePinProtection() {
+        val currentState = _uiState.value
+        if (currentState.pinEnabled) {
+            repository.disablePinProtection()
+            _uiState.value = _uiState.value.copy(
+                pinEnabled = false,
+                currentPin = null
+            )
+        } else {
+            val pin = repository.enablePinProtection()
+            _uiState.value = _uiState.value.copy(
+                pinEnabled = true,
+                currentPin = pin
+            )
         }
     }
 
@@ -167,6 +196,7 @@ class TransferViewModel(application: Application) : AndroidViewModel(application
         repository.refreshUploads()
         updateStorageInfo()
         updateRecentUploads()
+        updatePinState()
     }
 
     private fun startRefreshLoop() {
@@ -207,6 +237,13 @@ class TransferViewModel(application: Application) : AndroidViewModel(application
             )
         }
         _uiState.value = _uiState.value.copy(recentUploads = uploads)
+    }
+
+    private fun updatePinState() {
+        _uiState.value = _uiState.value.copy(
+            pinEnabled = repository.pinEnabled.value,
+            currentPin = repository.currentPin.value
+        )
     }
 
     private fun formatTimeAgo(timestamp: Long): String {

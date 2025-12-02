@@ -32,14 +32,11 @@ class TransferService : Service() {
 
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "wifi_transfer_channel"
+        const val NOTIFICATION_CHANNEL_UPLOAD_ID = "wifi_transfer_upload_channel"
         const val NOTIFICATION_ID = 1001
+        const val NOTIFICATION_UPLOAD_ID = 1002
+        const val NOTIFICATION_UPLOAD_COMPLETE_ID = 1003
         const val ACTION_STOP = "com.example.travelcompanion.STOP_TRANSFER_SERVICE"
-
-        /** Auto-stop timeout in milliseconds (30 minutes) */
-        const val AUTO_STOP_TIMEOUT_MS = 30 * 60 * 1000L
-
-        /** Check interval for auto-stop (1 minute) */
-        const val AUTO_STOP_CHECK_INTERVAL_MS = 60 * 1000L
 
         /** Special URI prefix for WiFi uploads folder */
         const val WIFI_UPLOADS_FOLDER_URI = "file:///wifi_uploads"
@@ -75,7 +72,13 @@ class TransferService : Service() {
     private val _uploadedFiles = MutableStateFlow<List<UploadServer.UploadedFile>>(emptyList())
     val uploadedFiles: StateFlow<List<UploadServer.UploadedFile>> = _uploadedFiles.asStateFlow()
 
-    private var autoStopJob: Job? = null
+    /** Current PIN for authentication, null if PIN protection is disabled */
+    private val _currentPin = MutableStateFlow<String?>(null)
+    val currentPin: StateFlow<String?> = _currentPin.asStateFlow()
+
+    /** Whether PIN protection is enabled */
+    private val _pinEnabled = MutableStateFlow(false)
+    val pinEnabled: StateFlow<Boolean> = _pinEnabled.asStateFlow()
 
     override fun onCreate() {
         super.onCreate()
@@ -113,7 +116,16 @@ class TransferService : Service() {
     /** Starts the HTTP server */
     private fun startServer() {
         if (server?.isAlive == true) {
-            return // Already running
+            // Server already running - update state to reflect current state
+            val currentIp = NetworkUtils.getWifiIpAddress(this)
+            if (currentIp != null) {
+                val runningState = _state.value
+                if (runningState is State.Running) {
+                    // Already in running state, nothing to do
+                    return
+                }
+            }
+            return
         }
 
         val ipAddress = NetworkUtils.getWifiIpAddress(this)
@@ -123,39 +135,60 @@ class TransferService : Service() {
             return
         }
 
+        // Check if WiFi is actually connected (not just has IP)
+        if (!NetworkUtils.isWifiConnected(this)) {
+            _state.value = State.Error("WiFi network not available")
+            updateNotification("Error: WiFi network not available")
+            return
+        }
+
         val uploadDir = getUploadDirectory()
-        val port = UploadServer.DEFAULT_PORT
 
         try {
-            server = UploadServer(
+            // Use fallback ports mechanism
+            val (newServer, actualPort) = UploadServer.createWithFallbackPorts(
                 context = applicationContext,
-                port = port,
                 uploadDir = uploadDir,
-                onFileUploaded = { file -> onFileUploaded(file) }
-            ).also {
-                it.start()
+                onFileUploaded = { file -> onFileUploaded(file) },
+                onUploadProgress = { filename, progress -> onUploadProgress(filename, progress) },
+                onUploadStarted = { filename, size -> onUploadStarted(filename, size) },
+                onUploadCompleted = { filename, success -> onUploadCompleted(filename, success) },
+                pinVerifier = { pin -> verifyPin(pin) },
+                isPinEnabled = { _pinEnabled.value }
+            )
 
-                // Observe uploaded files
-                serviceScope.launch {
-                    it.uploadedFiles.collect { files ->
-                        _uploadedFiles.value = files
-                    }
+            server = newServer
+
+            // Observe uploaded files
+            serviceScope.launch {
+                newServer.uploadedFiles.collect { files ->
+                    _uploadedFiles.value = files
                 }
             }
 
-            _state.value = State.Running(ipAddress, port)
-            updateNotification("Server running at http://$ipAddress:$port")
-            startAutoStopTimer()
+            _state.value = State.Running(ipAddress, actualPort)
+            updateNotification("Server running at http://$ipAddress:$actualPort")
 
+        } catch (e: java.net.BindException) {
+            _state.value = State.Error("All server ports are in use. Please try again later.")
+            updateNotification("Error: All ports in use")
+            android.util.Log.e("TransferService", "Failed to bind to any port", e)
         } catch (e: Exception) {
-            _state.value = State.Error("Failed to start: ${e.message}")
-            updateNotification("Error: ${e.message}")
+            val errorMsg = when {
+                e.message?.contains("permission", ignoreCase = true) == true ->
+                    "Permission denied. Please check app permissions."
+                e.message?.contains("network", ignoreCase = true) == true ->
+                    "Network error. Please check your connection."
+                else -> "Failed to start: ${e.message}"
+            }
+            _state.value = State.Error(errorMsg)
+            updateNotification("Error: $errorMsg")
+            android.util.Log.e("TransferService", "Failed to start server", e)
         }
     }
 
     /** Stops the HTTP server */
     fun stopServer() {
-        autoStopJob?.cancel()
         server?.stop()
         server = null
         _state.value = State.Stopped
@@ -163,9 +196,6 @@ class TransferService : Service() {
 
     /** Called when a file is successfully uploaded */
     private fun onFileUploaded(file: File) {
-        // Reset auto-stop timer
-        startAutoStopTimer()
-
         // Update notification
         val currentState = _state.value
         if (currentState is State.Running) {
@@ -175,6 +205,69 @@ class TransferService : Service() {
 
         // Trigger video indexing for the uploads folder
         triggerIndexing()
+    }
+
+    /** Called when an upload starts */
+    private fun onUploadStarted(filename: String, size: Long) {
+        showUploadProgressNotification(filename, 0, FileValidator.formatBytes(size))
+    }
+
+    /** Called when upload progress updates */
+    private fun onUploadProgress(filename: String, progress: Int) {
+        showUploadProgressNotification(filename, progress, null)
+    }
+
+    /** Called when an upload completes */
+    private fun onUploadCompleted(filename: String, success: Boolean) {
+        // Cancel the progress notification
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.cancel(NOTIFICATION_UPLOAD_ID)
+
+        if (success) {
+            showUploadCompleteNotification(filename)
+        }
+    }
+
+    /** Shows upload progress in a separate notification */
+    private fun showUploadProgressNotification(filename: String, progress: Int, fileSize: String?) {
+        val notificationManager = getSystemService(NotificationManager::class.java)
+
+        val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_UPLOAD_ID)
+            .setContentTitle("Uploading: $filename")
+            .setContentText(if (fileSize != null) "Size: $fileSize" else "$progress%")
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setProgress(100, progress, progress == 0)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+
+        notificationManager.notify(NOTIFICATION_UPLOAD_ID, builder.build())
+    }
+
+    /** Shows upload complete notification */
+    private fun showUploadCompleteNotification(filename: String) {
+        val uploadCount = server?.getUploadCount() ?: 1
+
+        // Intent to open the app
+        val openIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val openPendingIntent = PendingIntent.getActivity(
+            this, 0, openIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notificationManager = getSystemService(NotificationManager::class.java)
+
+        val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_UPLOAD_ID)
+            .setContentTitle("Upload Complete")
+            .setContentText("$filename uploaded successfully")
+            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setAutoCancel(true)
+            .setContentIntent(openPendingIntent)
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("$filename uploaded successfully.\nTotal uploads this session: $uploadCount"))
+
+        notificationManager.notify(NOTIFICATION_UPLOAD_COMPLETE_ID, builder.build())
     }
 
     /** Gets or creates the upload directory */
@@ -189,24 +282,38 @@ class TransferService : Service() {
     /** Returns the upload directory path */
     fun getUploadDirectoryPath(): File = getUploadDirectory()
 
-    /** Starts/resets the auto-stop timer */
-    private fun startAutoStopTimer() {
-        autoStopJob?.cancel()
-        autoStopJob = serviceScope.launch {
-            delay(AUTO_STOP_TIMEOUT_MS)
-            // Check if there was recent activity
-            val lastActivity = server?.lastActivityTime?.value ?: 0L
-            val timeSinceActivity = System.currentTimeMillis() - lastActivity
-            if (timeSinceActivity >= AUTO_STOP_TIMEOUT_MS) {
-                withContext(Dispatchers.Main) {
-                    stopServer()
-                    stopSelf()
-                }
-            } else {
-                // Reset timer for remaining time
-                startAutoStopTimer()
-            }
-        }
+    /** Enables PIN protection and generates a new 4-digit PIN */
+    fun enablePinProtection(): String {
+        val pin = generatePin()
+        _currentPin.value = pin
+        _pinEnabled.value = true
+        android.util.Log.i("TransferService", "PIN protection enabled")
+        return pin
+    }
+
+    /** Sets a specific PIN (used when PIN was pre-configured before server started) */
+    fun setPin(pin: String) {
+        _currentPin.value = pin
+        _pinEnabled.value = true
+        android.util.Log.i("TransferService", "PIN set from repository")
+    }
+
+    /** Disables PIN protection */
+    fun disablePinProtection() {
+        _currentPin.value = null
+        _pinEnabled.value = false
+        android.util.Log.i("TransferService", "PIN protection disabled")
+    }
+
+    /** Generates a new 4-digit PIN */
+    private fun generatePin(): String {
+        return (1000..9999).random().toString()
+    }
+
+    /** Verifies if the provided PIN matches the current PIN */
+    fun verifyPin(pin: String): Boolean {
+        val currentPin = _currentPin.value ?: return true // No PIN required if not enabled
+        return pin == currentPin
     }
 
     /** Triggers video indexing for uploaded files */
@@ -252,19 +359,31 @@ class TransferService : Service() {
         }
     }
 
-    /** Creates the notification channel (required for Android O+) */
+    /** Creates the notification channels (required for Android O+) */
     private fun createNotificationChannel() {
-        val channel = NotificationChannel(
+        val notificationManager = getSystemService(NotificationManager::class.java)
+
+        // Main server status channel
+        val serverChannel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
-            "WiFi Transfer",
+            "WiFi Transfer Server",
             NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = "Shows when WiFi transfer server is running"
             setShowBadge(false)
         }
+        notificationManager.createNotificationChannel(serverChannel)
 
-        val notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(channel)
+        // Upload progress channel
+        val uploadChannel = NotificationChannel(
+            NOTIFICATION_CHANNEL_UPLOAD_ID,
+            "WiFi Transfer Uploads",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Shows upload progress and completion notifications"
+            setShowBadge(true)
+        }
+        notificationManager.createNotificationChannel(uploadChannel)
     }
 
     /** Creates the foreground notification */

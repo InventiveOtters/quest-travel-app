@@ -5,7 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Warning
@@ -50,6 +52,7 @@ fun WiFiTransferScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -127,6 +130,15 @@ fun WiFiTransferScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // PIN Protection Section
+            PinProtectionCard(
+                pinEnabled = uiState.pinEnabled,
+                currentPin = uiState.currentPin,
+                onTogglePin = { viewModel.togglePinProtection() }
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // Recent Uploads Section
@@ -134,7 +146,7 @@ fun WiFiTransferScreen(
                 RecentUploadsSection(uploads = uiState.recentUploads)
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Storage Info
             StorageInfoCard(
@@ -340,25 +352,133 @@ private fun StorageInfoCard(
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Text(
-                text = if (isCritical) "⚠️ Storage Available:" else "Storage Available:",
-                style = MaterialTheme.typography.bodyMedium,
-                color = textColor
-            )
-            Text(
-                text = availableStorage,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = when {
+                        isCritical -> "⚠️ Storage Critical:"
+                        isLow -> "⚠️ Storage Low:"
+                        else -> "Storage Available:"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = textColor
+                )
+                Text(
+                    text = availableStorage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+            }
+
+            // Show warning message for low/critical storage
+            if (isCritical) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Storage is critically low. Uploads are disabled until you free up space.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor
+                )
+            } else if (isLow) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Storage is running low. Consider freeing up space soon.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor
+                )
+            }
         }
     }
 }
 
+@Composable
+private fun PinProtectionCard(
+    pinEnabled: Boolean,
+    currentPin: String?,
+    onTogglePin: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = if (pinEnabled) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            }
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "🔒 PIN Protection",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (pinEnabled) "Uploads require PIN" else "Anyone on the network can upload",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = pinEnabled,
+                    onCheckedChange = { onTogglePin() }
+                )
+            }
+
+            // Show PIN when enabled
+            if (pinEnabled && currentPin != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(
+                            width = 2.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "PIN Code",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = currentPin,
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Enter this PIN in the web browser",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
