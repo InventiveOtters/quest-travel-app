@@ -5,8 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -14,19 +14,21 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.travelcompanion.MainActivity
-import com.example.travelcompanion.vrvideo.data.db.LibraryFolder
-import com.example.travelcompanion.vrvideo.data.db.VideoLibraryDatabase
-import com.example.travelcompanion.vrvideo.domain.scan.LocalDirectoryWorker
+import com.example.travelcompanion.vrvideo.domain.scan.MediaStoreScanWorker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
 
 /**
  * Foreground service that manages the WiFi transfer HTTP server.
  * Keeps the server running even when the app is in the background.
  * Provides persistent notification with server status and stop action.
+ *
+ * Files are uploaded directly to MediaStore (Movies/TravelCompanion/) so they:
+ * - Survive app uninstall
+ * - Are visible to other apps (file managers, galleries)
+ * - Are discovered by MediaStoreScanWorker automatically
  */
 class TransferService : Service() {
 
@@ -37,12 +39,6 @@ class TransferService : Service() {
         const val NOTIFICATION_UPLOAD_ID = 1002
         const val NOTIFICATION_UPLOAD_COMPLETE_ID = 1003
         const val ACTION_STOP = "com.example.travelcompanion.STOP_TRANSFER_SERVICE"
-
-        /** Special URI prefix for WiFi uploads folder */
-        const val WIFI_UPLOADS_FOLDER_URI = "file:///wifi_uploads"
-
-        /** Display name for WiFi uploads folder */
-        const val WIFI_UPLOADS_FOLDER_NAME = "WiFi Uploads"
 
         private var _instance: TransferService? = null
         val instance: TransferService? get() = _instance
@@ -142,14 +138,12 @@ class TransferService : Service() {
             return
         }
 
-        val uploadDir = getUploadDirectory()
-
         try {
-            // Use fallback ports mechanism
+            // Use fallback ports mechanism - files go directly to MediaStore
             val (newServer, actualPort) = UploadServer.createWithFallbackPorts(
                 context = applicationContext,
-                uploadDir = uploadDir,
-                onFileUploaded = { file -> onFileUploaded(file) },
+                contentResolver = contentResolver,
+                onFileUploaded = { uri -> onFileUploaded(uri) },
                 onUploadProgress = { filename, progress -> onUploadProgress(filename, progress) },
                 onUploadStarted = { filename, size -> onUploadStarted(filename, size) },
                 onUploadCompleted = { filename, success -> onUploadCompleted(filename, success) },
@@ -194,8 +188,8 @@ class TransferService : Service() {
         _state.value = State.Stopped
     }
 
-    /** Called when a file is successfully uploaded */
-    private fun onFileUploaded(file: File) {
+    /** Called when a file is successfully uploaded to MediaStore */
+    private fun onFileUploaded(contentUri: Uri) {
         // Update notification
         val currentState = _state.value
         if (currentState is State.Running) {
@@ -270,18 +264,6 @@ class TransferService : Service() {
         notificationManager.notify(NOTIFICATION_UPLOAD_COMPLETE_ID, builder.build())
     }
 
-    /** Gets or creates the upload directory */
-    private fun getUploadDirectory(): File {
-        val dir = File(filesDir, "wifi_uploads")
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
-        return dir
-    }
-
-    /** Returns the upload directory path */
-    fun getUploadDirectoryPath(): File = getUploadDirectory()
-
     /** Enables PIN protection and generates a new 4-digit PIN */
     fun enablePinProtection(): String {
         val pin = generatePin()
@@ -316,46 +298,24 @@ class TransferService : Service() {
         return pin == currentPin
     }
 
-    /** Triggers video indexing for uploaded files */
+    /**
+     * Triggers MediaStore scan to discover uploaded files.
+     * Files are already in MediaStore (Movies/TravelCompanion/), just need to scan.
+     */
     private fun triggerIndexing() {
-        serviceScope.launch {
-            try {
-                val db = VideoLibraryDatabase.getInstance(applicationContext)
-                val foldersDao = db.libraryFolderDao()
+        try {
+            // Schedule MediaStoreScanWorker to discover the uploaded file
+            val workRequest = OneTimeWorkRequestBuilder<MediaStoreScanWorker>().build()
 
-                // Get or create the WiFi uploads folder in the database
-                var folder = foldersDao.getByTreeUri(WIFI_UPLOADS_FOLDER_URI)
-                if (folder == null) {
-                    // Create a new library folder entry for WiFi uploads
-                    val folderId = foldersDao.insert(
-                        LibraryFolder(
-                            treeUri = WIFI_UPLOADS_FOLDER_URI,
-                            displayName = WIFI_UPLOADS_FOLDER_NAME,
-                            includeSubfolders = false,
-                            addedAt = System.currentTimeMillis()
-                        )
-                    )
-                    folder = foldersDao.getById(folderId)
-                }
+            WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+                MediaStoreScanWorker.WORK_NAME,
+                ExistingWorkPolicy.REPLACE,
+                workRequest
+            )
 
-                val folderId = folder?.id ?: return@launch
-                val uploadDir = getUploadDirectory()
-
-                // Schedule LocalDirectoryWorker to index the uploads folder
-                val workRequest = OneTimeWorkRequestBuilder<LocalDirectoryWorker>()
-                    .setInputData(LocalDirectoryWorker.inputData(uploadDir.absolutePath, folderId))
-                    .build()
-
-                WorkManager.getInstance(applicationContext).enqueueUniqueWork(
-                    "index_wifi_uploads",
-                    ExistingWorkPolicy.REPLACE,
-                    workRequest
-                )
-
-                android.util.Log.d("TransferService", "Scheduled indexing for WiFi uploads folder")
-            } catch (e: Exception) {
-                android.util.Log.e("TransferService", "Failed to trigger indexing", e)
-            }
+            android.util.Log.d("TransferService", "Scheduled MediaStore scan for uploaded file")
+        } catch (e: Exception) {
+            android.util.Log.e("TransferService", "Failed to trigger MediaStore scan", e)
         }
     }
 

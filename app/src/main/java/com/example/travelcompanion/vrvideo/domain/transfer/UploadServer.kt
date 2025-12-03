@@ -1,22 +1,28 @@
 package com.example.travelcompanion.vrvideo.domain.transfer
 
+import android.content.ContentResolver
 import android.content.Context
+import android.net.Uri
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
 
 /**
  * Embedded HTTP server for WiFi video file uploads.
  * Uses NanoHTTPD to serve a web interface and handle multipart file uploads.
  *
+ * Files are uploaded directly to MediaStore (Movies/TravelCompanion/) so they:
+ * - Survive app uninstall
+ * - Are visible to other apps (file managers, galleries)
+ * - Are discovered by MediaStoreScanWorker automatically
+ *
  * @param context Android application context (for assets and storage)
+ * @param contentResolver ContentResolver for MediaStore operations
  * @param port Port to listen on (default 8080)
- * @param uploadDir Directory to save uploaded files
- * @param onFileUploaded Callback invoked when a file is successfully uploaded
+ * @param onFileUploaded Callback invoked when a file is successfully uploaded (receives content URI)
  * @param onUploadProgress Callback for upload progress updates (filename, progress 0-100)
  * @param onUploadStarted Callback when upload starts (filename, size)
  * @param onUploadCompleted Callback when upload completes (filename, success)
@@ -24,9 +30,9 @@ import java.io.File
  */
 class UploadServer(
     private val context: Context,
+    private val contentResolver: ContentResolver,
     private val port: Int = DEFAULT_PORT,
-    private val uploadDir: File,
-    private val onFileUploaded: (File) -> Unit = {},
+    private val onFileUploaded: (Uri) -> Unit = {},
     private val onUploadProgress: (String, Int) -> Unit = { _, _ -> },
     private val onUploadStarted: (String, Long) -> Unit = { _, _ -> },
     private val onUploadCompleted: (String, Boolean) -> Unit = { _, _ -> },
@@ -34,10 +40,22 @@ class UploadServer(
     private val isPinEnabled: () -> Boolean = { false }
 ) : NanoHTTPD(port) {
 
+    /** Current TempFileManager for accessing uploaded temp files */
+    private var currentTempFileManager: MediaStoreTempFileManager? = null
+
     init {
-        // Use FastTempFileManager to write temp files directly to upload directory
-        // This avoids the slow copy from Android's default temp dir to upload dir
-        setTempFileManagerFactory(FastTempFileManager.Factory(uploadDir))
+        // Use MediaStoreTempFileManager to write uploads directly to MediaStore
+        // Files go to Movies/TravelCompanion/ and survive app uninstall
+        // The cacheDir is used for internal NanoHTTPD buffering (getTmpBucket)
+        val tempDir = context.cacheDir
+        setTempFileManagerFactory(object : TempFileManagerFactory {
+            override fun create(): TempFileManager {
+                val uploader = MediaStoreUploader(contentResolver)
+                val manager = MediaStoreTempFileManager(uploader, tempDir)
+                currentTempFileManager = manager
+                return manager
+            }
+        })
     }
 
     companion object {
@@ -56,8 +74,8 @@ class UploadServer(
          */
         fun createWithFallbackPorts(
             context: Context,
-            uploadDir: File,
-            onFileUploaded: (File) -> Unit = {},
+            contentResolver: ContentResolver,
+            onFileUploaded: (Uri) -> Unit = {},
             onUploadProgress: (String, Int) -> Unit = { _, _ -> },
             onUploadStarted: (String, Long) -> Unit = { _, _ -> },
             onUploadCompleted: (String, Boolean) -> Unit = { _, _ -> },
@@ -70,8 +88,8 @@ class UploadServer(
                 try {
                     val server = UploadServer(
                         context = context,
+                        contentResolver = contentResolver,
                         port = port,
-                        uploadDir = uploadDir,
                         onFileUploaded = onFileUploaded,
                         onUploadProgress = onUploadProgress,
                         onUploadStarted = onUploadStarted,
@@ -121,13 +139,6 @@ class UploadServer(
     val currentUpload: StateFlow<UploadProgress?> = _currentUpload.asStateFlow()
 
     private var uploadCount = 0
-
-    init {
-        // Ensure upload directory exists
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs()
-        }
-    }
 
     override fun serve(session: IHTTPSession): Response {
         _lastActivityTime.value = System.currentTimeMillis()
@@ -250,8 +261,8 @@ class UploadServer(
             return errorResponse("Failed to parse upload: ${e.message}")
         }
 
-        // Get the uploaded file info
-        val tempFilePath = files["file"] ?: run {
+        // Get the uploaded file info - now this is a MediaStore content URI string
+        val tempFileUri = files["file"] ?: run {
             _currentUpload.value = null
             onUploadCompleted(rawFilename, false)
             return errorResponse("No file provided")
@@ -263,22 +274,26 @@ class UploadServer(
         }
 
         // Validate file type by extension only
-        // Note: session.headers["content-type"] is the request content-type (multipart/form-data),
-        // not the file's MIME type, so we pass null to rely on extension validation
         if (!FileValidator.isValidVideoFile(filename, null)) {
-            // Clean up temp file
-            File(tempFilePath).delete()
             _currentUpload.value = null
             onUploadCompleted(filename, false)
             return unsupportedMediaResponse("Invalid file type. Only ${FileValidator.getSupportedExtensionsDisplay()} files are supported.")
         }
 
-        val tempFile = File(tempFilePath)
-        val fileSize = tempFile.length()
+        // Find the MediaStore temp file to finalize it
+        val tempFile = currentTempFileManager?.findByUri(tempFileUri)
+        if (tempFile == null) {
+            _currentUpload.value = null
+            onUploadCompleted(filename, false)
+            return errorResponse("Upload processing error: temp file not found")
+        }
 
-        // Check storage
+        // Query file size from MediaStore
+        val fileSize = getMediaStoreFileSize(tempFile.uri)
+
+        // Check storage (for safety - MediaStore should handle this)
         if (!FileValidator.hasEnoughStorage(context, fileSize)) {
-            tempFile.delete()
+            tempFile.delete() // This cancels the MediaStore entry
             _currentUpload.value = null
             onUploadCompleted(filename, false)
             return storageErrorResponse("Not enough storage space. Need ${FileValidator.formatBytes(fileSize + 500_000_000)}")
@@ -288,45 +303,60 @@ class UploadServer(
         _currentUpload.value = UploadProgress(filename, fileSize, 95)
         onUploadProgress(filename, 95)
 
-        // Move file to final location
-        // Since FastTempFileManager writes temp files to uploadDir, we can use
-        // renameTo() which is instant (same filesystem) instead of copyTo() which
-        // requires reading and writing the entire file again
-        val destFile = getUniqueFile(uploadDir, filename)
+        // Finalize the MediaStore entry (set IS_PENDING=0 to make it visible)
         return try {
-            val renamed = tempFile.renameTo(destFile)
-            if (!renamed) {
-                // Fallback to copy if rename fails (e.g., cross-filesystem)
-                android.util.Log.w("UploadServer", "renameTo failed, falling back to copy")
-                tempFile.copyTo(destFile, overwrite = true)
-                tempFile.delete()
+            val finalized = tempFile.finalize()
+            if (!finalized) {
+                throw Exception("Failed to finalize MediaStore entry")
             }
 
+            // Remove from temp file tracking so clear() doesn't delete it
+            currentTempFileManager?.markFinalized(tempFile)
+
             uploadCount++
-            val uploadedFile = UploadedFile(destFile.name, fileSize)
+            val uploadedFile = UploadedFile(filename, fileSize)
             _uploadedFiles.value = listOf(uploadedFile) + _uploadedFiles.value
 
             // Mark upload complete
-            _currentUpload.value = UploadProgress(destFile.name, fileSize, 100)
-            onUploadProgress(destFile.name, 100)
-            onUploadCompleted(destFile.name, true)
+            _currentUpload.value = UploadProgress(filename, fileSize, 100)
+            onUploadProgress(filename, 100)
+            onUploadCompleted(filename, true)
             _currentUpload.value = null
 
-            onFileUploaded(destFile)
+            onFileUploaded(tempFile.uri)
 
             val json = JSONObject().apply {
                 put("success", true)
-                put("filename", destFile.name)
+                put("filename", filename)
                 put("size", fileSize)
                 put("sizeFormatted", FileValidator.formatBytes(fileSize))
             }
             newFixedLengthResponse(Response.Status.OK, MIME_JSON, json.toString())
         } catch (e: Exception) {
-            tempFile.delete()
-            destFile.delete()
+            tempFile.delete() // Cancel the MediaStore entry
             _currentUpload.value = null
             onUploadCompleted(filename, false)
             errorResponse("Failed to save file: ${e.message}")
+        }
+    }
+
+    /**
+     * Queries the file size from MediaStore for a given content URI.
+     */
+    private fun getMediaStoreFileSize(uri: Uri): Long {
+        return try {
+            contentResolver.query(
+                uri,
+                arrayOf(android.provider.MediaStore.Video.Media.SIZE),
+                null, null, null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    cursor.getLong(0)
+                } else 0L
+            } ?: 0L
+        } catch (e: Exception) {
+            android.util.Log.w("UploadServer", "Failed to get file size: ${e.message}")
+            0L
         }
     }
 
@@ -389,39 +419,11 @@ class UploadServer(
         return errorResponse(message, Response.Status.UNSUPPORTED_MEDIA_TYPE)
     }
 
-    /**
-     * Gets a unique filename in the target directory.
-     * If a file with the same name exists, appends a number.
-     */
-    private fun getUniqueFile(directory: File, filename: String): File {
-        var destFile = File(directory, filename)
-        if (!destFile.exists()) return destFile
-
-        val nameWithoutExt = filename.substringBeforeLast('.')
-        val extension = filename.substringAfterLast('.', "")
-        var counter = 1
-
-        while (destFile.exists()) {
-            val newName = if (extension.isNotEmpty()) {
-                "${nameWithoutExt}_$counter.$extension"
-            } else {
-                "${nameWithoutExt}_$counter"
-            }
-            destFile = File(directory, newName)
-            counter++
-        }
-
-        return destFile
-    }
-
     /** Clears the upload history (not the files themselves) */
     fun clearUploadHistory() {
         _uploadedFiles.value = emptyList()
         uploadCount = 0
     }
-
-    /** Gets the upload directory */
-    fun getUploadDirectory(): File = uploadDir
 
     /** Gets the total number of uploads this session */
     fun getUploadCount(): Int = uploadCount
