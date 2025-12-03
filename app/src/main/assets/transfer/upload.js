@@ -19,12 +19,14 @@ const activeUploads = new Map();
 const uploadMetadata = new Map(); // Track start time, speed calculations
 let pinRequired = false;
 let verifiedPin = null;
+let incompleteUploads = []; // Track incomplete uploads that can be resumed
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     fetchStatus();
     fetchFileList();
+    fetchIncompleteUploads(); // Check for resumable uploads
     // Refresh status periodically
     setInterval(fetchStatus, 30000);
 });
@@ -531,6 +533,119 @@ async function fetchFileList() {
     } catch (e) {
         fileList.innerHTML = '<p class="empty-state">Unable to fetch files</p>';
     }
+}
+
+// Fetch incomplete uploads that can be resumed
+async function fetchIncompleteUploads() {
+    try {
+        const response = await fetch('/api/incomplete-uploads');
+        const data = await response.json();
+
+        incompleteUploads = data.uploads || [];
+
+        if (incompleteUploads.length > 0 && data.resumeSupported) {
+            showIncompleteUploadsUI();
+        } else {
+            hideIncompleteUploadsUI();
+        }
+    } catch (e) {
+        console.log('Unable to fetch incomplete uploads:', e);
+        incompleteUploads = [];
+    }
+}
+
+// Show UI for incomplete uploads
+function showIncompleteUploadsUI() {
+    let section = document.getElementById('incomplete-uploads-section');
+
+    if (!section) {
+        section = document.createElement('div');
+        section.id = 'incomplete-uploads-section';
+        section.style.cssText = `
+            background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        `;
+
+        // Insert before the drop zone
+        const container = dropZone.parentElement;
+        container.insertBefore(section, dropZone);
+    }
+
+    section.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <span style="font-size: 24px;">⏸️</span>
+            <div>
+                <h3 style="color: white; margin: 0; font-size: 18px;">Incomplete Uploads Found</h3>
+                <p style="color: rgba(255,255,255,0.7); margin: 4px 0 0 0; font-size: 14px;">
+                    ${incompleteUploads.length} upload${incompleteUploads.length > 1 ? 's' : ''} can be resumed
+                </p>
+            </div>
+        </div>
+        <div id="incomplete-uploads-list" style="display: flex; flex-direction: column; gap: 12px;">
+            ${incompleteUploads.map(upload => `
+                <div class="incomplete-upload-item" data-session-id="${upload.sessionId}" style="
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 8px;
+                    padding: 12px 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                ">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="color: white; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${escapeHtml(upload.filename)}
+                        </div>
+                        <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 4px;">
+                            ${upload.bytesReceivedFormatted} / ${upload.expectedSizeFormatted} (${upload.progressPercent}%)
+                        </div>
+                        <div style="background: rgba(255,255,255,0.2); border-radius: 4px; height: 4px; margin-top: 8px; overflow: hidden;">
+                            <div style="background: #7c4dff; height: 100%; width: ${upload.progressPercent}%; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    <button onclick="resumeUpload(${upload.sessionId})" style="
+                        background: #7c4dff;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 8px 16px;
+                        cursor: pointer;
+                        font-weight: 500;
+                        white-space: nowrap;
+                    ">Resume</button>
+                </div>
+            `).join('')}
+        </div>
+        <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; text-align: center;">
+            💡 To resume, select the same file from your computer
+        </p>
+    `;
+}
+
+// Hide incomplete uploads UI
+function hideIncompleteUploadsUI() {
+    const section = document.getElementById('incomplete-uploads-section');
+    if (section) {
+        section.remove();
+    }
+}
+
+// Resume an incomplete upload (placeholder - user needs to re-select file)
+function resumeUpload(sessionId) {
+    const upload = incompleteUploads.find(u => u.sessionId === sessionId);
+    if (!upload) {
+        showError('Upload session not found');
+        return;
+    }
+
+    // Show instructions to user
+    showToast(`To resume "${upload.filename}", please select the same file again`, 'info');
+
+    // Trigger file picker
+    fileInput.click();
 }
 
 // Utility: Format bytes to human readable

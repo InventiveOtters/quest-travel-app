@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-  namespace = "com.example.travelcompanion"
+  namespace = "com.inotter.travelcompanion"
   //noinspection GradleDependency
   compileSdk = 34
 
