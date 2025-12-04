@@ -17,6 +17,8 @@ documentfile = "1.0.1"
 ksp = "2.1.0-1.0.29"
 navigation = "2.8.3"
 nanohttpd = "2.3.1"
+hilt = "2.56"
+hiltNavigationCompose = "1.2.0"
 
 
 [libraries]
@@ -71,6 +73,13 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 # NanoHTTPD (embedded HTTP server)
 nanohttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanohttpd" }
 
+# Hilt
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltNavigationCompose" }
+hilt-work-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltNavigationCompose" }
+
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
@@ -84,3 +93,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 jetbrains-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 meta-spatial-plugin = { id = "com.meta.spatial.plugin", version.ref = "spatialsdk" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

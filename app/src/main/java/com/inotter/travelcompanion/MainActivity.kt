@@ -7,12 +7,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import com.meta.spatial.okhttp3.OkHttpAssetFetcher
 import com.meta.spatial.runtime.NetworkedAssetLoader
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 
 /**
  * Main 2D panel activity for Travel Companion app.
  * This activity displays the app as a 2D panel in Meta Quest Home.
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {

@@ -24,6 +24,13 @@ import com.meta.spatial.toolkit.UIPanelSettings
 import com.meta.spatial.vr.VRFeature
 import java.io.File
 
+/**
+ * Immersive VR activity for Travel Companion.
+ * Extends Meta Spatial SDK's AppSystemActivity for VR functionality.
+ *
+ * Note: Cannot use @AndroidEntryPoint because AppSystemActivity is not a subclass
+ * of ComponentActivity. Hilt injection is handled through the Compose ViewModels.
+ */
 class ImmersiveActivity : AppSystemActivity() {
 
   override fun registerFeatures(): List<SpatialFeature> {

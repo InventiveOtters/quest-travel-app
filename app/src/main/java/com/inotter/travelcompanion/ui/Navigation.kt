@@ -10,20 +10,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.inotter.travelcompanion.ui.components.IncompleteUploadsDialog
-import com.inotter.travelcompanion.ui.screens.AddFolderPanel
-import com.inotter.travelcompanion.ui.screens.LibraryScreen
-import com.inotter.travelcompanion.ui.screens.ManageSourcesScreen
-import com.inotter.travelcompanion.ui.screens.OnboardingScreen
-import com.inotter.travelcompanion.ui.screens.PlayerScreen
-import com.inotter.travelcompanion.ui.screens.SettingsScreen
-import com.inotter.travelcompanion.ui.screens.WiFiTransferScreen
-import com.inotter.travelcompanion.ui.viewmodel.IncompleteUploadsViewModel
-import com.inotter.travelcompanion.ui.viewmodel.LibraryViewModel
-import com.inotter.travelcompanion.ui.viewmodel.OnboardingViewModel
-import com.inotter.travelcompanion.ui.viewmodel.PlayerViewModel
-import com.inotter.travelcompanion.ui.viewmodel.SettingsViewModel
-import com.inotter.travelcompanion.ui.viewmodel.TransferViewModel
+import com.inotter.travelcompanion.ui.core.components.IncompleteUploadsDialog
+import com.inotter.travelcompanion.ui.library.AddFolderPanel
+import com.inotter.travelcompanion.ui.library.LibraryScreen
+import com.inotter.travelcompanion.ui.library.LibraryViewModel
+import com.inotter.travelcompanion.ui.library.ManageSourcesScreen
+import com.inotter.travelcompanion.ui.onboarding.OnboardingScreen
+import com.inotter.travelcompanion.ui.onboarding.OnboardingViewModel
+import com.inotter.travelcompanion.ui.player.PlayerScreen
+import com.inotter.travelcompanion.ui.player.PlayerViewModel
+import com.inotter.travelcompanion.ui.settings.SettingsScreen
+import com.inotter.travelcompanion.ui.settings.SettingsViewModel
+import com.inotter.travelcompanion.ui.transfer.IncompleteUploadsViewModel
+import com.inotter.travelcompanion.ui.transfer.TransferViewModel
+import com.inotter.travelcompanion.ui.transfer.WiFiTransferScreen
 
 /**
  * Navigation host for VR UI.

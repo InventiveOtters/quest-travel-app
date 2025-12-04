@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.meta.spatial.plugin)
   alias(libs.plugins.jetbrains.kotlin.plugin.compose)
   alias(libs.plugins.ksp)
+  alias(libs.plugins.hilt.android)
 }
 
 android {
@@ -12,7 +13,7 @@ android {
   compileSdk = 34
 
   defaultConfig {
-    applicationId = "com.example.travelcompanion"
+    applicationId = "com.inotter.travelcompanion"
     minSdk = 34
     // HorizonOS is Android 14 (API level 34)
     //noinspection OldTargetApi,ExpiredTargetSdkVersion
@@ -105,6 +106,13 @@ dependencies {
   // NanoHTTPD (embedded HTTP server for WiFi transfer)
   implementation(libs.nanohttpd)
 
+  // Hilt
+  implementation(libs.hilt.android)
+  ksp(libs.hilt.compiler)
+  implementation(libs.hilt.navigation.compose)
+  implementation(libs.hilt.work)
+  ksp(libs.hilt.work.compiler)
+
   debugImplementation(libs.androidx.ui.tooling)
   debugImplementation(libs.androidx.ui.test.manifest)
 }
@@ -126,7 +134,7 @@ spatial {
       }
     }
     hotReload {
-      appPackage.set("com.example.travelcompanion")
+      appPackage.set("com.inotter.travelcompanion")
       appMainActivity.set(".ImmersiveActivity")
       assetsDir.set(File("src/main/assets"))
     }

@@ -7,7 +7,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import com.inotter.travelcompanion.data.db.StereoLayout
+import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 
 /**
  * Core playback engine using ExoPlayer.
