@@ -6,6 +6,7 @@ entities:
         com.meta.components.Scene:
           nodes:
             - ref:VRVideoLibraryPanel
+            - ref:ControlsPanel
             - ref:Environment
       tag: Scene
   com.meta.models.SceneNode:
@@ -61,5 +62,35 @@ entities:
         com.meta.spatial.toolkit.PanelDimensions:
           {}
       tag: VRVideoLibraryPanel
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: ControlsPanel
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 6.12323426e-17
+            - 6.12323426e-17
+            - 1
+            - -3.74939976e-33
+          rotation.format: Quaternion
+          scale:
+            - 1.2
+            - 0.4
+            - 1
+          translation:
+            - 0
+            - 0.30000001
+            - -1.39989443
+          componentVersion: 1
+        com.meta.components.Visibility:
+          visible: true
+        com.meta.spatial.toolkit.Panel:
+          panel: "@id/immersive_controls_panel"
+        com.meta.spatial.toolkit.PanelDimensions:
+          {}
+      tag: ControlsPanel
 metadata:
   version: 1.34

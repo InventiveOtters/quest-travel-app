@@ -17,6 +17,7 @@
 local.properties
 
 # Added by automation: ensure common Kotlin/Android and universal ignores
+PremiumMediaSample
 build/
 out/
 *.class
