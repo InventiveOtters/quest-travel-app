@@ -5,6 +5,7 @@ entities:
           {}
         com.meta.components.Scene:
           nodes:
+            - ref:Environment2
             - ref:Projector
             - ref:Cube
             - ref:VRVideoLibraryPanel
@@ -174,5 +175,25 @@ entities:
         com.meta.components.Visibility:
           visible: true
       tag: Projector
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.DocumentReference:
+          transformType: None
+          documentReference: projref:collab_room1/Main.metaspatialobj
+        com.meta.components.Name:
+          name: Environment2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.format: Euler
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.Visibility:
+          {}
+      tag: Environment2
 metadata:
   version: 1.35

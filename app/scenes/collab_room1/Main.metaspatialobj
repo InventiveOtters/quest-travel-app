@@ -4,7 +4,7 @@ entities:
     - components:
         com.meta.components.AssetFolder:
           assets:
-            - ref:Room1
+            - ref:Room
             - ref:Wood
             - ref:cushion
             - ref:Cushion
@@ -29,19 +29,9 @@ entities:
   com.meta.models.Geometry:
     - components:
         com.meta.components.Geometry:
-          data: binary/Geometry4.bin
+          data: binary/Geometry.bin
           mode: Triangles
-      tag: Geometry4
-    - components:
-        com.meta.components.Geometry:
-          data: binary/Geometry3.bin
-          mode: Triangles
-      tag: Geometry3
-    - components:
-        com.meta.components.Geometry:
-          data: binary/Geometry2.bin
-          mode: Triangles
-      tag: Geometry2
+      tag: Geometry
     - components:
         com.meta.components.Geometry:
           data: binary/Geometry1.bin
@@ -49,9 +39,19 @@ entities:
       tag: Geometry1
     - components:
         com.meta.components.Geometry:
-          data: binary/Geometry.bin
+          data: binary/Geometry2.bin
           mode: Triangles
-      tag: Geometry
+      tag: Geometry2
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry3.bin
+          mode: Triangles
+      tag: Geometry3
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry4.bin
+          mode: Triangles
+      tag: Geometry4
   com.meta.models.Image:
     - components:
         com.meta.components.Asset:
@@ -65,14 +65,14 @@ entities:
       tag: cushion
     - components:
         com.meta.components.Asset:
-          path: assets/Room1.jpg
+          path: assets/Room.jpg
         com.meta.components.Image:
           height: 4096
           mimeType: image/jpeg
           width: 4096
         com.meta.components.Name:
           name: Room
-      tag: Room1
+      tag: Room
     - components:
         com.meta.components.Asset:
           path: assets/Wood.jpg
@@ -84,12 +84,12 @@ entities:
           name: Wood
       tag: Wood
   com.meta.models.Material:
+    - uri: docref:materials/WindowFrame.metaspatialmaterial
+      tag: WindowFrame
     - uri: docref:materials/Cushion.metaspatialmaterial
       tag: Cushion
     - uri: docref:materials/Wood01.metaspatialmaterial
       tag: Wood01
-    - uri: docref:materials/WindowFrame.metaspatialmaterial
-      tag: WindowFrame
     - uri: docref:materials/WhiteWalls.metaspatialmaterial
       tag: WhiteWalls
     - uri: docref:materials/GlassClear.metaspatialmaterial
@@ -103,32 +103,6 @@ entities:
             []
           primitives:
             - ref:Primitive4
-        com.meta.components.Name:
-          name: Mesh.003
-        com.meta.components.PointerNodeInverseComponent:
-          {}
-      tag: Mesh.003
-    - components:
-        com.meta.components.Mesh:
-          morphTargetNames:
-            []
-          morphTargetWeights:
-            []
-          primitives:
-            - ref:Primitive3
-        com.meta.components.Name:
-          name: Mesh.001
-        com.meta.components.PointerNodeInverseComponent:
-          {}
-      tag: Mesh.001
-    - components:
-        com.meta.components.Mesh:
-          morphTargetNames:
-            []
-          morphTargetWeights:
-            []
-          primitives:
-            - ref:Primitive
             - ref:Primitive2
         com.meta.components.Name:
           name: Mesh.002
@@ -142,7 +116,33 @@ entities:
           morphTargetWeights:
             []
           primitives:
+            - ref:Primitive
+        com.meta.components.Name:
+          name: Mesh.003
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Mesh.003
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
             - ref:Primitive1
+        com.meta.components.Name:
+          name: Mesh.001
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Mesh.001
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive3
         com.meta.components.Name:
           name: Mesh
         com.meta.components.PointerNodeInverseComponent:
@@ -151,29 +151,29 @@ entities:
   com.meta.models.Primitive:
     - components:
         com.meta.components.Primitive:
-          geometry: ref:Geometry3
-          material: ref:WhiteWalls
-      tag: Primitive4
-    - components:
-        com.meta.components.Primitive:
-          geometry: ref:Geometry4
-          material: ref:Wood01
-      tag: Primitive3
-    - components:
-        com.meta.components.Primitive:
           geometry: ref:Geometry2
+          material: ref:WhiteWalls
+      tag: Primitive
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry1
+          material: ref:Wood01
+      tag: Primitive1
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry3
           material: ref:GlassClear
       tag: Primitive2
     - components:
         com.meta.components.Primitive:
-          geometry: ref:Geometry
+          geometry: ref:Geometry4
           material: ref:Cushion
-      tag: Primitive1
+      tag: Primitive3
     - components:
         com.meta.components.Primitive:
-          geometry: ref:Geometry1
+          geometry: ref:Geometry
           material: ref:WindowFrame
-      tag: Primitive
+      tag: Primitive4
   com.meta.models.Sampler:
     - components:
         com.meta.components.Name:

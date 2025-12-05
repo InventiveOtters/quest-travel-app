@@ -239,21 +239,28 @@ class ImmersiveActivity : AppSystemActivity() {
         
         val libraryPanel = composition.getNodeByName("VRVideoLibraryPanel").entity
         val controlsPanel = composition.getNodeByName("ControlsPanel").entity
-        val environmentEntity = tryGetNode(composition, "Environment")
         
-        // Make controls panel draggable
-        controlsPanel.setComponent(Grabbable(type = GrabbableType.PIVOT_Y))
+        // Make controls panel draggable - use FACE type for panels
+        controlsPanel.setComponent(Grabbable(
+            type = GrabbableType.FACE,
+            enabled = true
+        ))
         
-        Log.d(TAG, "Initializing theatre - library: $libraryPanel, controls: $controlsPanel, environment: $environmentEntity")
-        theatreViewModel.initializeEntities(scene, libraryPanel, controlsPanel, environmentEntity)
+        // Get default environment (first one with a node name)
+        val defaultEnvType = EnvironmentType.default
+        val defaultEnvironmentEntity = defaultEnvType.nodeName?.let { tryGetNode(composition, it) }
         
-        // Register additional environments if they exist in the composition
-        // These would be created in the Spatial Editor as separate GLTF assets
-        tryGetNode(composition, "Environment_CinemaDark")?.let { entity ->
-            theatreViewModel.registerEnvironment(
-                com.inotter.travelcompanion.spatial.data.EnvironmentType.CINEMA_DARK,
-                entity
-            )
+        Log.d(TAG, "Initializing theatre - library: $libraryPanel, controls: $controlsPanel, defaultEnv: $defaultEnvironmentEntity")
+        theatreViewModel.initializeEntities(scene, libraryPanel, controlsPanel, defaultEnvironmentEntity)
+        
+        // Register all environments from the enum
+        EnvironmentType.entries.forEach { envType ->
+            envType.nodeName?.let { nodeName ->
+                tryGetNode(composition, nodeName)?.let { entity ->
+                    Log.d(TAG, "Registering environment: ${envType.name} -> $nodeName")
+                    theatreViewModel.registerEnvironment(envType, entity)
+                }
+            }
         }
         
         // Register skybox with lighting manager so it can be tinted

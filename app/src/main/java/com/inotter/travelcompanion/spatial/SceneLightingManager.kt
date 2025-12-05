@@ -168,17 +168,16 @@ class SceneLightingManager(
     }
     
     /**
-     * Apply tint to unlit materials that don't respond to scene lighting.
-     * This allows the skybox and unlit environment meshes to darken with the slider.
+     * Apply tint to the skybox which uses an unlit material.
+     * Environment meshes are handled by the scene lighting settings.
      */
     private fun applyUnlitTint(intensity: Float) {
         // Calculate tint color - at 0 intensity, everything is dark
         // At 1 intensity, everything is at full brightness
         // Use a quadratic curve for more dramatic darkening at low values
         val darkTintValue = (intensity * intensity).coerceIn(0.02f, 1f)
-        val envTintValue = (intensity * 0.8f + 0.2f * intensity * intensity).coerceIn(0.05f, 1f)
         
-        // Tint the skybox
+        // Tint the skybox (we created this with a Material, so it should work)
         skyboxEntity?.let { skybox ->
             try {
                 val material = skybox.getComponent<Material>()
@@ -187,18 +186,6 @@ class SceneLightingManager(
                 Log.d(TAG, "Skybox tint applied: $darkTintValue")
             } catch (e: Exception) {
                 Log.w(TAG, "Could not tint skybox: ${e.message}")
-            }
-        }
-        
-        // Tint environment meshes
-        environmentEntities[_currentSettings.value.environment]?.let { envEntity ->
-            try {
-                val material = envEntity.getComponent<Material>()
-                material.baseColor = Color4(envTintValue, envTintValue, envTintValue, 1f)
-                envEntity.setComponent(material)
-                Log.d(TAG, "Environment tint applied: $envTintValue")
-            } catch (e: Exception) {
-                Log.w(TAG, "Could not tint environment: ${e.message}")
             }
         }
     }

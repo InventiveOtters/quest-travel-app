@@ -8,12 +8,12 @@ import com.meta.spatial.core.Vector3
  */
 enum class EnvironmentType(
     val displayName: String,
-    val skyboxResource: Int? = null,  // R.drawable reference for skybox
-    val environmentAsset: String? = null  // GLTF asset name in composition
+    val nodeName: String?,  // Node name in the GLXF composition
+    val skyboxResource: Int? = null  // R.drawable reference for skybox
 ) {
-    COLLAB_ROOM("Collab Room", environmentAsset = "collab_room"),
-    CINEMA_DARK("Dark Cinema", environmentAsset = "cinema_dark"),
-    VOID("Void", environmentAsset = null);  // No environment, just panels in space
+    COLLAB_ROOM("Collab Room", nodeName = "Environment"),
+    COLLAB_ROOM_2("Collab Room 2", nodeName = "Environment2"),
+    VOID("Void", nodeName = null);  // No environment, just panels in space
 
     companion object {
         val default = COLLAB_ROOM
