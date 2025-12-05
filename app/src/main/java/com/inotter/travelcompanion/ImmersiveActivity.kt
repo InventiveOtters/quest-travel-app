@@ -30,6 +30,8 @@ import com.meta.spatial.toolkit.MeshCollision
 import com.meta.spatial.toolkit.PanelRegistration
 import com.meta.spatial.toolkit.PanelStyleOptions
 import com.meta.spatial.toolkit.QuadShapeOptions
+import com.meta.spatial.toolkit.Grabbable
+import com.meta.spatial.toolkit.GrabbableType
 import com.meta.spatial.toolkit.Transform
 import com.meta.spatial.toolkit.UIPanelSettings
 import com.meta.spatial.vr.VRFeature
@@ -239,6 +241,9 @@ class ImmersiveActivity : AppSystemActivity() {
         val controlsPanel = composition.getNodeByName("ControlsPanel").entity
         val environmentEntity = tryGetNode(composition, "Environment")
         
+        // Make controls panel draggable
+        controlsPanel.setComponent(Grabbable(type = GrabbableType.PIVOT_Y))
+        
         Log.d(TAG, "Initializing theatre - library: $libraryPanel, controls: $controlsPanel, environment: $environmentEntity")
         theatreViewModel.initializeEntities(scene, libraryPanel, controlsPanel, environmentEntity)
         
@@ -250,6 +255,9 @@ class ImmersiveActivity : AppSystemActivity() {
                 entity
             )
         }
+        
+        // Register skybox with lighting manager so it can be tinted
+        skybox?.let { theatreViewModel.getSceneLightingManager()?.registerSkybox(it) }
     }
 
     /**

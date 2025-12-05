@@ -32,8 +32,6 @@ entities:
           componentVersion: 1
         com.meta.components.Visibility:
           visible: true
-        com.meta.spatial.toolkit.SupportsLocomotion:
-          {}
       tag: Environment
     - components:
         com.meta.components.Animatable:
@@ -90,9 +88,13 @@ entities:
           componentVersion: 1
         com.meta.components.Visibility:
           {}
+        com.meta.spatial.toolkit.Grabbable:
+          {}
         com.meta.spatial.toolkit.Panel:
           panel: "@id/controls_panel"
         com.meta.spatial.toolkit.PanelDimensions:
+          {}
+        com.meta.spatial.toolkit.Plane:
           {}
       tag: ControlsPanel
     - components:

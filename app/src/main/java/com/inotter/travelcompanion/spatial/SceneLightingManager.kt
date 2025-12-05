@@ -3,7 +3,9 @@ package com.inotter.travelcompanion.spatial
 import android.util.Log
 import com.meta.spatial.core.Entity
 import com.meta.spatial.core.Vector3
+import com.meta.spatial.core.Color4
 import com.meta.spatial.runtime.Scene
+import com.meta.spatial.toolkit.Material
 import com.meta.spatial.toolkit.Visible
 import com.inotter.travelcompanion.spatial.data.EnvironmentType
 import com.inotter.travelcompanion.spatial.data.LightingValues
@@ -35,8 +37,14 @@ class SceneLightingManager(
     private val _currentSettings = MutableStateFlow(SceneSettings())
     val currentSettings: StateFlow<SceneSettings> = _currentSettings.asStateFlow()
 
-    // Environment entities mapped by type for quick switching
+    // Registered environment entities for switching
     private val environmentEntities = mutableMapOf<EnvironmentType, Entity?>()
+
+    // Skybox entity for tinting
+    private var skyboxEntity: Entity? = null
+
+    // Store original material colors for proper interpolation
+    private var originalSkyboxColor: Color4 = Color4(1f, 1f, 1f, 1f)
 
     /**
      * Initialize with the main environment entity from the scene.
@@ -46,6 +54,14 @@ class SceneLightingManager(
         environmentEntities[EnvironmentType.COLLAB_ROOM] = mainEnvironmentEntity
         applySettings(_currentSettings.value)
         Log.d(TAG, "Initialized with environment entity: $mainEnvironmentEntity")
+    }
+
+    /**
+     * Register the skybox entity for tinting with lighting changes.
+     */
+    fun registerSkybox(skybox: Entity) {
+        Log.d(TAG, "Registering skybox entity: $skybox")
+        skyboxEntity = skybox
     }
 
     /**
@@ -93,7 +109,7 @@ class SceneLightingManager(
 
         _currentSettings.value = _currentSettings.value.copy(lightingIntensity = clampedIntensity)
         applyLighting(_currentSettings.value.calculateLighting())
-        
+        applyUnlitTint(clampedIntensity)
         Log.d(TAG, "Set lighting intensity: $clampedIntensity")
     }
 
@@ -103,7 +119,8 @@ class SceneLightingManager(
     fun applySettings(settings: SceneSettings) {
         _currentSettings.value = settings
         applyLighting(settings.calculateLighting())
-        
+        applyUnlitTint(settings.lightingIntensity)
+
         // Update environment visibility
         environmentEntities.forEach { (type, entity) ->
             val isActive = type == settings.environment && type != EnvironmentType.VOID
@@ -148,5 +165,41 @@ class SceneLightingManager(
      */
     fun getAvailableEnvironments(): List<EnvironmentType> {
         return EnvironmentType.entries.toList()
+    }
+    
+    /**
+     * Apply tint to unlit materials that don't respond to scene lighting.
+     * This allows the skybox and unlit environment meshes to darken with the slider.
+     */
+    private fun applyUnlitTint(intensity: Float) {
+        // Calculate tint color - at 0 intensity, everything is dark
+        // At 1 intensity, everything is at full brightness
+        // Use a quadratic curve for more dramatic darkening at low values
+        val darkTintValue = (intensity * intensity).coerceIn(0.02f, 1f)
+        val envTintValue = (intensity * 0.8f + 0.2f * intensity * intensity).coerceIn(0.05f, 1f)
+        
+        // Tint the skybox
+        skyboxEntity?.let { skybox ->
+            try {
+                val material = skybox.getComponent<Material>()
+                material.baseColor = Color4(darkTintValue, darkTintValue, darkTintValue, 1f)
+                skybox.setComponent(material)
+                Log.d(TAG, "Skybox tint applied: $darkTintValue")
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not tint skybox: ${e.message}")
+            }
+        }
+        
+        // Tint environment meshes
+        environmentEntities[_currentSettings.value.environment]?.let { envEntity ->
+            try {
+                val material = envEntity.getComponent<Material>()
+                material.baseColor = Color4(envTintValue, envTintValue, envTintValue, 1f)
+                envEntity.setComponent(material)
+                Log.d(TAG, "Environment tint applied: $envTintValue")
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not tint environment: ${e.message}")
+            }
+        }
     }
 }

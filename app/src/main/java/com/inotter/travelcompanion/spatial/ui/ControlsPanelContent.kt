@@ -11,43 +11,24 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -87,6 +68,7 @@ interface ControlsPanelCallback {
 
 /**
  * Main composable for the controls panel content.
+ * Simplified to show only scene settings (lighting slider + environment selector).
  */
 @Composable
 fun ControlsPanelContent(
@@ -102,95 +84,63 @@ fun ControlsPanelContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Top: Video title, settings toggle, and close button
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = playbackState.videoTitle.ifEmpty { "Now Playing" },
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Row {
-                    // Settings toggle button (lighting/environment)
-                    IconButton(
-                        onClick = { callback.onToggleSettings() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (playbackState.showSettings) 
-                                Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Scene Settings",
-                            tint = if (playbackState.showSettings) 
-                                Color(0xFF4A90D9) else Color.White
-                        )
-                    }
-                    
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.LightMode,
+                        contentDescription = null,
+                        tint = Color(0xFFFFB74D),
+                        modifier = Modifier.size(20.dp)
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-                    
-                    IconButton(
-                        onClick = { callback.onClose() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = Color.White
-                        )
-                    }
+                    Text(
+                        text = "Scene Settings",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
-
-            // Settings Section (collapsible)
-            if (playbackState.showSettings) {
-                SettingsSection(
-                    lightingIntensity = playbackState.lightingIntensity,
-                    currentEnvironment = playbackState.currentEnvironment,
-                    onLightingChanged = callback::onLightingChanged,
-                    onEnvironmentChanged = callback::onEnvironmentChanged
-                )
-            } else {
-                // Progress bar (only show when settings are hidden)
-                ProgressSection(
-                    progress = playbackState.progress,
-                    currentPosition = playbackState.currentPosition,
-                    duration = playbackState.duration,
-                    onSeek = callback::onSeek
-                )
-            }
             
-            // Bottom: Playback controls
-            PlaybackControlsRow(
-                playbackState = playbackState,
-                callback = callback
+            // Lighting Slider Section
+            LightingSliderSection(
+                lightingIntensity = playbackState.lightingIntensity,
+                onLightingChanged = callback::onLightingChanged
+            )
+            
+            // Environment Selector Section
+            EnvironmentSelectorSection(
+                currentEnvironment = playbackState.currentEnvironment,
+                onEnvironmentChanged = callback::onEnvironmentChanged
             )
         }
     }
 }
 
 /**
- * Settings section with lighting slider and environment selector.
+ * Lighting slider with dark/bright icons.
  */
 @Composable
-private fun SettingsSection(
+private fun LightingSliderSection(
     lightingIntensity: Float,
-    currentEnvironment: EnvironmentType,
-    onLightingChanged: (Float) -> Unit,
-    onEnvironmentChanged: (EnvironmentType) -> Unit
+    onLightingChanged: (Float) -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // Lighting Slider
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Lighting",
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 12.sp,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -199,7 +149,7 @@ private fun SettingsSection(
                 imageVector = Icons.Default.DarkMode,
                 contentDescription = "Dark",
                 tint = Color.White.copy(alpha = 0.7f),
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(22.dp)
             )
             
             Slider(
@@ -207,7 +157,7 @@ private fun SettingsSection(
                 onValueChange = onLightingChanged,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 12.dp),
                 colors = SliderDefaults.colors(
                     thumbColor = Color(0xFFFFB74D),
                     activeTrackColor = Color(0xFFFFB74D),
@@ -219,25 +169,33 @@ private fun SettingsSection(
                 imageVector = Icons.Default.LightMode,
                 contentDescription = "Bright",
                 tint = Color(0xFFFFB74D),
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Environment Selector
+    }
+}
+
+/**
+ * Environment selector with chips.
+ */
+@Composable
+private fun EnvironmentSelectorSection(
+    currentEnvironment: EnvironmentType,
+    onEnvironmentChanged: (EnvironmentType) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Environment",
             color = Color.White.copy(alpha = 0.7f),
-            fontSize = 11.sp,
-            modifier = Modifier.padding(bottom = 4.dp)
+            fontSize = 12.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
         
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             EnvironmentType.entries.forEach { environment ->
                 EnvironmentChip(
@@ -271,157 +229,15 @@ private fun EnvironmentChip(
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = environment.displayName,
             color = Color.White,
-            fontSize = 11.sp,
+            fontSize = 13.sp,
             fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
             textAlign = TextAlign.Center
         )
     }
-}
-
-/**
- * Progress bar section.
- */
-@Composable
-private fun ProgressSection(
-    progress: Float,
-    currentPosition: Long,
-    duration: Long,
-    onSeek: (Float) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Slider(
-            value = progress,
-            onValueChange = onSeek,
-            modifier = Modifier.fillMaxWidth(),
-            colors = SliderDefaults.colors(
-                thumbColor = Color(0xFF4A90D9),
-                activeTrackColor = Color(0xFF4A90D9),
-                inactiveTrackColor = Color(0x40FFFFFF)
-            )
-        )
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = formatTime(currentPosition),
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 11.sp
-            )
-            Text(
-                text = formatTime(duration),
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 11.sp
-            )
-        }
-    }
-}
-
-/**
- * Playback controls row.
- */
-@Composable
-private fun PlaybackControlsRow(
-    playbackState: PlaybackState,
-    callback: ControlsPanelCallback
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Mute button
-        ControlButton(
-            icon = if (playbackState.isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
-            contentDescription = if (playbackState.isMuted) "Unmute" else "Mute",
-            onClick = { callback.onMuteToggle() },
-            size = 36.dp
-        )
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
-        // Restart button
-        ControlButton(
-            icon = Icons.Default.Replay,
-            contentDescription = "Restart",
-            onClick = { callback.onRestart() },
-            size = 36.dp
-        )
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
-        // Rewind button
-        ControlButton(
-            icon = Icons.Default.FastRewind,
-            contentDescription = "Rewind 10s",
-            onClick = { callback.onRewind() },
-            size = 40.dp
-        )
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
-        // Play/Pause button (larger)
-        ControlButton(
-            icon = if (playbackState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-            contentDescription = if (playbackState.isPlaying) "Pause" else "Play",
-            onClick = { callback.onPlayPause() },
-            size = 48.dp,
-            isPrimary = true
-        )
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
-        // Fast Forward button
-        ControlButton(
-            icon = Icons.Default.FastForward,
-            contentDescription = "Forward 10s",
-            onClick = { callback.onFastForward() },
-            size = 40.dp
-        )
-    }
-}
-
-@Composable
-private fun ControlButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    size: androidx.compose.ui.unit.Dp,
-    isPrimary: Boolean = false
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(
-                if (isPrimary) Color(0xFF4A90D9) else Color(0x40FFFFFF)
-            )
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = Color.White,
-            modifier = Modifier.size(size * 0.5f)
-        )
-    }
-}
-
-/**
- * Formats milliseconds to MM:SS format.
- */
-private fun formatTime(millis: Long): String {
-    val totalSeconds = millis / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%02d:%02d".format(minutes, seconds)
 }
