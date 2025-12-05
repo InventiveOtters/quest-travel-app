@@ -81,15 +81,15 @@ entities:
           rotation.format: Quaternion
           scale:
             - 1.20000005
-            - 0.400000006
+            - 0.84810847
             - 1
           translation:
             - 1.71825504
-            - 0.705513299
+            - 1.0784955
             - -1.39989448
           componentVersion: 1
         com.meta.components.Visibility:
-          visible: true
+          {}
         com.meta.spatial.toolkit.Panel:
           panel: "@id/controls_panel"
         com.meta.spatial.toolkit.PanelDimensions:
@@ -112,7 +112,7 @@ entities:
             - 1
             - 4.68660784
           translation:
-            - 0
+            - 3.83623219
             - 0.5677948
             - 0.435128093
           componentVersion: 1
@@ -136,7 +136,7 @@ entities:
             - 1
             - 4.68660784
           translation:
-            - 0
+            - 4.08265591
             - 0.207433879
             - 0.435128093
           componentVersion: 1

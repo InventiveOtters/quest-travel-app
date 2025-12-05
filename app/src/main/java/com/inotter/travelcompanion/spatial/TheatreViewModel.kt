@@ -10,6 +10,7 @@ import com.meta.spatial.core.Pose
 import com.meta.spatial.core.Vector3
 import com.meta.spatial.toolkit.Transform
 import com.meta.spatial.toolkit.Visible
+import com.inotter.travelcompanion.spatial.data.EnvironmentType
 import com.inotter.travelcompanion.spatial.ui.ControlsPanelCallback
 import com.inotter.travelcompanion.spatial.ui.PlaybackState
 import kotlinx.coroutines.CoroutineScope
@@ -54,6 +55,9 @@ class TheatreViewModel(
     private var libraryPanelEntity: Entity? = null
     private var controlsPanelEntity: Entity? = null
     
+    // Scene lighting manager for environment and lighting control
+    private var sceneLightingManager: SceneLightingManager? = null
+    
     // Coroutine scope for progress updates
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private var progressUpdateJob: Job? = null
@@ -76,26 +80,70 @@ class TheatreViewModel(
     
     init {
         exoPlayer.addListener(playerListener)
+        // Register with state holder for panel communication
+        TheatreStateHolder.registerCallback(this)
     }
     
     /**
      * Initializes the theatre entities after the scene is ready.
      * Following Object3DSample pattern: panels are created by GLXF, we just get references.
      */
-    fun initializeEntities(scene: Scene, libraryPanel: Entity?, controlsPanel: Entity?) {
+    fun initializeEntities(
+        scene: Scene, 
+        libraryPanel: Entity?, 
+        controlsPanel: Entity?,
+        environmentEntity: Entity? = null
+    ) {
         Log.d(TAG, "Initializing theatre entities from GLXF")
         
         // Store references to GLXF-created panel entities
         this.libraryPanelEntity = libraryPanel
         this.controlsPanelEntity = controlsPanel
         
+        // Initialize scene lighting manager
+        sceneLightingManager = SceneLightingManager(scene, environmentEntity)
+        sceneLightingManager?.initialize(environmentEntity)
+        
+        // Register lighting manager with state holder for direct access from panels
+        sceneLightingManager?.let { TheatreStateHolder.registerLightingManager(it) }
+        
         // Show library panel initially (it's already positioned in GLXF)
         libraryPanelEntity?.setComponent(Visible(true))
-        controlsPanelEntity?.setComponent(Visible(false))
+        
+        // TESTING: Show controls panel immediately for testing lighting slider
+        // TODO: Remove this after testing - controls should only show during playback
+        controlsPanelEntity?.setComponent(Visible(true))
+        Log.d(TAG, "Controls panel entity: $controlsPanelEntity")
+        
+        // TESTING: Set initial state with settings visible for testing lighting
+        _playbackState.value = _playbackState.value.copy(showSettings = true)
+        TheatreStateHolder.updatePlaybackState(_playbackState.value)
         
         _currentState.value = TheatreState.LIBRARY
-        Log.d(TAG, "Theatre initialized - library visible, controls hidden")
+        Log.d(TAG, "Theatre initialized - library visible, controls visible (testing mode)")
     }
+    
+    /**
+     * Toggle controls panel visibility for testing.
+     * Call this to manually show/hide the controls panel.
+     */
+    fun toggleControlsPanel() {
+        val currentlyVisible = controlsPanelEntity?.getComponent<Visible>()?.isVisible ?: false
+        controlsPanelEntity?.setComponent(Visible(!currentlyVisible))
+        Log.d(TAG, "Controls panel toggled: ${!currentlyVisible}")
+    }
+    
+    /**
+     * Register additional environment entities for scene switching.
+     */
+    fun registerEnvironment(type: EnvironmentType, entity: Entity?) {
+        sceneLightingManager?.registerEnvironment(type, entity)
+    }
+    
+    /**
+     * Get the scene lighting manager for external access.
+     */
+    fun getSceneLightingManager(): SceneLightingManager? = sceneLightingManager
     
     /**
      * Shows the library panel and hides playback components.
@@ -200,6 +248,27 @@ class TheatreViewModel(
         showLibrary()
     }
     
+    override fun onLightingChanged(intensity: Float) {
+        Log.d(TAG, "Lighting changed: $intensity")
+        sceneLightingManager?.setLightingIntensity(intensity)
+        _playbackState.value = _playbackState.value.copy(lightingIntensity = intensity)
+        TheatreStateHolder.updatePlaybackState(_playbackState.value)
+    }
+    
+    override fun onEnvironmentChanged(environment: EnvironmentType) {
+        Log.d(TAG, "Environment changed: $environment")
+        sceneLightingManager?.setEnvironment(environment)
+        _playbackState.value = _playbackState.value.copy(currentEnvironment = environment)
+        TheatreStateHolder.updatePlaybackState(_playbackState.value)
+    }
+    
+    override fun onToggleSettings() {
+        val currentShowSettings = _playbackState.value.showSettings
+        _playbackState.value = _playbackState.value.copy(showSettings = !currentShowSettings)
+        TheatreStateHolder.updatePlaybackState(_playbackState.value)
+        Log.d(TAG, "Settings toggled: ${!currentShowSettings}")
+    }
+    
     // Progress updates
     
     private fun startProgressUpdates() {
@@ -233,6 +302,9 @@ class TheatreViewModel(
             duration = duration,
             currentPosition = currentPosition
         )
+        
+        // Update shared state holder for panel activities
+        TheatreStateHolder.updatePlaybackState(_playbackState.value)
     }
     
     // Lifecycle
@@ -253,9 +325,11 @@ class TheatreViewModel(
         
         scope.cancel()
         exoPlayer.removeListener(playerListener)
+        TheatreStateHolder.unregisterCallback()
         
         // Entities are owned by GLXF, just clear references
         libraryPanelEntity = null
         controlsPanelEntity = null
+        sceneLightingManager = null
     }
 }

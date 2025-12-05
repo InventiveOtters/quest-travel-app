@@ -12,8 +12,9 @@ object SpatialConstants {
     const val SCREEN_DISTANCE = 3.0f    // Distance from user to screen
     
     // Controls panel dimensions
-    const val CONTROLS_PANEL_WIDTH = 1.2f
-    const val CONTROLS_PANEL_HEIGHT = 0.4f
+    // Increased height to accommodate settings section (lighting slider + environment selector)
+    const val CONTROLS_PANEL_WIDTH = 1.4f
+    const val CONTROLS_PANEL_HEIGHT = 0.55f
     const val CONTROLS_PANEL_DP_PER_METER = 600f
     const val CONTROLS_OFFSET_Y = -0.8f  // Below the screen
     

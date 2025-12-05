@@ -34,8 +34,10 @@ import com.meta.spatial.toolkit.Transform
 import com.meta.spatial.toolkit.UIPanelSettings
 import com.meta.spatial.vr.VRFeature
 import com.meta.spatial.vr.VrInputSystemType
+import com.inotter.travelcompanion.spatial.PanelBroadcastManager
 import com.inotter.travelcompanion.spatial.SpatialConstants
 import com.inotter.travelcompanion.spatial.TheatreViewModel
+import com.inotter.travelcompanion.spatial.data.EnvironmentType
 import com.inotter.travelcompanion.spatial.panels.ControlsPanelActivity
 import com.inotter.travelcompanion.spatial.panels.LibraryPanelActivity
 import kotlinx.coroutines.CoroutineScope
@@ -77,6 +79,52 @@ class ImmersiveActivity : AppSystemActivity() {
     private var glxfComposition: GLXFInfo? = null
     private var sceneReady = false
     private var theatreInitialized = false
+    
+    // Broadcast receiver for panel commands
+    private val panelCommandReceiver = PanelBroadcastManager.PanelCommandReceiver(
+        object : PanelBroadcastManager.PanelCommandListener {
+            override fun onPlayPause() {
+                Log.d(TAG, "Broadcast received: onPlayPause")
+                theatreViewModel.onPlayPause()
+            }
+            override fun onSeek(position: Float) {
+                Log.d(TAG, "Broadcast received: onSeek $position")
+                theatreViewModel.onSeek(position)
+            }
+            override fun onRewind() {
+                Log.d(TAG, "Broadcast received: onRewind")
+                theatreViewModel.onRewind()
+            }
+            override fun onFastForward() {
+                Log.d(TAG, "Broadcast received: onFastForward")
+                theatreViewModel.onFastForward()
+            }
+            override fun onRestart() {
+                Log.d(TAG, "Broadcast received: onRestart")
+                theatreViewModel.onRestart()
+            }
+            override fun onMuteToggle() {
+                Log.d(TAG, "Broadcast received: onMuteToggle")
+                theatreViewModel.onMuteToggle()
+            }
+            override fun onClose() {
+                Log.d(TAG, "Broadcast received: onClose")
+                theatreViewModel.onClose()
+            }
+            override fun onLightingChanged(intensity: Float) {
+                Log.d(TAG, "Broadcast received: onLightingChanged $intensity")
+                theatreViewModel.onLightingChanged(intensity)
+            }
+            override fun onEnvironmentChanged(environment: EnvironmentType) {
+                Log.d(TAG, "Broadcast received: onEnvironmentChanged $environment")
+                theatreViewModel.onEnvironmentChanged(environment)
+            }
+            override fun onToggleSettings() {
+                Log.d(TAG, "Broadcast received: onToggleSettings")
+                theatreViewModel.onToggleSettings()
+            }
+        }
+    )
 
     override fun registerFeatures(): List<SpatialFeature> {
         val features = mutableListOf<SpatialFeature>(
@@ -125,6 +173,14 @@ class ImmersiveActivity : AppSystemActivity() {
 
         // Create theatre ViewModel
         theatreViewModel = TheatreViewModel(exoPlayer, systemManager)
+        
+        // Register broadcast receiver for panel commands
+        registerReceiver(
+            panelCommandReceiver,
+            panelCommandReceiver.getIntentFilter(),
+            RECEIVER_EXPORTED
+        )
+        Log.d(TAG, "Panel command receiver registered")
     }
 
     override fun onSceneReady() {
@@ -181,8 +237,31 @@ class ImmersiveActivity : AppSystemActivity() {
         
         val libraryPanel = composition.getNodeByName("VRVideoLibraryPanel").entity
         val controlsPanel = composition.getNodeByName("ControlsPanel").entity
-        Log.d(TAG, "Initializing theatre - library: $libraryPanel, controls: $controlsPanel")
-        theatreViewModel.initializeEntities(scene, libraryPanel, controlsPanel)
+        val environmentEntity = tryGetNode(composition, "Environment")
+        
+        Log.d(TAG, "Initializing theatre - library: $libraryPanel, controls: $controlsPanel, environment: $environmentEntity")
+        theatreViewModel.initializeEntities(scene, libraryPanel, controlsPanel, environmentEntity)
+        
+        // Register additional environments if they exist in the composition
+        // These would be created in the Spatial Editor as separate GLTF assets
+        tryGetNode(composition, "Environment_CinemaDark")?.let { entity ->
+            theatreViewModel.registerEnvironment(
+                com.inotter.travelcompanion.spatial.data.EnvironmentType.CINEMA_DARK,
+                entity
+            )
+        }
+    }
+
+    /**
+     * Safely get a node from the composition, returning null if not found.
+     */
+    private fun tryGetNode(composition: GLXFInfo, nodeName: String): Entity? {
+        return try {
+            composition.getNodeByName(nodeName).entity
+        } catch (e: Exception) {
+            Log.d(TAG, "Node '$nodeName' not found in composition")
+            null
+        }
     }
 
     private fun loadGLXF(onLoaded: ((GLXFInfo) -> Unit) = {}): Job {
@@ -285,6 +364,11 @@ class ImmersiveActivity : AppSystemActivity() {
 
     override fun onSpatialShutdown() {
         Log.d(TAG, "Spatial shutdown - cleaning up")
+        try {
+            unregisterReceiver(panelCommandReceiver)
+        } catch (e: Exception) {
+            Log.w(TAG, "Error unregistering receiver: ${e.message}")
+        }
         theatreViewModel.destroy()
         exoPlayer.release()
         super.onSpatialShutdown()

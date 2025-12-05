@@ -1,225 +1,104 @@
 package com.inotter.travelcompanion.spatial.panels
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.inotter.travelcompanion.spatial.PanelBroadcastManager
+import com.inotter.travelcompanion.spatial.data.EnvironmentType
+import com.inotter.travelcompanion.spatial.ui.ControlsPanelCallback
+import com.inotter.travelcompanion.spatial.ui.ControlsPanelContent
+import com.inotter.travelcompanion.spatial.ui.PlaybackState
 
 /**
  * Separate activity for the Controls Panel.
- * Displays playback controls for the video player.
+ * Displays playback controls for the video player with lighting and environment settings.
+ * 
+ * Uses BroadcastReceiver for cross-process communication with ImmersiveActivity.
  */
 class ControlsPanelActivity : ComponentActivity() {
     
+    companion object {
+        private const val TAG = "ControlsPanelActivity"
+    }
+    
+    // Local state for the panel (since we can't share state across processes)
+    private var showSettings by mutableStateOf(true) // Start with settings visible for testing
+    private var lightingIntensity by mutableFloatStateOf(1f)
+    private var currentEnvironment by mutableStateOf(EnvironmentType.COLLAB_ROOM)
+    
+    // Callback that sends broadcasts to ImmersiveActivity
+    private val panelCallback = object : ControlsPanelCallback {
+        override fun onPlayPause() {
+            Log.d(TAG, "onPlayPause pressed - sending broadcast")
+            PanelBroadcastManager.sendPlayPause(this@ControlsPanelActivity)
+        }
+        override fun onSeek(position: Float) {
+            Log.d(TAG, "onSeek: $position - sending broadcast")
+            PanelBroadcastManager.sendSeek(this@ControlsPanelActivity, position)
+        }
+        override fun onRewind() {
+            Log.d(TAG, "onRewind pressed - sending broadcast")
+            PanelBroadcastManager.sendRewind(this@ControlsPanelActivity)
+        }
+        override fun onFastForward() {
+            Log.d(TAG, "onFastForward pressed - sending broadcast")
+            PanelBroadcastManager.sendFastForward(this@ControlsPanelActivity)
+        }
+        override fun onRestart() {
+            Log.d(TAG, "onRestart pressed - sending broadcast")
+            PanelBroadcastManager.sendRestart(this@ControlsPanelActivity)
+        }
+        override fun onMuteToggle() {
+            Log.d(TAG, "onMuteToggle pressed - sending broadcast")
+            PanelBroadcastManager.sendMuteToggle(this@ControlsPanelActivity)
+        }
+        override fun onClose() {
+            Log.d(TAG, "onClose pressed - sending broadcast")
+            PanelBroadcastManager.sendClose(this@ControlsPanelActivity)
+        }
+        override fun onLightingChanged(intensity: Float) {
+            Log.d(TAG, "onLightingChanged: $intensity - sending broadcast")
+            lightingIntensity = intensity
+            PanelBroadcastManager.sendLightingChanged(this@ControlsPanelActivity, intensity)
+        }
+        override fun onEnvironmentChanged(environment: EnvironmentType) {
+            Log.d(TAG, "onEnvironmentChanged: $environment - sending broadcast")
+            currentEnvironment = environment
+            PanelBroadcastManager.sendEnvironmentChanged(this@ControlsPanelActivity, environment)
+        }
+        override fun onToggleSettings() {
+            Log.d(TAG, "onToggleSettings pressed")
+            showSettings = !showSettings
+            // Also notify ImmersiveActivity
+            PanelBroadcastManager.sendToggleSettings(this@ControlsPanelActivity)
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "ControlsPanelActivity created")
         
         setContent {
             MaterialTheme {
-                ControlsPanelContent()
-            }
-        }
-    }
-}
-
-@Composable
-private fun ControlsPanelContent() {
-    var isPlaying by remember { mutableStateOf(false) }
-    var isMuted by remember { mutableStateOf(false) }
-    var progress by remember { mutableFloatStateOf(0f) }
-    
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color(0xCC1A1A2E),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Top: Video title and close button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Now Playing",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1
+                // Build local playback state
+                val playbackState = PlaybackState(
+                    showSettings = showSettings,
+                    lightingIntensity = lightingIntensity,
+                    currentEnvironment = currentEnvironment
                 )
                 
-                IconButton(
-                    onClick = { /* Close action */ },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = Color.White
-                    )
-                }
-            }
-            
-            // Middle: Progress bar
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Slider(
-                    value = progress,
-                    onValueChange = { progress = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color(0xFF4A90D9),
-                        activeTrackColor = Color(0xFF4A90D9),
-                        inactiveTrackColor = Color(0x40FFFFFF)
-                    )
-                )
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "00:00",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        text = "00:00",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 12.sp
-                    )
-                }
-            }
-            
-            // Bottom: Playback controls
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Mute button
-                ControlButton(
-                    icon = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
-                    contentDescription = if (isMuted) "Unmute" else "Mute",
-                    onClick = { isMuted = !isMuted },
-                    size = 40.dp
-                )
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
-                // Restart button
-                ControlButton(
-                    icon = Icons.Default.Replay,
-                    contentDescription = "Restart",
-                    onClick = { progress = 0f },
-                    size = 40.dp
-                )
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
-                // Rewind button
-                ControlButton(
-                    icon = Icons.Default.FastRewind,
-                    contentDescription = "Rewind 10s",
-                    onClick = { progress = (progress - 0.1f).coerceAtLeast(0f) },
-                    size = 44.dp
-                )
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
-                // Play/Pause button (larger)
-                ControlButton(
-                    icon = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    onClick = { isPlaying = !isPlaying },
-                    size = 56.dp,
-                    isPrimary = true
-                )
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
-                // Fast Forward button
-                ControlButton(
-                    icon = Icons.Default.FastForward,
-                    contentDescription = "Forward 10s",
-                    onClick = { progress = (progress + 0.1f).coerceAtMost(1f) },
-                    size = 44.dp
+                // Use the shared ControlsPanelContent composable
+                ControlsPanelContent(
+                    playbackState = playbackState,
+                    callback = panelCallback
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun ControlButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    size: Dp,
-    isPrimary: Boolean = false
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(
-                if (isPrimary) Color(0xFF4A90D9) else Color(0x40FFFFFF)
-            )
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = Color.White,
-            modifier = Modifier.size(size * 0.5f)
-        )
     }
 }
