@@ -58,7 +58,7 @@ entities:
         com.meta.components.Visibility:
           visible: true
         com.meta.spatial.toolkit.Panel:
-          panel: "@id/vr_video_library_panel"
+          panel: "@id/library_panel"
         com.meta.spatial.toolkit.PanelDimensions:
           {}
       tag: VRVideoLibraryPanel
@@ -88,7 +88,7 @@ entities:
         com.meta.components.Visibility:
           visible: true
         com.meta.spatial.toolkit.Panel:
-          panel: "@id/immersive_controls_panel"
+          panel: "@id/controls_panel"
         com.meta.spatial.toolkit.PanelDimensions:
           {}
       tag: ControlsPanel

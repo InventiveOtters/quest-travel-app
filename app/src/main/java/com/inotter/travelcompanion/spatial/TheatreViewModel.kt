@@ -5,9 +5,11 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.meta.spatial.core.SystemManager
 import com.meta.spatial.runtime.Scene
-import com.inotter.travelcompanion.spatial.entities.ControlsPanelEntity
-import com.inotter.travelcompanion.spatial.entities.LibraryPanelEntity
-import com.inotter.travelcompanion.spatial.entities.TheatreScreenEntity
+import com.meta.spatial.core.Entity
+import com.meta.spatial.core.Pose
+import com.meta.spatial.core.Vector3
+import com.meta.spatial.toolkit.Transform
+import com.meta.spatial.toolkit.Visible
 import com.inotter.travelcompanion.spatial.ui.ControlsPanelCallback
 import com.inotter.travelcompanion.spatial.ui.PlaybackState
 import kotlinx.coroutines.CoroutineScope
@@ -48,10 +50,9 @@ class TheatreViewModel(
     private val _playbackState = MutableStateFlow(PlaybackState())
     val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
     
-    // Entities (initialized later when scene is ready)
-    private var libraryPanel: LibraryPanelEntity? = null
-    private var theatreScreen: TheatreScreenEntity? = null
-    private var controlsPanel: ControlsPanelEntity? = null
+    // Panel entities from GLXF (like Object3DSample pattern)
+    private var libraryPanelEntity: Entity? = null
+    private var controlsPanelEntity: Entity? = null
     
     // Coroutine scope for progress updates
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -79,21 +80,21 @@ class TheatreViewModel(
     
     /**
      * Initializes the theatre entities after the scene is ready.
+     * Following Object3DSample pattern: panels are created by GLXF, we just get references.
      */
-    fun initializeEntities(scene: Scene) {
-        Log.d(TAG, "Initializing theatre entities")
+    fun initializeEntities(scene: Scene, libraryPanel: Entity?, controlsPanel: Entity?) {
+        Log.d(TAG, "Initializing theatre entities from GLXF")
         
-        // Create library panel
-        libraryPanel = LibraryPanelEntity.create()
+        // Store references to GLXF-created panel entities
+        this.libraryPanelEntity = libraryPanel
+        this.controlsPanelEntity = controlsPanel
         
-        // Create theatre screen (will be positioned when needed)
-        theatreScreen = TheatreScreenEntity.create(exoPlayer)
+        // Show library panel initially (it's already positioned in GLXF)
+        libraryPanelEntity?.setComponent(Visible(true))
+        controlsPanelEntity?.setComponent(Visible(false))
         
-        // Create controls panel
-        controlsPanel = ControlsPanelEntity.create()
-        
-        // Position and show library panel initially
-        showLibrary()
+        _currentState.value = TheatreState.LIBRARY
+        Log.d(TAG, "Theatre initialized - library visible, controls hidden")
     }
     
     /**
@@ -105,21 +106,16 @@ class TheatreViewModel(
         // Stop any playback
         exoPlayer.stop()
         
-        // Hide playback components
-        theatreScreen?.hide()
-        controlsPanel?.hide()
-        
-        // Position and show library panel
-        libraryPanel?.let {
-            it.positionInFrontOfUser()
-            it.show()
-        }
+        // Hide controls, show library
+        controlsPanelEntity?.setComponent(Visible(false))
+        libraryPanelEntity?.setComponent(Visible(true))
         
         _currentState.value = TheatreState.LIBRARY
     }
     
     /**
      * Starts playback of a video and transitions to theatre mode.
+     * The library panel (VRVideoLibraryPanel) acts as the video surface.
      */
     fun playVideo(videoUri: String, videoTitle: String = "") {
         Log.d(TAG, "Playing video: $videoUri")
@@ -127,38 +123,25 @@ class TheatreViewModel(
         // Update state with title
         _playbackState.value = _playbackState.value.copy(videoTitle = videoTitle)
         
-        // Hide library panel
-        libraryPanel?.hide()
+        // Show controls panel
+        controlsPanelEntity?.setComponent(Visible(true))
         
-        // Position and show theatre screen
-        theatreScreen?.let { screen ->
-            screen.positionInFrontOfUser()
-            screen.show()
-            screen.playVideo(videoUri)
-            
-            // Position controls below screen
-            controlsPanel?.let { controls ->
-                controls.positionBelowScreen(screen.entity)
-                controls.show()
-            }
-        }
+        // Play video (ExoPlayer is connected to library_panel surface via VideoSurfacePanelRegistration)
+        val mediaItem = androidx.media3.common.MediaItem.fromUri(videoUri)
+        exoPlayer.setMediaItem(mediaItem)
+        exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
         
         _currentState.value = TheatreState.PLAYBACK
     }
     
     /**
      * Called when the user's head position is detected.
+     * Panels are positioned by GLXF, so this is a no-op now.
      */
     fun onHeadFound() {
-        when (_currentState.value) {
-            TheatreState.LIBRARY -> libraryPanel?.positionInFrontOfUser()
-            TheatreState.PLAYBACK -> {
-                theatreScreen?.positionInFrontOfUser()
-                theatreScreen?.let { screen ->
-                    controlsPanel?.positionBelowScreen(screen.entity)
-                }
-            }
-        }
+        // Panels are positioned in GLXF, no dynamic repositioning needed
+        Log.d(TAG, "Head found - panels positioned by GLXF")
     }
     
     /**
@@ -172,12 +155,19 @@ class TheatreViewModel(
     // ControlsPanelCallback implementation
     
     override fun onPlayPause() {
-        theatreScreen?.togglePlayPause()
+        if (exoPlayer.isPlaying) {
+            exoPlayer.pause()
+        } else {
+            exoPlayer.play()
+        }
         updatePlaybackState()
     }
     
     override fun onSeek(position: Float) {
-        theatreScreen?.seekTo(position)
+        val duration = exoPlayer.duration
+        if (duration > 0) {
+            exoPlayer.seekTo((position * duration).toLong())
+        }
         updatePlaybackState()
     }
     
@@ -264,12 +254,8 @@ class TheatreViewModel(
         scope.cancel()
         exoPlayer.removeListener(playerListener)
         
-        libraryPanel?.destroy()
-        theatreScreen?.destroy()
-        controlsPanel?.destroy()
-        
-        libraryPanel = null
-        theatreScreen = null
-        controlsPanel = null
+        // Entities are owned by GLXF, just clear references
+        libraryPanelEntity = null
+        controlsPanelEntity = null
     }
 }

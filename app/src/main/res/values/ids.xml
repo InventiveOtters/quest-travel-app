@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
-  <!-- Legacy panel IDs (kept for backwards compatibility) -->
-  <item type="id" name="ui_example" />
-  <item type="id" name="options_panel" />
-  <item type="id" name="vr_video_library_panel" />
-  <item type="id" name="immersive_controls_panel" />
-
-  <!-- Spatial Theatre Panel IDs -->
+  <!-- Panel IDs matching GLXF Composition.glxf -->
+  <!-- VRVideoLibraryPanel uses @id/library_panel for video surface -->
   <item type="id" name="library_panel" />
-  <item type="id" name="theatre_screen_panel" />
+  <!-- ControlsPanel uses @id/controls_panel for playback controls -->
   <item type="id" name="controls_panel" />
 </resources>

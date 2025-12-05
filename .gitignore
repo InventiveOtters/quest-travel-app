@@ -18,6 +18,7 @@ local.properties
 
 # Added by automation: ensure common Kotlin/Android and universal ignores
 PremiumMediaSample
+Object3DSample
 build/
 out/
 *.class
