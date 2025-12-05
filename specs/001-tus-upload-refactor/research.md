@@ -1,40 +1,71 @@
 # Research: TUS Protocol Upload Refactor
 
-**Branch**: `001-tus-upload-refactor` | **Date**: 2025-12-04
+**Branch**: `001-tus-upload-refactor` | **Date**: 2025-12-05
+
+> ⚠️ **CRITICAL CONSTRAINT**: Use existing TUS libraries only. Do NOT implement TUS protocol from scratch.
 
 ## Research Tasks
 
-### 1. TUS Protocol Server Implementation for NanoHTTPD
+### 1. TUS Server Library Selection
 
-**Task**: Research how to implement TUS protocol server-side within NanoHTTPD (existing HTTP server)
+**Task**: Find a production-ready TUS server library compatible with Android
 
-**Decision**: Implement TUS protocol handlers directly in UploadServer.kt as additional route handlers
+**Decision**: Use **tus-java-server** (v1.0.0-2.x) + **Jetty Embedded** (v11.x)
 
 **Rationale**: 
-- TUS protocol is HTTP-based with specific headers and endpoints; NanoHTTPD can handle these
-- No need for external TUS server library - protocol is simple enough to implement directly
-- Keeps consistency with existing codebase architecture
+- `tus-java-server` is the official Java implementation, MIT licensed, 160+ GitHub stars
+- Implements TUS v1.0.0 with ALL optional extensions (creation, checksum, expiration, termination, concatenation)
+- Well-tested with Uppy and tus-js-client
+- Only dependency: Jakarta Servlet API (provided by Jetty)
+- Version 1.0.0-2.x uses Java 11+ (compatible with Android), avoids Jakarta namespace issues
 
 **Alternatives Considered**:
-- Using a full TUS server library (e.g., tusd): Rejected - would require replacing NanoHTTPD entirely, too heavy for embedded use case
-- Using Ktor or another framework: Rejected - unnecessary complexity, NanoHTTPD works well
+| Option | Status | Reason |
+|--------|--------|--------|
+| Implement TUS from scratch | ❌ REJECTED | High risk, protocol complexity, 5-7 days effort |
+| NanoHTTPD + custom TUS | ❌ REJECTED | Still implementing protocol, error-prone |
+| NanoHTTPD + Servlet adapter | ❌ REJECTED | Hacky, incomplete API coverage |
+| tusd (Go server) | ❌ REJECTED | Not embeddable in Android |
 
-**Key TUS Protocol Requirements** (from tus.io/protocols/resumable-upload):
-1. `POST /files` - Create upload, returns `Location` header with upload URL
-2. `HEAD /files/{id}` - Get upload offset (bytes received)
-3. `PATCH /files/{id}` - Upload chunk at offset
-4. `OPTIONS /files` - Capability discovery (extensions supported)
-5. `DELETE /files/{id}` - Cancel/cleanup upload (optional)
-
-**Required Headers**:
-- `Tus-Resumable: 1.0.0` - Protocol version
-- `Upload-Offset` - Current byte offset
-- `Upload-Length` - Total file size
-- `Upload-Metadata` - Base64-encoded filename and metadata
+**Why Jetty (not other Servlet containers)**:
+- Jetty 11.x is lightweight (~2-3 MB), embeddable, actively maintained
+- Works on Android (used by other Android projects)
+- Simple programmatic server setup (no XML config)
+- Version 11 uses `javax.servlet` (compatible with tus-java-server 1.0.0-2.x)
 
 ---
 
-### 2. tus-js-client Integration
+### 2. tus-java-server Integration Pattern
+
+**Task**: Research how to integrate tus-java-server with custom storage (MediaStore)
+
+**Decision**: Implement custom `UploadStorageService` interface
+
+**Rationale**:
+- tus-java-server provides `UploadStorageService` interface for custom storage backends
+- We implement `MediaStoreUploadStorageService` that writes to Android MediaStore
+- Library handles ALL protocol logic; we only handle where bytes go
+
+**Key Interface Methods to Implement**:
+```kotlin
+interface UploadStorageService {
+    fun getUploadInfo(uploadUrl: String, ownerKey: String?): UploadInfo?
+    fun create(info: UploadInfo, ownerKey: String?): UploadInfo
+    fun append(info: UploadInfo, inputStream: InputStream): UploadInfo
+    fun getUploadedBytes(uploadUrl: String, ownerKey: String?): InputStream?
+    fun terminateUpload(info: UploadInfo, ownerKey: String?)
+    fun cleanupExpiredUploads(lockingService: UploadLockingService?)
+}
+```
+
+**Storage Strategy**:
+- Upload metadata → Room Database (UploadSession entity)
+- File bytes → MediaStore via existing `MediaStoreUploader`
+- Use `IS_PENDING=1` flag to hide incomplete uploads
+
+---
+
+### 3. tus-js-client Integration
 
 **Task**: Research best practices for integrating tus-js-client in embedded web assets
 
@@ -43,17 +74,12 @@
 **Rationale**:
 - Official client library with excellent browser support
 - Handles chunking, retries, and fingerprinting automatically
-- Well-documented API for progress callbacks
-
-**Alternatives Considered**:
-- Uppy (tus-based): Rejected - too heavy, includes UI components we don't need
-- Custom implementation: Rejected - reinventing the wheel, tus-js-client is battle-tested
+- Same library tested with tus-java-server (compatibility guaranteed)
 
 **Integration Approach**:
-1. Download `tus.min.js` from CDN or npm package
+1. Download `tus.min.js` from npm package (v4.1.0)
 2. Include via `<script>` tag in index.html
 3. Configure with server endpoint `/tus/` 
-4. Use fingerprint for resume identification
 
 **Key Configuration**:
 ```javascript
@@ -61,10 +87,7 @@ const upload = new tus.Upload(file, {
     endpoint: "/tus/",
     retryDelays: [0, 1000, 3000, 5000],
     chunkSize: 5 * 1024 * 1024, // 5MB chunks
-    metadata: {
-        filename: file.name,
-        filetype: file.type
-    },
+    metadata: { filename: file.name, filetype: file.type },
     onProgress: (bytesUploaded, bytesTotal) => { ... },
     onSuccess: () => { ... },
     onError: (error) => { ... }
@@ -74,76 +97,61 @@ upload.start();
 
 ---
 
-### 3. Resume Identification Strategy
+### 4. Jetty Embedded Setup for Android
 
-**Task**: Research how to identify uploads for resume (file fingerprinting)
+**Task**: Research Jetty Embedded configuration for Android environment
 
-**Decision**: Use tus-js-client's built-in fingerprinting + server-generated upload ID
+**Decision**: Use Jetty 11.0.x with programmatic configuration
 
-**Rationale**:
-- tus-js-client handles all client-side resume state automatically
-- Built-in fingerprint = `[filename, type, size, lastModified, endpoint].join('-')`
-- Server stores fingerprint in UploadSession for validation
-- No custom localStorage management needed
-
-**Alternatives Considered**:
-- Custom fingerprinting: Rejected - tus-js-client's default is sufficient
-- SHA-256 hash: Rejected - overkill for local WiFi transfers
-
-**Implementation**:
-- Client: tus-js-client auto-stores resume URL in localStorage
-- Server: Stores fingerprint from `Upload-Metadata` header
-- Resume: Client finds previous upload URL, issues HEAD to get offset, then PATCH
-
----
-
-### 4. MediaStore Append Pattern
-
-**Task**: Research appending to existing MediaStore entries for resume
-
-**Decision**: Use ContentResolver `openOutputStream(uri, "wa")` (write-append mode)
-
-**Rationale**:
-- Existing `MediaStoreUploader.getAppendOutputStream()` already supports this
-- IS_PENDING flag keeps file hidden until finalized
-- No changes needed to MediaStore integration pattern
-
-**Verification**: Current code already has:
+**Key Setup**:
 ```kotlin
-fun getAppendOutputStream(uri: Uri): OutputStream? {
-    return contentResolver.openOutputStream(uri, "wa")?.let { ... }
-}
+val server = Server(port)
+val context = ServletContextHandler(ServletContextHandler.NO_SESSIONS)
+context.contextPath = "/"
+context.addServlet(ServletHolder(TusUploadServlet(tusService)), "/tus/*")
+context.addServlet(ServletHolder(StaticAssetsServlet()), "/*")
+server.handler = context
+server.start()
+```
+
+**Dependencies** (add to build.gradle.kts):
+```kotlin
+implementation("org.eclipse.jetty:jetty-server:11.0.18")
+implementation("org.eclipse.jetty:jetty-servlet:11.0.18")
+implementation("me.desair.tus:tus-java-server:1.0.0-2.5")
 ```
 
 ---
 
-### 5. Session Expiration and Cleanup
+### 5. Migration from NanoHTTPD
 
-**Task**: Research automatic cleanup of expired sessions (24-hour expiration per spec)
+**Task**: Plan migration from NanoHTTPD to Jetty
 
-**Decision**: Use WorkManager periodic task for cleanup
+**Decision**: Full replacement (not adapter pattern)
 
-**Rationale**:
-- WorkManager already used in project (MediaStoreScanWorker, IndexWorker)
-- Periodic cleanup runs even if app not actively used
-- Room query can delete sessions older than 24 hours
+**What Changes**:
+| Component | Before | After |
+|-----------|--------|-------|
+| HTTP Server | `NanoHTTPD` class | `Jetty Server` |
+| Request handling | `IHTTPSession` | `HttpServletRequest` |
+| Response building | `newFixedLengthResponse()` | `HttpServletResponse` |
+| File uploads | Custom `TempFileManager` | tus-java-server handles |
+| Static assets | Custom `serveAsset()` | `DefaultServlet` or custom |
 
-**Implementation**:
-- Add `cleanupOldSessions(maxAgeMillis: Long)` to UploadSessionRepository (already exists)
-- Schedule WorkManager task to run daily
-- On session cleanup: delete Room record AND MediaStore pending entry
+**What Stays Same**:
+- `MediaStoreUploader` (low-level MediaStore operations)
+- Callback interfaces (`onFileUploaded`, `onUploadProgress`, etc.)
+- TransferService lifecycle management
 
 ---
 
 ## Resolved Clarifications
 
-All technical unknowns from Technical Context have been resolved:
-
 | Unknown | Resolution |
 |---------|------------|
-| TUS server library | Implement directly in NanoHTTPD |
-| TUS client library | tus-js-client v4.x |
-| Resume fingerprinting | Server-generated ID + client localStorage |
-| MediaStore append | Existing `getAppendOutputStream("wa")` |
-| Session cleanup | WorkManager periodic task |
+| TUS server implementation | tus-java-server library (NO custom implementation) |
+| HTTP server | Jetty Embedded 11.x (replaces NanoHTTPD) |
+| TUS client | tus-js-client v4.x |
+| Custom storage | Implement `UploadStorageService` interface |
+| Protocol extensions | All included in tus-java-server (creation, checksum, expiration, termination) |
 

@@ -181,5 +181,27 @@ class VideoLibraryDataSourceImpl @Inject constructor(
 
     override fun getIncompleteUploadCountFlow(): Flow<Int> =
         uploadSessionDao.getIncompleteCountFlow()
+
+    // ============== TUS-specific Upload Session Operations ==============
+
+    override suspend fun getUploadSessionByUploadUrl(url: String): UploadSession? =
+        uploadSessionDao.getByUploadUrl(url)
+
+    override suspend fun getUploadSessionByTusId(tusId: String): UploadSession? =
+        uploadSessionDao.getByTusId(tusId)
+
+    override suspend fun updateUploadProgressByTusId(tusId: String, bytes: Long, timestamp: Long) =
+        uploadSessionDao.updateProgressByTusId(tusId, bytes, timestamp)
+
+    override suspend fun markUploadCompletedByTusId(tusId: String, timestamp: Long) =
+        uploadSessionDao.markCompletedByTusId(tusId, timestamp)
+
+    override suspend fun deleteUploadSessionByTusId(tusId: String) =
+        uploadSessionDao.deleteByTusId(tusId)
+
+    override suspend fun deleteExpiredUploadSessions(cutoffMillis: Long): Int {
+        val cutoff = System.currentTimeMillis() - cutoffMillis
+        return uploadSessionDao.deleteExpired(cutoff)
+    }
 }
 

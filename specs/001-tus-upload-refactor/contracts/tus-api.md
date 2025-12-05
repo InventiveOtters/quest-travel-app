@@ -1,7 +1,8 @@
 # TUS API Contract
 
-**Branch**: `001-tus-upload-refactor` | **Date**: 2025-12-04  
-**Protocol Version**: TUS 1.0.0
+**Branch**: `001-tus-upload-refactor` | **Date**: 2025-12-05  
+**Protocol Version**: TUS 1.0.0  
+**Implementation**: tus-java-server library (NO custom implementation)
 
 ## Base URL
 
@@ -11,9 +12,30 @@ http://{device-ip}:{port}/tus/
 
 Port: 8080 (with fallback to 8081, 8082, 8083)
 
+## Library-Provided Endpoints
+
+The **tus-java-server** library handles all TUS protocol endpoints automatically:
+
+| Endpoint | Method | Purpose | Handled By |
+|----------|--------|---------|------------|
+| `/tus/` | OPTIONS | Capability discovery | Library |
+| `/tus/` | POST | Create upload | Library |
+| `/tus/{id}` | HEAD | Get offset (resume) | Library |
+| `/tus/{id}` | PATCH | Upload chunk | Library |
+| `/tus/{id}` | DELETE | Cancel/cleanup | Library |
+
+### Supported TUS Extensions
+
+The library includes these extensions out of the box:
+- **creation** - Create new uploads via POST
+- **termination** - Cancel uploads via DELETE  
+- **expiration** - Automatic 24-hour session expiry
+- **checksum** - Optional integrity verification
+- **concatenation** - Parallel chunk uploads (if needed)
+
 ## Common Headers
 
-All TUS requests MUST include:
+All TUS requests include:
 ```
 Tus-Resumable: 1.0.0
 ```
@@ -23,156 +45,110 @@ PIN-protected uploads MUST include:
 X-Upload-Pin: {4-digit-pin}
 ```
 
-## Endpoints
+## Endpoint Details
 
 ### OPTIONS /tus/
 
-**Purpose**: Capability discovery
-
-**Request**:
-```http
-OPTIONS /tus/ HTTP/1.1
-Tus-Resumable: 1.0.0
-```
-
 **Response** (200 OK):
 ```http
-HTTP/1.1 200 OK
 Tus-Resumable: 1.0.0
 Tus-Version: 1.0.0
-Tus-Extension: creation,termination
+Tus-Extension: creation,termination,expiration
 Tus-Max-Size: {available-storage-bytes}
 ```
 
----
-
 ### POST /tus/
 
-**Purpose**: Create new upload
-
-**Request**:
+**Request Headers**:
 ```http
-POST /tus/ HTTP/1.1
-Tus-Resumable: 1.0.0
 Upload-Length: 1073741824
 Upload-Metadata: filename dmlkZW8ubXA0,filetype dmlkZW8vbXA0
-Content-Length: 0
-X-Upload-Pin: 1234
 ```
 
-**Upload-Metadata** format: Base64-encoded key-value pairs, comma-separated
+**Upload-Metadata** (Base64-encoded):
 - `filename`: Original filename (required)
 - `filetype`: MIME type (required)
-- `fingerprint`: Client-generated hash for resume matching (optional)
 
 **Response** (201 Created):
 ```http
-HTTP/1.1 201 Created
 Location: /tus/{upload-id}
-Tus-Resumable: 1.0.0
 Upload-Offset: 0
 ```
 
-**Error Responses**:
-- `401 Unauthorized`: PIN required or invalid
-- `413 Payload Too Large`: File exceeds available storage
-- `500 Internal Server Error`: Failed to create MediaStore entry
-
----
-
-### HEAD /tus/{upload-id}
-
-**Purpose**: Get upload offset (for resume)
-
-**Request**:
-```http
-HEAD /tus/abc123-def456 HTTP/1.1
-Tus-Resumable: 1.0.0
-X-Upload-Pin: 1234
-```
+### HEAD /tus/{id}
 
 **Response** (200 OK):
 ```http
-HTTP/1.1 200 OK
-Tus-Resumable: 1.0.0
 Upload-Offset: 524288000
 Upload-Length: 1073741824
-Cache-Control: no-store
+Upload-Expires: {iso-datetime}
 ```
 
-**Error Responses**:
-- `404 Not Found`: Upload ID not found or expired
-- `410 Gone`: Upload was cancelled or cleaned up
-
----
-
-### PATCH /tus/{upload-id}
-
-**Purpose**: Upload chunk at offset
+### PATCH /tus/{id}
 
 **Request**:
 ```http
-PATCH /tus/abc123-def456 HTTP/1.1
-Tus-Resumable: 1.0.0
 Upload-Offset: 524288000
 Content-Type: application/offset+octet-stream
 Content-Length: 5242880
-X-Upload-Pin: 1234
 
 {binary chunk data}
 ```
 
 **Response** (204 No Content):
 ```http
-HTTP/1.1 204 No Content
-Tus-Resumable: 1.0.0
 Upload-Offset: 529530880
 ```
 
-**Final Chunk Response** (when Upload-Offset == Upload-Length):
-```http
-HTTP/1.1 204 No Content
-Tus-Resumable: 1.0.0
-Upload-Offset: 1073741824
-Upload-Complete: true
-```
+### DELETE /tus/{id}
 
-**Error Responses**:
-- `409 Conflict`: Upload-Offset doesn't match server offset
-- `404 Not Found`: Upload ID not found
-- `413 Payload Too Large`: Storage exhausted mid-upload
-- `460 Checksum Mismatch` (custom): File fingerprint changed (source file modified)
+**Response** (204 No Content)
 
 ---
 
-### DELETE /tus/{upload-id}
+## Error Handling
 
-**Purpose**: Cancel upload and cleanup
+Standard TUS error responses (handled by library):
 
-**Request**:
-```http
-DELETE /tus/abc123-def456 HTTP/1.1
-Tus-Resumable: 1.0.0
-X-Upload-Pin: 1234
-```
+| Status | Meaning |
+|--------|---------|
+| 400 Bad Request | Malformed request |
+| 404 Not Found | Upload ID not found |
+| 409 Conflict | Offset mismatch |
+| 410 Gone | Upload expired/cancelled |
+| 413 Payload Too Large | Exceeds storage |
 
-**Response** (204 No Content):
-```http
-HTTP/1.1 204 No Content
-Tus-Resumable: 1.0.0
+---
+
+## PIN Protection (Custom Extension)
+
+PIN verification is handled in our servlet wrapper BEFORE passing to tus-java-server:
+
+```kotlin
+class TusUploadServlet(private val tusService: TusFileUploadService) : HttpServlet() {
+    
+    override fun service(req: HttpServletRequest, resp: HttpServletResponse) {
+        // PIN check for non-OPTIONS requests
+        if (req.method != "OPTIONS" && !verifyPin(req)) {
+            resp.sendError(401, "PIN required")
+            return
+        }
+        tusService.process(req, resp)  // Delegate to library
+    }
+}
 ```
 
 ---
 
-## Legacy Endpoints (Preserved for Compatibility)
+## Additional Endpoints (Custom Servlets)
 
-The following existing endpoints remain unchanged:
-- `GET /api/status` - Server status
-- `GET /api/files` - List uploaded files
-- `GET /api/incomplete-uploads` - List resumable uploads (updated to use TUS data)
-- `POST /api/verify-pin` - PIN verification
+These endpoints are NOT handled by tus-java-server, but by our custom servlets:
 
-**Deprecated** (to be removed after migration):
-- `POST /api/upload` - Old multipart upload
-- `POST /api/upload-resume` - Old resume attempt
+| Endpoint | Method | Purpose | Servlet |
+|----------|--------|---------|---------|
+| `/api/status` | GET | Server status | ApiServlet |
+| `/api/verify-pin` | POST | PIN verification | ApiServlet |
+| `/*` | GET | Static assets (HTML/JS/CSS) | StaticAssetsServlet |
+
+> **Note**: Legacy multipart upload endpoints (`/api/upload`, `/api/upload-resume`) have been removed. All uploads now use TUS protocol exclusively.
 

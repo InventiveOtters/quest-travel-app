@@ -27,7 +27,12 @@ android {
     // ndkVersion = "27.0.12077973"
   }
 
-  packaging { resources.excludes.add("META-INF/LICENSE") }
+  packaging {
+    resources.excludes.add("META-INF/LICENSE")
+    resources.excludes.add("META-INF/NOTICE.md")
+    resources.excludes.add("META-INF/LICENSE.md")
+    resources.excludes.add("META-INF/DEPENDENCIES")
+  }
 
   lint { abortOnError = false }
 
@@ -103,8 +108,14 @@ dependencies {
   // DocumentFile (SAF)
   implementation(libs.androidx.documentfile)
 
-  // NanoHTTPD (embedded HTTP server for WiFi transfer)
-  implementation(libs.nanohttpd)
+  // Jetty Embedded (HTTP server for WiFi transfer - replaces NanoHTTPD)
+  // Using Jetty 9.4.x for Android compatibility (Jetty 11+ uses Java 9+ APIs not available on Android)
+  implementation("org.eclipse.jetty:jetty-server:9.4.54.v20240208")
+  implementation("org.eclipse.jetty:jetty-servlet:9.4.54.v20240208")
+
+  // TUS Protocol Server (resumable uploads)
+  // Using 1.0.0-2.1 for javax.servlet compatibility with Jetty 9.4.x
+  implementation("me.desair.tus:tus-java-server:1.0.0-2.1")
 
   // Hilt
   implementation(libs.hilt.android)

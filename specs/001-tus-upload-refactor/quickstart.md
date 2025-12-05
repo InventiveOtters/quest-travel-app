@@ -1,13 +1,13 @@
 # Quickstart: TUS Protocol Upload Refactor
 
-**Branch**: `001-tus-upload-refactor` | **Date**: 2025-12-04
+**Branch**: `001-tus-upload-refactor` | **Date**: 2025-12-05
 
 ## Prerequisites
 
 - Android Studio Hedgehog or newer
 - Meta Quest device with developer mode enabled
 - ADB connection to device
-- Node.js (for downloading tus-js-client if needed)
+- Node.js (for downloading tus-js-client)
 
 ## Setup Steps
 
@@ -17,29 +17,37 @@
 git checkout 001-tus-upload-refactor
 ```
 
-### 2. Get tus-js-client Library
+### 2. Add Dependencies (build.gradle.kts)
 
-Download the minified build:
-
-```bash
-# Option A: From CDN
-curl -o app/src/main/assets/transfer/tus.min.js \
-  https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js
-
-# Option B: From npm
-npm pack tus-js-client
-tar -xzf tus-js-client-*.tgz
-cp package/dist/tus.min.js app/src/main/assets/transfer/
-rm -rf package tus-js-client-*.tgz
+```kotlin
+dependencies {
+    // Jetty Embedded (replaces NanoHTTPD)
+    implementation("org.eclipse.jetty:jetty-server:11.0.18")
+    implementation("org.eclipse.jetty:jetty-servlet:11.0.18")
+    
+    // TUS Server Library (handles all TUS protocol)
+    implementation("me.desair.tus:tus-java-server:1.0.0-2.5")
+    
+    // Remove NanoHTTPD
+    // implementation("org.nanohttpd:nanohttpd:2.3.1")  // DELETE THIS
+}
 ```
 
-### 3. Build and Deploy
+### 3. Get tus-js-client Library
+
+```bash
+# Download from CDN
+curl -o app/src/main/assets/transfer/tus.min.js \
+  https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js
+```
+
+### 4. Build and Deploy
 
 ```bash
 ./gradlew :app:installDebug
 ```
 
-### 4. Test Upload Flow
+### 5. Test Upload Flow
 
 1. Enable WiFi transfer in app settings
 2. Connect computer to same WiFi network
@@ -47,19 +55,20 @@ rm -rf package tus-js-client-*.tgz
 4. Select a test video file (recommend 100MB+ to test resume)
 5. Start upload, verify progress
 6. Interrupt WiFi mid-upload (toggle airplane mode on Quest)
-7. Restore WiFi, verify resume prompt appears
+7. Restore WiFi, verify resume works automatically
 8. Complete upload, verify file in library
 
 ## Key Files to Modify
 
 | File | Changes |
 |------|---------|
-| `UploadSession.kt` | Simplify to TUS-focused schema |
-| `VideoLibraryDao.kt` | Add TUS queries |
-| `UploadServer.kt` | Add TUS route handlers |
-| `TusProtocolHandler.kt` | NEW: TUS protocol logic |
-| `upload.js` | Replace XHR with tus-js-client |
-| `index.html` | Include tus.min.js |
+| `build.gradle.kts` | Add Jetty + tus-java-server dependencies |
+| `UploadServer.kt` | REWRITE: Replace NanoHTTPD with Jetty |
+| `TusUploadServlet.kt` | NEW: Servlet wrapper for TusFileUploadService |
+| `MediaStoreUploadStorageService.kt` | NEW: Custom storage adapter |
+| `UploadSession.kt` | UPDATE: Add uploadUrl field |
+| `upload.js` | UPDATE: Use tus-js-client |
+| `index.html` | UPDATE: Include tus.min.js |
 
 ## Testing TUS Endpoints Manually
 
@@ -92,9 +101,9 @@ curl -X PATCH http://{quest-ip}:8080/tus/{upload-id} \
 
 ## Debugging Tips
 
-### View TUS-related logs
+### View server logs
 ```bash
-adb logcat -s TusProtocolHandler:V UploadServer:V TransferService:V
+adb logcat -s JettyServer:V TusUploadServlet:V TransferService:V
 ```
 
 ### Check session database
@@ -103,7 +112,7 @@ adb shell "run-as com.inotter.travelcompanion cat databases/video_library.db" | 
 sqlite> SELECT * FROM upload_sessions WHERE status = 'IN_PROGRESS';
 ```
 
-### Clear pending uploads for fresh test
+### Clear pending uploads
 ```bash
 adb shell am broadcast -a com.inotter.travelcompanion.CLEAR_UPLOADS
 ```
@@ -114,6 +123,26 @@ adb shell am broadcast -a com.inotter.travelcompanion.CLEAR_UPLOADS
 |-------|----------|
 | "Port in use" error | Kill other apps using port 8080, or check fallback ports |
 | Resume not working | Check localStorage in browser DevTools, verify fingerprint matches |
-| MediaStore entry stuck as pending | Session may have expired; run cleanup |
-| 409 Conflict on PATCH | Client offset doesn't match server; issue HEAD first to sync |
+| Jetty startup failure | Ensure no ProGuard rules strip Jetty classes |
+| MediaStore entry stuck | Session expired; run cleanup via WorkManager |
+| 409 Conflict on PATCH | Client offset mismatch; tus-js-client handles this automatically |
+
+## Architecture Overview
+
+```
+Browser                          Meta Quest Device
+┌──────────────┐                ┌───────────────────────────────────┐
+│ tus-js-client│  ─────────────>│  Jetty Embedded Server            │
+│ (upload.js)  │     HTTP       │    ├── TusUploadServlet           │
+└──────────────┘                │    │     └── TusFileUploadService │
+                                │    │           (library code)      │
+                                │    │              │                │
+                                │    │    MediaStoreUploadStorage    │
+                                │    │              │                │
+                                │    │    ┌────────┴────────┐       │
+                                │    │    ▼                 ▼       │
+                                │  Room DB          MediaStore      │
+                                │ (metadata)        (video bytes)   │
+                                └───────────────────────────────────┘
+```
 

@@ -1,20 +1,40 @@
 # Implementation Plan: TUS Protocol Upload Refactor
 
-**Branch**: `001-tus-upload-refactor` | **Date**: 2025-12-04 | **Spec**: [spec.md](spec.md)
+**Branch**: `001-tus-upload-refactor` | **Date**: 2025-12-05 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `/specs/001-tus-upload-refactor/spec.md`
 
 ## Summary
 
-Refactor the WiFi file upload system from the current NanoHTTPD multipart form implementation to use the TUS (tus.io) resumable upload protocol. This enables true byte-level resume capability for interrupted uploads, replacing the current non-functional resume mechanism. The implementation involves:
+Refactor the WiFi file upload system to use the TUS (tus.io) resumable upload protocol with **existing, battle-tested libraries** - NO custom TUS protocol implementation. This enables true byte-level resume capability for interrupted uploads.
 
-1. **Server-side**: Replace the `/api/upload` multipart handler with TUS protocol endpoints in the existing UploadServer
-2. **Client-side**: Replace XMLHttpRequest-based uploads in upload.js with tus-js-client library
-3. **Session tracking**: Simplify the UploadSession entity to TUS-focused schema (no migration needed - app reinstall acceptable)
+### Key Architectural Decision
+
+> ⚠️ **CRITICAL: Use existing TUS libraries only. Do NOT implement TUS protocol from scratch.**
+
+The implementation involves:
+
+1. **HTTP Server**: Replace NanoHTTPD with **Jetty Embedded** (provides Servlet API required by tus-java-server)
+2. **TUS Server**: Use **tus-java-server** library (MIT licensed, production-ready, all TUS extensions included)
+3. **TUS Client**: Use **tus-js-client** library in browser (official tus.io client)
+4. **Storage**: Integrate tus-java-server with existing MediaStore-based file storage
+
+### Why This Approach
+
+| Approach | Effort | Risk | Chosen |
+|----------|--------|------|--------|
+| Implement TUS from scratch | 5-7 days | HIGH - protocol complexity, edge cases | ❌ |
+| NanoHTTPD + Servlet adapter | 2-3 days | MEDIUM - hacky wrapper code | ❌ |
+| **Jetty + tus-java-server** | 2-3 days | LOW - proven libraries | ✅ |
 
 ## Technical Context
 
 **Language/Version**: Kotlin 1.9+ (Android), JavaScript ES6+ (browser client)
-**Primary Dependencies**: NanoHTTPD (existing HTTP server), tus-js-client (new - browser), Room (existing - session persistence)
+**Primary Dependencies**:
+- Jetty Embedded 11.x (NEW - replaces NanoHTTPD, provides Servlet API)
+- tus-java-server 1.0.0-2.x (NEW - TUS protocol implementation, Java 11 compatible)
+- tus-js-client 4.x (NEW - browser TUS client)
+- Room (existing - session persistence)
+
 **Storage**: Room Database (session metadata), MediaStore (video files via IS_PENDING pattern)
 **Testing**: JUnit + Android instrumented tests (existing patterns)
 **Target Platform**: Meta Quest / HorizonOS (Android 14, API 34)
@@ -29,11 +49,11 @@ Refactor the WiFi file upload system from the current NanoHTTPD multipart form i
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| **I. MVVM Architecture** | ✅ PASS | Upload logic remains in TransferService/UploadServer (not ViewModel); UI updates flow through existing StateFlow |
-| **II. Layered Data Architecture** | ✅ PASS | Uses existing layers: UploadSessionRepository (repository), VideoLibraryDataSource (datasource), TransferManager (manager) |
-| **III. Documentation Standards** | ✅ PASS | All new classes will have KDoc; TUS protocol integration documented |
+| **I. MVVM Architecture** | ✅ PASS | Upload logic remains in TransferService (not ViewModel); UI updates flow through existing StateFlow |
+| **II. Layered Data Architecture** | ✅ PASS | Uses existing layers: UploadSessionRepository, VideoLibraryDataSource, TransferManager |
+| **III. Documentation Standards** | ✅ PASS | All new classes will have KDoc; library integration documented |
 | **IV. Hilt Dependency Injection** | ✅ PASS | New components will be provided via existing DI modules |
-| **V. Simplicity and Maintainability** | ✅ PASS | Refactors existing code rather than adding new layers; TUS protocol is well-established standard |
+| **V. Simplicity and Maintainability** | ✅ PASS | Uses existing libraries instead of custom implementation; reduces maintenance burden |
 
 **Gate Result**: PASS - No constitution violations. Design may proceed.
 
@@ -44,40 +64,41 @@ Refactor the WiFi file upload system from the current NanoHTTPD multipart form i
 ```text
 specs/001-tus-upload-refactor/
 ├── plan.md              # This file
-├── research.md          # Phase 0: TUS protocol research
-├── data-model.md        # Phase 1: Extended UploadSession schema
+├── research.md          # Phase 0: Library research and decisions
+├── data-model.md        # Phase 1: TUS storage integration
 ├── quickstart.md        # Phase 1: Development setup guide
-├── contracts/           # Phase 1: TUS endpoint specifications
-│   └── tus-api.md       # TUS protocol endpoint contracts
-└── tasks.md             # Phase 2: Implementation tasks (created by /speckit.tasks)
+├── contracts/           # Phase 1: API endpoint specifications
+│   └── tus-api.md       # TUS endpoint documentation (library-provided)
+└── tasks.md             # Phase 2: Implementation tasks
 ```
 
 ### Source Code (repository root)
 
 ```text
 app/src/main/java/com/inotter/travelcompanion/
-├── TransferService.kt                    # UPDATE: Wire TUS server callbacks
+├── TransferService.kt                    # UPDATE: Wire Jetty server lifecycle
 ├── data/
 │   ├── datasources/videolibrary/
 │   │   ├── models/
-│   │   │   └── UploadSession.kt          # SIMPLIFY: TUS-focused schema
-│   │   └── VideoLibraryDao.kt            # UPDATE: Add TUS queries
+│   │   │   └── UploadSession.kt          # UPDATE: Sync with TUS library state
+│   │   └── VideoLibraryDao.kt            # UPDATE: Add TUS-related queries
 │   ├── repositories/UploadSessionRepository/
 │   │   ├── UploadSessionRepository.kt    # UPDATE: New TUS methods
 │   │   └── UploadSessionRepositoryImpl.kt
 │   └── managers/TransferManager/
-│       ├── UploadServer.kt               # UPDATE: Add TUS protocol handlers
-│       ├── TusProtocolHandler.kt         # NEW: TUS protocol implementation
-│       └── MediaStoreUploader.kt         # Minimal changes (append already supported)
+│       ├── UploadServer.kt               # REWRITE: Jetty-based server
+│       ├── TusUploadServlet.kt           # NEW: Servlet wrapping TusFileUploadService
+│       ├── MediaStoreUploadStorageService.kt  # NEW: tus-java-server storage adapter
+│       └── MediaStoreUploader.kt         # KEEP: Existing MediaStore operations
 │
 app/src/main/assets/transfer/
-├── upload.js                             # UPDATE: Replace with tus-js-client
+├── upload.js                             # UPDATE: Use tus-js-client
 ├── tus.min.js                            # NEW: tus-js-client library
 ├── index.html                            # UPDATE: Include tus.min.js
 └── style.css                             # No changes expected
 ```
 
-**Structure Decision**: Mobile + embedded web client. Follows existing Android architecture conventions with TransferManager folder containing upload-related components. New TusProtocolHandler class encapsulates TUS-specific logic while UploadServer remains the HTTP routing layer.
+**Structure Decision**: Mobile + embedded web client. Jetty replaces NanoHTTPD as the HTTP server. The `tus-java-server` library handles all TUS protocol logic; we only provide a custom `UploadStorageService` to write files to MediaStore instead of filesystem.
 
 ## Complexity Tracking
 
@@ -89,11 +110,11 @@ No constitution violations requiring justification.
 
 | Principle | Status | Verification |
 |-----------|--------|--------------|
-| **I. MVVM Architecture** | ✅ PASS | TusProtocolHandler is utility class, not ViewModel; no UI code in data layer |
-| **II. Layered Data Architecture** | ✅ PASS | Data model changes stay in datasources/models; new queries in DAO; repository methods added |
-| **III. Documentation Standards** | ✅ PASS | contracts/tus-api.md documents all endpoints; data-model.md documents schema |
-| **IV. Hilt Dependency Injection** | ✅ PASS | TusProtocolHandler will be injected into UploadServer; no manual construction |
-| **V. Simplicity and Maintainability** | ✅ PASS | Single new class (TusProtocolHandler); reuses existing patterns; standard protocol |
+| **I. MVVM Architecture** | ✅ PASS | TusUploadServlet is HTTP layer; no UI code in data layer |
+| **II. Layered Data Architecture** | ✅ PASS | MediaStoreUploadStorageService adapts library to our storage; follows existing patterns |
+| **III. Documentation Standards** | ✅ PASS | contracts/tus-api.md documents endpoints; data-model.md documents integration |
+| **IV. Hilt Dependency Injection** | ✅ PASS | Jetty server and TUS service provided via Hilt modules |
+| **V. Simplicity and Maintainability** | ✅ PASS | Uses proven libraries; minimal custom code; standard protocol |
 
 **Final Gate Result**: PASS - Design is constitution-compliant. Ready for task generation.
 
@@ -101,7 +122,8 @@ No constitution violations requiring justification.
 
 | Artifact | Path | Purpose |
 |----------|------|---------|
-| Research | `research.md` | TUS protocol research, library decisions |
-| Data Model | `data-model.md` | Simplified UploadSession schema (no migration) |
-| API Contract | `contracts/tus-api.md` | TUS endpoint specifications |
+| Research | `research.md` | Library research, Jetty + tus-java-server decisions |
+| Data Model | `data-model.md` | MediaStore storage adapter design |
+| API Contract | `contracts/tus-api.md` | TUS endpoint documentation (library-provided) |
 | Quickstart | `quickstart.md` | Development setup guide |
+

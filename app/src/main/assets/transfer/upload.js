@@ -1,6 +1,9 @@
 /**
  * WiFi Transfer - Upload Logic
- * Handles drag-and-drop, file selection, upload queue with progress
+ * Handles drag-and-drop, file selection, upload queue with TUS resumable uploads
+ *
+ * Uses tus-js-client library for resumable uploads with automatic retry.
+ * @see https://github.com/tus/tus-js-client
  */
 
 // DOM Elements
@@ -15,18 +18,24 @@ const storageAvailable = document.getElementById('storageAvailable');
 
 // State
 let uploadCounter = 0;
-const activeUploads = new Map();
+const activeUploads = new Map(); // Map<id, tus.Upload>
 const uploadMetadata = new Map(); // Track start time, speed calculations
 let pinRequired = false;
 let verifiedPin = null;
-let incompleteUploads = []; // Track incomplete uploads that can be resumed
+let previousUploads = []; // Track previous uploads from localStorage that can be resumed
+
+// TUS Configuration
+const TUS_ENDPOINT = '/tus/';
+const TUS_CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+const TUS_RETRY_DELAYS = [0, 1000, 3000, 5000, 10000, 30000]; // Retry delays in ms
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
+    setupBeforeUnloadHandler();
     fetchStatus();
     fetchFileList();
-    fetchIncompleteUploads(); // Check for resumable uploads
+    findPreviousUploads(); // Check for resumable uploads from localStorage
     // Refresh status periodically
     setInterval(fetchStatus, 30000);
 });
@@ -85,6 +94,20 @@ function setupEventListeners() {
     });
 }
 
+// Setup beforeunload handler to warn user when upload is in progress
+function setupBeforeUnloadHandler() {
+    window.addEventListener('beforeunload', (e) => {
+        // Check if there are any active uploads
+        if (activeUploads.size > 0) {
+            // Standard way to show confirmation dialog
+            e.preventDefault();
+            // Chrome requires returnValue to be set
+            e.returnValue = 'You have uploads in progress. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    });
+}
+
 // Handle selected files
 function handleFiles(files) {
     // Check if PIN is required but not verified
@@ -100,6 +123,10 @@ function handleFiles(files) {
         showError('Uploads are disabled: Storage is critically low. Please free up space on the device first.');
         return;
     }
+
+    // Check if user is trying to resume a specific upload
+    const pendingResume = window.pendingResumeUpload;
+    window.pendingResumeUpload = null; // Clear pending resume
 
     Array.from(files).forEach(file => {
         // Validate file type
@@ -133,44 +160,52 @@ function handleFiles(files) {
             }
         }
 
-        queueUpload(file);
+        // Check if this file matches a pending resume upload
+        let previousUpload = null;
+        if (pendingResume && pendingResume.filename === file.name && pendingResume.size === file.size) {
+            previousUpload = pendingResume;
+            showToast('Resuming upload...', 'info');
+        } else {
+            // Check if there's a matching previous upload in localStorage
+            previousUpload = previousUploads.find(u => u.filename === file.name && u.size === file.size);
+            if (previousUpload) {
+                showToast('Found previous upload, resuming...', 'info');
+            }
+        }
+
+        queueUpload(file, previousUpload);
     });
 }
 
 // Add file to upload queue
-function queueUpload(file) {
+function queueUpload(file, previousUpload = null) {
     const id = ++uploadCounter;
-    
+    const isResume = previousUpload !== null;
+
     // Create queue item UI
     const item = document.createElement('div');
     item.className = 'queue-item';
     item.id = `queue-item-${id}`;
     item.innerHTML = `
         <div class="queue-item-header">
-            <span class="queue-item-name">${escapeHtml(file.name)}</span>
+            <span class="queue-item-name">${isResume ? '↻ ' : ''}${escapeHtml(file.name)}</span>
             <span class="queue-item-size">${formatBytes(file.size)}</span>
         </div>
         <div class="progress-bar">
             <div class="progress-fill" id="progress-${id}"></div>
         </div>
-        <div class="queue-status" id="status-${id}">Preparing...</div>
+        <div class="queue-status" id="status-${id}">${isResume ? 'Resuming...' : 'Preparing...'}</div>
     `;
-    
+
     queueList.appendChild(item);
     uploadQueue.classList.add('has-items');
-    
-    // Start upload
-    uploadFile(id, file);
+
+    // Start upload (will resume if previousUpload is provided)
+    uploadFile(id, file, previousUpload);
 }
 
-// Upload a single file
-function uploadFile(id, file) {
-    const xhr = new XMLHttpRequest();
-    const formData = new FormData();
-    formData.append('file', file, file.name);
-
-    activeUploads.set(id, xhr);
-
+// Upload a single file using TUS resumable upload protocol
+function uploadFile(id, file, previousUpload = null) {
     // Initialize upload metadata for speed tracking
     uploadMetadata.set(id, {
         startTime: Date.now(),
@@ -179,81 +214,99 @@ function uploadFile(id, file) {
         lastSpeedInfo: null
     });
 
-    // Progress handler
-    xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-            const percent = Math.round((e.loaded / e.total) * 100);
-            const speedInfo = calculateSpeed(id, e.loaded, e.total);
-            updateProgress(id, percent, speedInfo);
-        }
-    });
-
-    // Completion handlers
-    xhr.addEventListener('load', () => {
-        activeUploads.delete(id);
-        uploadMetadata.delete(id);
-        if (xhr.status === 200) {
-            try {
-                const response = JSON.parse(xhr.responseText);
-                if (response.success) {
-                    markSuccess(id, response);
-                    fetchFileList(); // Refresh file list
-                    fetchStatus(); // Refresh storage info
-                } else {
-                    // Parse specific error types
-                    const errorMsg = parseErrorMessage(response.error);
-                    markError(id, errorMsg);
-                }
-            } catch (e) {
-                markError(id, 'Invalid server response');
-            }
-        } else if (xhr.status === 401) {
-            // PIN required or invalid
-            markError(id, 'PIN required - please enter the PIN');
-            verifiedPin = null; // Reset PIN
-            fetchStatus(); // This will show PIN dialog
-        } else if (xhr.status === 413) {
-            markError(id, 'File too large for server');
-        } else if (xhr.status === 507) {
-            markError(id, 'Not enough storage space on device');
-        } else if (xhr.status === 415) {
-            markError(id, 'File type not supported');
-        } else if (xhr.status === 0) {
-            markError(id, 'Connection lost - check WiFi');
-        } else {
-            markError(id, `Server error (${xhr.status})`);
-        }
-    });
-
-    xhr.addEventListener('error', () => {
-        activeUploads.delete(id);
-        uploadMetadata.delete(id);
-        markError(id, 'Network error - check WiFi connection');
-    });
-
-    xhr.addEventListener('abort', () => {
-        activeUploads.delete(id);
-        uploadMetadata.delete(id);
-        markError(id, 'Upload cancelled');
-    });
-
-    xhr.addEventListener('timeout', () => {
-        activeUploads.delete(id);
-        uploadMetadata.delete(id);
-        markError(id, 'Upload timed out - connection too slow');
-    });
-
-    xhr.timeout = 0; // No timeout for large files
-    xhr.open('POST', '/api/upload');
-
-    // Add PIN header if we have a verified PIN
+    // Build headers with PIN if available
+    const headers = {};
     if (verifiedPin) {
-        xhr.setRequestHeader('X-Upload-Pin', verifiedPin);
+        headers['X-Upload-Pin'] = verifiedPin;
     }
 
-    xhr.send(formData);
+    // Create TUS upload with retry configuration
+    const upload = new tus.Upload(file, {
+        endpoint: TUS_ENDPOINT,
+        retryDelays: TUS_RETRY_DELAYS,
+        chunkSize: TUS_CHUNK_SIZE,
+        headers: headers,
+        metadata: {
+            filename: file.name,
+            filetype: file.type || 'application/octet-stream'
+        },
 
-    updateStatus(id, 'Uploading...');
+        // Called when a previous upload is found for resume
+        onShouldRetry: function(err, retryAttempt, options) {
+            const status = err.originalResponse ? err.originalResponse.getStatus() : 0;
+            // Don't retry on auth errors
+            if (status === 401 || status === 403) {
+                return false;
+            }
+            return true;
+        },
+
+        // Progress callback
+        onProgress: function(bytesUploaded, bytesTotal) {
+            const percent = Math.round((bytesUploaded / bytesTotal) * 100);
+            const speedInfo = calculateSpeed(id, bytesUploaded, bytesTotal);
+            updateProgress(id, percent, speedInfo);
+        },
+
+        // Success callback
+        onSuccess: function() {
+            activeUploads.delete(id);
+            uploadMetadata.delete(id);
+            markSuccess(id, { success: true });
+            fetchFileList(); // Refresh file list
+            fetchStatus(); // Refresh storage info
+            // Refresh previous uploads list since this one is now complete
+            findPreviousUploads();
+        },
+
+        // Error callback
+        onError: function(error) {
+            console.error('TUS upload error:', error);
+            activeUploads.delete(id);
+            uploadMetadata.delete(id);
+
+            // Parse error status
+            const status = error.originalResponse ? error.originalResponse.getStatus() : 0;
+
+            if (status === 401) {
+                markError(id, 'PIN required - please enter the PIN');
+                verifiedPin = null;
+                fetchStatus();
+            } else if (status === 413) {
+                markError(id, 'File too large for server');
+            } else if (status === 507) {
+                markError(id, 'Not enough storage space on device');
+            } else if (status === 0) {
+                // Network error - show resume hint
+                markError(id, 'Connection lost - upload can be resumed');
+                showToast('Upload interrupted. Refresh the page to resume.', 'info');
+            } else {
+                markError(id, error.message || `Upload failed (${status})`);
+            }
+
+            // Refresh previous uploads list to show this interrupted upload
+            findPreviousUploads();
+        },
+
+        // Called when upload is being retried after error
+        onAfterResponse: function(req, res) {
+            // Log retry attempts for debugging
+            console.log(`TUS response: ${res.getStatus()} for ${req.getMethod()}`);
+        }
+    });
+
+    activeUploads.set(id, upload);
+
+    // If resuming from a previous upload, use that URL
+    if (previousUpload && previousUpload.uploadUrl) {
+        upload.url = previousUpload.uploadUrl;
+        updateStatus(id, 'Resuming upload...');
+    } else {
+        updateStatus(id, 'Starting upload...');
+    }
+
+    // Start the upload
+    upload.start();
 }
 
 // Parse error message from server response
@@ -535,32 +588,66 @@ async function fetchFileList() {
     }
 }
 
-// Fetch incomplete uploads that can be resumed
-async function fetchIncompleteUploads() {
-    try {
-        const response = await fetch('/api/incomplete-uploads');
-        const data = await response.json();
+// Find previous uploads from localStorage using tus-js-client
+// This checks localStorage for any incomplete TUS uploads that can be resumed
+function findPreviousUploads() {
+    previousUploads = [];
 
-        incompleteUploads = data.uploads || [];
-
-        if (incompleteUploads.length > 0 && data.resumeSupported) {
-            showIncompleteUploadsUI();
-        } else {
-            hideIncompleteUploadsUI();
+    // tus-js-client stores upload URLs in localStorage with keys like "tus::{fingerprint}"
+    // The fingerprint is based on file properties, so same file can be matched
+    const tusKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('tus::')) {
+            tusKeys.push(key);
         }
-    } catch (e) {
-        console.log('Unable to fetch incomplete uploads:', e);
-        incompleteUploads = [];
     }
+
+    // Parse each stored upload
+    tusKeys.forEach(key => {
+        try {
+            const uploadUrl = localStorage.getItem(key);
+            if (uploadUrl) {
+                // Extract fingerprint (filename and size are encoded in the key)
+                // tus-js-client default fingerprint format: "tus::{filename}-{size}"
+                const fingerprint = key.replace('tus::', '');
+                const parts = fingerprint.split('-');
+                const sizeStr = parts.pop(); // Last part is size
+                const filename = parts.join('-'); // Remaining parts are filename
+                const size = parseInt(sizeStr, 10);
+
+                if (filename && !isNaN(size)) {
+                    previousUploads.push({
+                        key: key,
+                        fingerprint: fingerprint,
+                        uploadUrl: uploadUrl,
+                        filename: filename,
+                        size: size
+                    });
+                }
+            }
+        } catch (e) {
+            console.log('Error parsing TUS localStorage entry:', key, e);
+        }
+    });
+
+    // Show UI if we found previous uploads
+    if (previousUploads.length > 0) {
+        showPreviousUploadsUI();
+    } else {
+        hidePreviousUploadsUI();
+    }
+
+    console.log('Found', previousUploads.length, 'previous uploads in localStorage');
 }
 
-// Show UI for incomplete uploads
-function showIncompleteUploadsUI() {
-    let section = document.getElementById('incomplete-uploads-section');
+// Show UI for previous uploads that can be resumed
+function showPreviousUploadsUI() {
+    let section = document.getElementById('previous-uploads-section');
 
     if (!section) {
         section = document.createElement('div');
-        section.id = 'incomplete-uploads-section';
+        section.id = 'previous-uploads-section';
         section.style.cssText = `
             background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
             border-radius: 12px;
@@ -580,13 +667,13 @@ function showIncompleteUploadsUI() {
             <div>
                 <h3 style="color: white; margin: 0; font-size: 18px;">Incomplete Uploads Found</h3>
                 <p style="color: rgba(255,255,255,0.7); margin: 4px 0 0 0; font-size: 14px;">
-                    ${incompleteUploads.length} upload${incompleteUploads.length > 1 ? 's' : ''} can be resumed
+                    ${previousUploads.length} upload${previousUploads.length > 1 ? 's' : ''} can be resumed
                 </p>
             </div>
         </div>
-        <div id="incomplete-uploads-list" style="display: flex; flex-direction: column; gap: 12px;">
-            ${incompleteUploads.map(upload => `
-                <div class="incomplete-upload-item" data-session-id="${upload.sessionId}" style="
+        <div id="previous-uploads-list" style="display: flex; flex-direction: column; gap: 12px;">
+            ${previousUploads.map((upload, index) => `
+                <div class="previous-upload-item" data-index="${index}" style="
                     background: rgba(255,255,255,0.1);
                     border-radius: 8px;
                     padding: 12px 16px;
@@ -600,52 +687,89 @@ function showIncompleteUploadsUI() {
                             ${escapeHtml(upload.filename)}
                         </div>
                         <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 4px;">
-                            ${upload.bytesReceivedFormatted} / ${upload.expectedSizeFormatted} (${upload.progressPercent}%)
-                        </div>
-                        <div style="background: rgba(255,255,255,0.2); border-radius: 4px; height: 4px; margin-top: 8px; overflow: hidden;">
-                            <div style="background: #7c4dff; height: 100%; width: ${upload.progressPercent}%; transition: width 0.3s;"></div>
+                            File size: ${formatBytes(upload.size)}
                         </div>
                     </div>
-                    <button onclick="resumeUpload(${upload.sessionId})" style="
-                        background: #7c4dff;
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        padding: 8px 16px;
-                        cursor: pointer;
-                        font-weight: 500;
-                        white-space: nowrap;
-                    ">Resume</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="resumePreviousUpload(${index})" style="
+                            background: #7c4dff;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            font-weight: 500;
+                            white-space: nowrap;
+                        ">Resume</button>
+                        <button onclick="discardPreviousUpload(${index})" style="
+                            background: rgba(255,255,255,0.2);
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            padding: 8px 12px;
+                            cursor: pointer;
+                            font-weight: 500;
+                            white-space: nowrap;
+                        " title="Discard this upload">✕</button>
+                    </div>
                 </div>
             `).join('')}
         </div>
         <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; text-align: center;">
-            💡 To resume, select the same file from your computer
+            💡 Select the same file from your computer to resume upload
         </p>
     `;
 }
 
-// Hide incomplete uploads UI
-function hideIncompleteUploadsUI() {
-    const section = document.getElementById('incomplete-uploads-section');
+// Hide previous uploads UI
+function hidePreviousUploadsUI() {
+    const section = document.getElementById('previous-uploads-section');
     if (section) {
         section.remove();
     }
 }
 
-// Resume an incomplete upload (placeholder - user needs to re-select file)
-function resumeUpload(sessionId) {
-    const upload = incompleteUploads.find(u => u.sessionId === sessionId);
+// Resume a previous upload - user needs to select the same file
+function resumePreviousUpload(index) {
+    const upload = previousUploads[index];
     if (!upload) {
         showError('Upload session not found');
         return;
     }
 
+    // Store the upload info for when user selects a file
+    window.pendingResumeUpload = upload;
+
     // Show instructions to user
-    showToast(`To resume "${upload.filename}", please select the same file again`, 'info');
+    showToast(`Select "${upload.filename}" to resume upload`, 'info');
 
     // Trigger file picker
     fileInput.click();
+}
+
+// Discard a previous upload from localStorage
+function discardPreviousUpload(index) {
+    const upload = previousUploads[index];
+    if (!upload) {
+        return;
+    }
+
+    // Remove from localStorage
+    localStorage.removeItem(upload.key);
+
+    // Also try to tell server to cleanup (optional, may fail if server cleaned up already)
+    if (upload.uploadUrl) {
+        fetch(upload.uploadUrl, {
+            method: 'DELETE',
+            headers: { 'Tus-Resumable': '1.0.0' }
+        }).catch(() => {
+            // Ignore errors - server may have already cleaned up
+        });
+    }
+
+    // Refresh UI
+    findPreviousUploads();
+    showToast('Upload discarded', 'info');
 }
 
 // Utility: Format bytes to human readable

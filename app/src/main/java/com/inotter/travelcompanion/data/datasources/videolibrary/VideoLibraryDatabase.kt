@@ -26,7 +26,7 @@ import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoIte
  */
 @Database(
     entities = [LibraryFolder::class, VideoItem::class, Thumbnail::class, PlaybackSettings::class, ScanSettings::class, UploadSession::class],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -91,6 +91,42 @@ abstract class VideoLibraryDatabase : RoomDatabase() {
         """)
 
         // Create unique index on mediaStoreUri
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_upload_sessions_mediaStoreUri ON upload_sessions(mediaStoreUri)")
+      }
+    }
+
+    /**
+     * Migration from version 3 to 4:
+     * - Add TUS protocol fields to upload_sessions (tusUploadId, uploadUrl)
+     * - Due to schema change complexity (new non-null columns), recreate the table
+     * - Note: Fresh install is acceptable per spec, so data loss is OK
+     */
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+      override fun migrate(db: SupportSQLiteDatabase) {
+        // Drop the old table and recreate with TUS fields
+        // This is acceptable per spec: "Fresh install acceptable - app reinstall; no data migration required"
+        db.execSQL("DROP TABLE IF EXISTS upload_sessions")
+
+        // Create new upload_sessions table with TUS fields
+        db.execSQL("""
+          CREATE TABLE IF NOT EXISTS upload_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            tusUploadId TEXT NOT NULL,
+            uploadUrl TEXT NOT NULL,
+            filename TEXT NOT NULL,
+            expectedSize INTEGER NOT NULL,
+            bytesReceived INTEGER NOT NULL DEFAULT 0,
+            mediaStoreUri TEXT NOT NULL,
+            mimeType TEXT NOT NULL,
+            createdAt INTEGER NOT NULL,
+            lastUpdatedAt INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'IN_PROGRESS'
+          )
+        """)
+
+        // Create unique indices for TUS lookups
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_upload_sessions_tusUploadId ON upload_sessions(tusUploadId)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_upload_sessions_uploadUrl ON upload_sessions(uploadUrl)")
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_upload_sessions_mediaStoreUri ON upload_sessions(mediaStoreUri)")
       }
     }

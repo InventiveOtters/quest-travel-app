@@ -14,9 +14,10 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.inotter.travelcompanion.data.managers.TransferManager.FileValidator
+import com.inotter.travelcompanion.data.managers.TransferManager.JettyUploadServer
+import com.inotter.travelcompanion.data.managers.TransferManager.MediaStoreUploader
 import com.inotter.travelcompanion.data.managers.TransferManager.NetworkUtils
-import com.inotter.travelcompanion.data.managers.TransferManager.UploadServer
-import com.inotter.travelcompanion.data.managers.TransferManager.models.ResumableUpload
+import com.inotter.travelcompanion.data.managers.TransferManager.TusUploadHandler
 import com.inotter.travelcompanion.data.repositories.UploadSessionRepository.UploadSessionRepository
 import com.inotter.travelcompanion.workers.MediaStoreScanWorker
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,6 +25,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import me.desair.tus.server.TusFileUploadService
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -51,7 +54,7 @@ class TransferService : Service() {
         val instance: TransferService? get() = _instance
 
         /** Returns true if the service is currently running */
-        fun isRunning(): Boolean = _instance?.server?.isAlive == true
+        fun isRunning(): Boolean = _instance?.jettyServer?.isAlive == true
     }
 
     /** Service state */
@@ -69,17 +72,16 @@ class TransferService : Service() {
     lateinit var uploadSessionRepository: UploadSessionRepository
 
     private val binder = LocalBinder()
-    private var server: UploadServer? = null
+    private var jettyServer: JettyUploadServer? = null
+    private var tusFileUploadService: TusFileUploadService? = null
+    private var tusUploadHandler: TusUploadHandler? = null
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    // Upload session tracking for resumable uploads detection
-    private var currentSessionId: Long? = null
 
     private val _state = MutableStateFlow<State>(State.Stopped)
     val state: StateFlow<State> = _state.asStateFlow()
 
-    private val _uploadedFiles = MutableStateFlow<List<UploadServer.UploadedFile>>(emptyList())
-    val uploadedFiles: StateFlow<List<UploadServer.UploadedFile>> = _uploadedFiles.asStateFlow()
+    private val _uploadedFiles = MutableStateFlow<List<JettyUploadServer.UploadedFile>>(emptyList())
+    val uploadedFiles: StateFlow<List<JettyUploadServer.UploadedFile>> = _uploadedFiles.asStateFlow()
 
     /** Current PIN for authentication, null if PIN protection is disabled */
     private val _currentPin = MutableStateFlow<String?>(null)
@@ -122,18 +124,12 @@ class TransferService : Service() {
         super.onDestroy()
     }
 
-    /** Starts the HTTP server */
+    /** Starts the Jetty HTTP server with TUS support */
     private fun startServer() {
-        if (server?.isAlive == true) {
-            // Server already running - update state to reflect current state
-            val currentIp = NetworkUtils.getWifiIpAddress(this)
-            if (currentIp != null) {
-                val runningState = _state.value
-                if (runningState is State.Running) {
-                    // Already in running state, nothing to do
-                    return
-                }
-            }
+        if (jettyServer?.isAlive == true) {
+            // Server already running
+            val runningState = _state.value
+            if (runningState is State.Running) return
             return
         }
 
@@ -152,48 +148,55 @@ class TransferService : Service() {
         }
 
         try {
-            // Use fallback ports mechanism - files go directly to MediaStore
-            val (newServer, actualPort) = UploadServer.createWithFallbackPorts(
-                context = applicationContext,
-                contentResolver = contentResolver,
-                onFileUploaded = { uri -> onFileUploaded(uri) },
-                onUploadProgress = { filename, progress -> onUploadProgress(filename, progress) },
-                onUploadStarted = { filename, size -> onUploadStarted(filename, size) },
-                onUploadCompleted = { filename, success -> onUploadCompleted(filename, success) },
-                pinVerifier = { pin -> verifyPin(pin) },
-                isPinEnabled = { _pinEnabled.value },
-                // Session tracking for incomplete upload detection on restart
-                onUploadSessionCreated = { filename, expectedSize, mediaStoreUri, mimeType ->
-                    val sessionId = uploadSessionRepository.createSession(filename, expectedSize, mediaStoreUri, mimeType)
-                    currentSessionId = sessionId
-                    android.util.Log.d("TransferService", "Created upload session $sessionId for $filename")
-                    sessionId
-                },
-                onUploadSessionProgress = { sessionId, bytesReceived ->
-                    uploadSessionRepository.updateProgress(sessionId, bytesReceived)
-                },
-                onUploadSessionCompleted = { sessionId, success ->
-                    if (success) {
-                        uploadSessionRepository.markCompleted(sessionId)
-                    } else {
-                        uploadSessionRepository.markFailed(sessionId)
-                    }
-                    currentSessionId = null
-                    android.util.Log.d("TransferService", "Upload session $sessionId completed: success=$success")
-                }
-            )
+            // Create MediaStore uploader
+            val mediaStoreUploader = MediaStoreUploader(contentResolver)
 
-            server = newServer
+            // Create TUS file upload service with disk storage
+            // Use app cache directory for temp TUS files
+            val tusDataDir = File(cacheDir, "tus")
+            tusDataDir.mkdirs()
+            val tusService = TusFileUploadService()
+                .withStoragePath(tusDataDir.absolutePath)
+                .withUploadURI("/tus/")  // With trailing slash to match client requests to /tus/
+                .withUploadExpirationPeriod(24 * 60 * 60 * 1000L) // 24 hours
+                .withMaxUploadSize(Long.MAX_VALUE - 1) // Must be < Long.MAX_VALUE due to library validation
+            tusFileUploadService = tusService
+
+            // Create upload handler to move completed files to MediaStore
+            val uploadHandler = TusUploadHandler(
+                uploadSessionRepository = uploadSessionRepository,
+                mediaStoreUploader = mediaStoreUploader,
+                tusService = tusService,
+                tusDataDir = tusDataDir,
+                onFileUploaded = { uri -> onFileUploaded(uri) }
+            )
+            tusUploadHandler = uploadHandler
+
+            // Create Jetty server with TUS support
+            val result: Pair<JettyUploadServer, Int> = JettyUploadServer.createWithFallbackPorts(
+                context = applicationContext,
+                tusService = tusService,
+                uploadHandler = uploadHandler,
+                pinVerifier = { pin: String -> verifyPin(pin) },
+                isPinEnabled = { _pinEnabled.value },
+                onFileUploaded = { uri: android.net.Uri -> onFileUploaded(uri) }
+            )
+            val server = result.first
+            val actualPort = result.second
+
+            jettyServer = server
 
             // Observe uploaded files
             serviceScope.launch {
-                newServer.uploadedFiles.collect { files ->
+                server.uploadedFiles.collect { files: List<JettyUploadServer.UploadedFile> ->
                     _uploadedFiles.value = files
                 }
             }
 
             _state.value = State.Running(ipAddress, actualPort)
             updateNotification("Server running at http://$ipAddress:$actualPort")
+
+            android.util.Log.i("TransferService", "Jetty TUS server started on port $actualPort")
 
         } catch (e: java.net.BindException) {
             _state.value = State.Error("All server ports are in use. Please try again later.")
@@ -213,10 +216,12 @@ class TransferService : Service() {
         }
     }
 
-    /** Stops the HTTP server */
+    /** Stops the Jetty HTTP server */
     fun stopServer() {
-        server?.stop()
-        server = null
+        jettyServer?.stop()
+        jettyServer = null
+        tusFileUploadService = null
+        tusUploadHandler = null
         _state.value = State.Stopped
     }
 
@@ -225,33 +230,12 @@ class TransferService : Service() {
         // Update notification
         val currentState = _state.value
         if (currentState is State.Running) {
-            val count = server?.getUploadCount() ?: 0
+            val count = jettyServer?.getUploadCount() ?: 0
             updateNotification("Server at ${currentState.ipAddress}:${currentState.port} • $count uploads")
         }
 
         // Trigger video indexing for the uploads folder
         triggerIndexing()
-    }
-
-    /** Called when an upload starts */
-    private fun onUploadStarted(filename: String, size: Long) {
-        showUploadProgressNotification(filename, 0, FileValidator.formatBytes(size))
-    }
-
-    /** Called when upload progress updates */
-    private fun onUploadProgress(filename: String, progress: Int) {
-        showUploadProgressNotification(filename, progress, null)
-    }
-
-    /** Called when an upload completes */
-    private fun onUploadCompleted(filename: String, success: Boolean) {
-        // Cancel the progress notification
-        val notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.cancel(NOTIFICATION_UPLOAD_ID)
-
-        if (success) {
-            showUploadCompleteNotification(filename)
-        }
     }
 
     /** Shows upload progress in a separate notification */
@@ -271,7 +255,7 @@ class TransferService : Service() {
 
     /** Shows upload complete notification */
     private fun showUploadCompleteNotification(filename: String) {
-        val uploadCount = server?.getUploadCount() ?: 1
+        val uploadCount = jettyServer?.getUploadCount() ?: 1
 
         // Intent to open the app
         val openIntent = Intent(this, MainActivity::class.java).apply {

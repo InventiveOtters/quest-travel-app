@@ -81,5 +81,25 @@ interface VideoLibraryDataSource {
     suspend fun deleteFinishedUploadSessions()
     suspend fun getIncompleteUploadCount(): Int
     fun getIncompleteUploadCountFlow(): Flow<Int>
+
+    // ============== TUS-specific Upload Session Operations ==============
+
+    /** Get upload session by TUS upload URL (for resume lookups) */
+    suspend fun getUploadSessionByUploadUrl(url: String): UploadSession?
+
+    /** Get upload session by TUS upload ID */
+    suspend fun getUploadSessionByTusId(tusId: String): UploadSession?
+
+    /** Update progress by TUS upload ID */
+    suspend fun updateUploadProgressByTusId(tusId: String, bytes: Long, timestamp: Long = System.currentTimeMillis())
+
+    /** Mark upload completed by TUS upload ID */
+    suspend fun markUploadCompletedByTusId(tusId: String, timestamp: Long = System.currentTimeMillis())
+
+    /** Delete upload session by TUS upload ID */
+    suspend fun deleteUploadSessionByTusId(tusId: String)
+
+    /** Delete expired TUS sessions (older than 24 hours) */
+    suspend fun deleteExpiredUploadSessions(cutoffMillis: Long = UploadSession.EXPIRATION_MILLIS): Int
 }
 

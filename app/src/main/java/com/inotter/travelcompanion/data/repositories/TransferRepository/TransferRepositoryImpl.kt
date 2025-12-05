@@ -7,6 +7,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import com.inotter.travelcompanion.TransferService
 import com.inotter.travelcompanion.data.managers.TransferManager.FileValidator
+import com.inotter.travelcompanion.data.managers.TransferManager.JettyUploadServer
 import com.inotter.travelcompanion.data.managers.TransferManager.NetworkUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -147,7 +148,7 @@ class TransferRepositoryImpl @Inject constructor(
             }
         }
 
-        val uploads = service.uploadedFiles.value.map { file ->
+        val uploads = service.uploadedFiles.value.map { file: JettyUploadServer.UploadedFile ->
             TransferRepository.UploadedFile(
                 name = file.name,
                 size = file.size,
