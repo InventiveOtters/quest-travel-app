@@ -1,0 +1,157 @@
+openapi: 3.0.3
+info:
+  title: Travel Companion Upload API
+  description: API for WiFi video transfer with resumable upload support
+  version: 1.1.0
+
+servers:
+  - url: http://{device_ip}:{port}
+    description: Embedded HTTP server on Quest device
+    variables:
+      device_ip:
+        default: 192.168.1.100
+      port:
+        default: "8080"
+
+paths:
+  /api/incomplete-uploads:
+    get:
+      summary: List incomplete uploads
+      description: Returns all incomplete upload sessions that can be resumed or deleted
+      operationId: getIncompleteUploads
+      responses:
+        "200":
+          description: List of incomplete uploads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncompleteUploadsResponse"
+
+  /api/incomplete-uploads/{sessionId}:
+    delete:
+      summary: Delete an incomplete upload
+      description: |
+        Removes an incomplete upload session and its associated MediaStore entry.
+        Use this when user chooses to discard an interrupted upload.
+      operationId: deleteIncompleteUpload
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: Upload session ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Upload deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteUploadResponse"
+        "404":
+          description: Session not found or already completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Failed to delete MediaStore entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    IncompleteUploadsResponse:
+      type: object
+      required:
+        - uploads
+        - resumeSupported
+      properties:
+        uploads:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResumableUpload"
+        resumeSupported:
+          type: boolean
+          description: Whether resume functionality is available
+        totalCount:
+          type: integer
+          description: Total number of incomplete uploads
+
+    ResumableUpload:
+      type: object
+      required:
+        - sessionId
+        - filename
+        - expectedSize
+        - bytesReceived
+        - progressPercent
+      properties:
+        sessionId:
+          type: integer
+          format: int64
+          description: Unique session identifier
+        filename:
+          type: string
+          description: Original file name
+          example: "vacation-video.mp4"
+        expectedSize:
+          type: integer
+          format: int64
+          description: Total expected file size in bytes
+        expectedSizeFormatted:
+          type: string
+          description: Human-readable file size
+          example: "2.5 GB"
+        bytesReceived:
+          type: integer
+          format: int64
+          description: Bytes successfully uploaded
+        bytesReceivedFormatted:
+          type: string
+          description: Human-readable received size
+          example: "1.1 GB"
+        progressPercent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Upload progress percentage
+        createdAt:
+          type: integer
+          format: int64
+          description: Session creation timestamp (epoch milliseconds)
+        isExpired:
+          type: boolean
+          description: Whether upload is older than 7 days
+
+    DeleteUploadResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+        sessionId:
+          type: integer
+          format: int64
+        message:
+          type: string
+          example: "Upload deleted successfully"
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          type: string
+          description: Error message
+          example: "Session not found"
+
