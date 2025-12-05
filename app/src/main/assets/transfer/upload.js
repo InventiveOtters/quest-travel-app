@@ -545,25 +545,33 @@ function cancelUpload(id) {
         cleanupLocalStorageForFile(upload.file);
     }
 
-    // Request server-side cleanup via DELETE request
-    if (uploadUrl) {
-        fetch(uploadUrl, {
-            method: 'DELETE',
-            headers: { 'Tus-Resumable': '1.0.0' }
-        }).then(response => {
-            console.log('Server cleanup DELETE response:', response.status);
-            if (response.ok) {
-                // Refresh storage info after successful deletion
-                fetchStatus();
-            }
-        }).catch(err => {
-            console.log('Server cleanup request failed (may already be cleaned):', err);
-        });
-    }
-
-    // Update UI
+    // Update UI immediately
     markCancelled(id);
     showToast('Upload cancelled', 'info');
+
+    // Request server-side cleanup via DELETE request
+    // Use a small delay to allow any in-flight PATCH requests to complete/abort
+    // This prevents a race condition where DELETE runs before PATCH finishes
+    if (uploadUrl) {
+        setTimeout(() => {
+            console.log('Sending DELETE request after abort delay:', uploadUrl);
+            fetch(uploadUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Tus-Resumable': '1.0.0',
+                    'X-Upload-Pin': localStorage.getItem('uploadPin') || ''
+                }
+            }).then(response => {
+                console.log('Server cleanup DELETE response:', response.status);
+                if (response.ok) {
+                    // Refresh storage info after successful deletion
+                    fetchStatus();
+                }
+            }).catch(err => {
+                console.log('Server cleanup request failed (may already be cleaned):', err);
+            });
+        }, 500); // 500ms delay to allow in-flight requests to complete
+    }
 
     // Refresh previous uploads list
     findPreviousUploads();
