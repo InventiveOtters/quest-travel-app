@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupBeforeUnloadHandler();
     fetchStatus();
     fetchFileList();
+    cleanupExpiredLocalStorageUploads(); // Clean up old entries first
     findPreviousUploads(); // Check for resumable uploads from localStorage
     // Refresh status periodically
     setInterval(fetchStatus, 30000);
@@ -189,7 +190,10 @@ function queueUpload(file, previousUpload = null) {
     item.innerHTML = `
         <div class="queue-item-header">
             <span class="queue-item-name">${isResume ? '↻ ' : ''}${escapeHtml(file.name)}</span>
-            <span class="queue-item-size">${formatBytes(file.size)}</span>
+            <div class="queue-item-actions">
+                <span class="queue-item-size">${formatBytes(file.size)}</span>
+                <button class="cancel-btn" id="cancel-${id}" title="Cancel upload">✕</button>
+            </div>
         </div>
         <div class="progress-bar">
             <div class="progress-fill" id="progress-${id}"></div>
@@ -200,6 +204,15 @@ function queueUpload(file, previousUpload = null) {
     queueList.appendChild(item);
     uploadQueue.classList.add('has-items');
 
+    // Add cancel button click handler
+    const cancelBtn = document.getElementById(`cancel-${id}`);
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cancelUpload(id);
+        });
+    }
+
     // Start upload (will resume if previousUpload is provided)
     uploadFile(id, file, previousUpload);
 }
@@ -207,9 +220,11 @@ function queueUpload(file, previousUpload = null) {
 // Upload a single file using TUS resumable upload protocol
 function uploadFile(id, file, previousUpload = null) {
     // Initialize upload metadata for speed tracking
+    // Note: initialOffset will be set when first progress event arrives (for resumed uploads)
     uploadMetadata.set(id, {
         startTime: Date.now(),
         fileSize: file.size,
+        initialOffset: null, // Will be set on first progress callback
         lastDisplayUpdate: null,
         lastSpeedInfo: null
     });
@@ -230,6 +245,12 @@ function uploadFile(id, file, previousUpload = null) {
             filename: file.name,
             filetype: file.type || 'application/octet-stream'
         },
+        // Store URL in localStorage for resume after page refresh
+        storeFingerprintForResuming: true,
+        // Remove fingerprint from localStorage on successful upload
+        removeFingerprintOnSuccess: true,
+        // Use default fingerprint which includes: name, type, size, lastModified, endpoint
+        // This is better than a custom one as it prevents resuming wrong upload if file is modified
 
         // Called when a previous upload is found for resume
         onShouldRetry: function(err, retryAttempt, options) {
@@ -252,6 +273,12 @@ function uploadFile(id, file, previousUpload = null) {
         onSuccess: function() {
             activeUploads.delete(id);
             uploadMetadata.delete(id);
+
+            // Manually clean up localStorage entries for this upload
+            // tus-js-client's removeFingerprintOnSuccess may not clean all entries
+            // due to the key format: tus::{fingerprint}::{random}
+            cleanupLocalStorageForFile(file);
+
             markSuccess(id, { success: true });
             fetchFileList(); // Refresh file list
             fetchStatus(); // Refresh storage info
@@ -299,6 +326,12 @@ function uploadFile(id, file, previousUpload = null) {
 
     // If resuming from a previous upload, use that URL
     if (previousUpload && previousUpload.uploadUrl) {
+        // Remove the old localStorage entry to prevent duplicates
+        // tus-js-client will create a new entry when the upload starts
+        if (previousUpload.key) {
+            localStorage.removeItem(previousUpload.key);
+            console.log('Removed old localStorage entry before resume:', previousUpload.key);
+        }
         upload.url = previousUpload.uploadUrl;
         updateStatus(id, 'Resuming upload...');
     } else {
@@ -307,6 +340,10 @@ function uploadFile(id, file, previousUpload = null) {
 
     // Start the upload
     upload.start();
+
+    // Refresh the previous uploads UI to hide this upload from the resumable list
+    // (since it's now active)
+    findPreviousUploads();
 }
 
 // Parse error message from server response
@@ -340,18 +377,28 @@ function calculateSpeed(id, loaded, total) {
 
     const now = Date.now();
 
+    // Initialize initial offset on first progress callback
+    // This is crucial for resumed uploads where 'loaded' starts at a non-zero value
+    if (meta.initialOffset === null) {
+        meta.initialOffset = loaded;
+        meta.startTime = now; // Reset start time to when we actually started this session
+    }
+
     // Initialize display update time if not set
     if (!meta.lastDisplayUpdate) {
         meta.lastDisplayUpdate = now;
     }
 
-    // Calculate overall average speed from start (more stable)
+    // Calculate speed based on bytes uploaded THIS SESSION only
+    const bytesThisSession = loaded - meta.initialOffset;
     const totalElapsed = now - meta.startTime;
-    if (totalElapsed < 100) return meta.lastSpeedInfo || null;
 
-    const overallSpeed = (loaded / totalElapsed) * 1000; // bytes per second
+    // Need some time to pass before we can calculate meaningful speed
+    if (totalElapsed < 500) return meta.lastSpeedInfo || null;
 
-    // Calculate remaining time based on overall average
+    const overallSpeed = (bytesThisSession / totalElapsed) * 1000; // bytes per second
+
+    // Calculate remaining time based on current speed
     const remaining = total - loaded;
     const etaSeconds = overallSpeed > 0 ? remaining / overallSpeed : 0;
 
@@ -436,6 +483,8 @@ function markSuccess(id, response) {
         item.classList.add('success');
         updateProgress(id, 100);
         updateStatus(id, `✓ Uploaded successfully`);
+        // Hide cancel button on success
+        hideCancelButton(id);
     }
     fetchStatus(); // Refresh storage info
 }
@@ -446,7 +495,78 @@ function markError(id, message) {
     if (item) {
         item.classList.add('error');
         updateStatus(id, `✗ ${message}`);
+        // Hide cancel button on error
+        hideCancelButton(id);
     }
+}
+
+// Mark upload as cancelled
+function markCancelled(id) {
+    const item = document.getElementById(`queue-item-${id}`);
+    if (item) {
+        item.classList.add('cancelled');
+        updateStatus(id, '⊘ Upload cancelled');
+        hideCancelButton(id);
+    }
+}
+
+// Hide cancel button for a queue item
+function hideCancelButton(id) {
+    const cancelBtn = document.getElementById(`cancel-${id}`);
+    if (cancelBtn) {
+        cancelBtn.style.display = 'none';
+    }
+}
+
+/**
+ * Cancel an active upload.
+ * Aborts the TUS upload, cleans up localStorage, and requests server cleanup.
+ * @param {number} id - The upload queue item ID
+ */
+function cancelUpload(id) {
+    const upload = activeUploads.get(id);
+    if (!upload) {
+        console.log('No active upload found for id:', id);
+        return;
+    }
+
+    // Abort the upload (stops network transfer)
+    upload.abort();
+
+    // Get the upload URL for server-side cleanup
+    const uploadUrl = upload.url;
+
+    // Clean up from our tracking maps
+    activeUploads.delete(id);
+    uploadMetadata.delete(id);
+
+    // Clean up localStorage entries for this file
+    if (upload.file) {
+        cleanupLocalStorageForFile(upload.file);
+    }
+
+    // Request server-side cleanup via DELETE request
+    if (uploadUrl) {
+        fetch(uploadUrl, {
+            method: 'DELETE',
+            headers: { 'Tus-Resumable': '1.0.0' }
+        }).then(response => {
+            console.log('Server cleanup DELETE response:', response.status);
+            if (response.ok) {
+                // Refresh storage info after successful deletion
+                fetchStatus();
+            }
+        }).catch(err => {
+            console.log('Server cleanup request failed (may already be cleaned):', err);
+        });
+    }
+
+    // Update UI
+    markCancelled(id);
+    showToast('Upload cancelled', 'info');
+
+    // Refresh previous uploads list
+    findPreviousUploads();
 }
 
 // Show error toast notification
@@ -588,6 +708,97 @@ async function fetchFileList() {
     }
 }
 
+// Clean up localStorage entries for a specific file (used on successful upload)
+// This ensures the "Incomplete Uploads" section doesn't show completed uploads
+function cleanupLocalStorageForFile(file) {
+    if (!file) return;
+
+    const keysToRemove = [];
+
+    // Find all localStorage keys that match this file by checking stored metadata
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('tus::')) {
+            try {
+                const storedValue = localStorage.getItem(key);
+                if (storedValue) {
+                    const uploadData = JSON.parse(storedValue);
+                    // Match by filename and size from stored metadata
+                    if (uploadData.metadata?.filename === file.name &&
+                        uploadData.size === file.size) {
+                        keysToRemove.push(key);
+                    }
+                }
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+    }
+
+    // Remove all matching entries
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log('Cleaned up localStorage entry for completed upload:', key);
+    });
+}
+
+// Clean up expired localStorage entries for TUS uploads
+// TUS uploads expire after 24 hours on the server, so we should clean up
+// client-side entries that are older than that
+const TUS_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function cleanupExpiredLocalStorageUploads() {
+    const now = Date.now();
+    const keysToRemove = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('tus::')) {
+            try {
+                const storedValue = localStorage.getItem(key);
+                if (storedValue) {
+                    const uploadData = JSON.parse(storedValue);
+
+                    // Check if creationTime exists and is expired
+                    if (uploadData.creationTime) {
+                        const creationTime = new Date(uploadData.creationTime).getTime();
+                        if (!isNaN(creationTime) && (now - creationTime) > TUS_EXPIRATION_MS) {
+                            keysToRemove.push({
+                                key: key,
+                                uploadUrl: uploadData.uploadUrl
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                // If we can't parse it, it might be corrupted - remove it
+                console.log('Removing unparseable TUS localStorage entry:', key);
+                keysToRemove.push({ key: key, uploadUrl: null });
+            }
+        }
+    }
+
+    // Remove expired entries and notify server
+    keysToRemove.forEach(entry => {
+        localStorage.removeItem(entry.key);
+        console.log('Cleaned up expired TUS localStorage entry:', entry.key);
+
+        // Try to clean up server-side as well (best effort)
+        if (entry.uploadUrl) {
+            fetch(entry.uploadUrl, {
+                method: 'DELETE',
+                headers: { 'Tus-Resumable': '1.0.0' }
+            }).catch(() => {
+                // Ignore errors - server may have already cleaned up
+            });
+        }
+    });
+
+    if (keysToRemove.length > 0) {
+        console.log(`Cleaned up ${keysToRemove.length} expired TUS upload(s) from localStorage`);
+    }
+}
+
 // Find previous uploads from localStorage using tus-js-client
 // This checks localStorage for any incomplete TUS uploads that can be resumed
 function findPreviousUploads() {
@@ -604,41 +815,70 @@ function findPreviousUploads() {
     }
 
     // Parse each stored upload
+    // tus-js-client stores upload data as JSON with format:
+    // { size, metadata: { filename, filetype }, creationTime, uploadUrl }
     tusKeys.forEach(key => {
         try {
-            const uploadUrl = localStorage.getItem(key);
-            if (uploadUrl) {
-                // Extract fingerprint (filename and size are encoded in the key)
-                // tus-js-client default fingerprint format: "tus::{filename}-{size}"
-                const fingerprint = key.replace('tus::', '');
-                const parts = fingerprint.split('-');
-                const sizeStr = parts.pop(); // Last part is size
-                const filename = parts.join('-'); // Remaining parts are filename
-                const size = parseInt(sizeStr, 10);
-
-                if (filename && !isNaN(size)) {
-                    previousUploads.push({
-                        key: key,
-                        fingerprint: fingerprint,
-                        uploadUrl: uploadUrl,
-                        filename: filename,
-                        size: size
-                    });
+            const storedValue = localStorage.getItem(key);
+            if (storedValue) {
+                // tus-js-client stores a JSON object, not just the URL
+                let uploadData;
+                try {
+                    uploadData = JSON.parse(storedValue);
+                } catch (parseError) {
+                    // If it's not JSON, assume it's a plain URL (legacy format)
+                    uploadData = { uploadUrl: storedValue };
                 }
+
+                // Extract upload URL from the stored data
+                const uploadUrl = uploadData.uploadUrl;
+                if (!uploadUrl) {
+                    console.log('No uploadUrl in TUS localStorage entry:', key);
+                    return;
+                }
+
+                // Extract filename and size from metadata
+                const filename = uploadData.metadata?.filename;
+                const size = uploadData.size;
+
+                // Skip entries without proper metadata
+                if (!filename || !size || size <= 0) {
+                    console.log('Skipping TUS entry without proper metadata:', key);
+                    return;
+                }
+
+                previousUploads.push({
+                    key: key,
+                    uploadUrl: uploadUrl,
+                    filename: filename,
+                    size: size
+                });
             }
         } catch (e) {
             console.log('Error parsing TUS localStorage entry:', key, e);
         }
     });
 
-    // Show UI if we found previous uploads
+    // Filter out uploads that are currently active
+    // Get all active upload URLs
+    const activeUploadUrls = new Set();
+    activeUploads.forEach(upload => {
+        if (upload.url) {
+            activeUploadUrls.add(upload.url);
+        }
+    });
+
+    // Remove entries that match active uploads
+    previousUploads = previousUploads.filter(upload => !activeUploadUrls.has(upload.uploadUrl));
+
+    // Show UI if we found previous uploads (that aren't currently active)
     if (previousUploads.length > 0) {
         showPreviousUploadsUI();
     } else {
         hidePreviousUploadsUI();
     }
 
-    console.log('Found', previousUploads.length, 'previous uploads in localStorage');
+    console.log('Found', previousUploads.length, 'resumable uploads in localStorage (excluding active)');
 }
 
 // Show UI for previous uploads that can be resumed

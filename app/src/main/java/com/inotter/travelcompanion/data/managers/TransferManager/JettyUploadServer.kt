@@ -16,7 +16,8 @@ class JettyUploadServer(
     private val uploadHandler: TusUploadHandler? = null,
     private val pinVerifier: (String) -> Boolean = { true },
     private val isPinEnabled: () -> Boolean = { false },
-    private val onFileUploaded: (android.net.Uri) -> Unit = {}
+    private val onFileUploaded: (android.net.Uri) -> Unit = {},
+    private val tusDataDir: java.io.File? = null
 ) {
     companion object {
         const val DEFAULT_PORT = 8080
@@ -29,14 +30,15 @@ class JettyUploadServer(
             uploadHandler: TusUploadHandler? = null,
             pinVerifier: (String) -> Boolean = { true },
             isPinEnabled: () -> Boolean = { false },
-            onFileUploaded: (android.net.Uri) -> Unit = {}
+            onFileUploaded: (android.net.Uri) -> Unit = {},
+            tusDataDir: java.io.File? = null
         ): Pair<JettyUploadServer, Int> {
             val portsToTry = listOf(DEFAULT_PORT) + FALLBACK_PORTS
             for (port in portsToTry) {
                 try {
                     val server = JettyUploadServer(
                         context, port, tusService, uploadHandler,
-                        pinVerifier, isPinEnabled, onFileUploaded
+                        pinVerifier, isPinEnabled, onFileUploaded, tusDataDir
                     )
                     server.start()
                     android.util.Log.i(TAG, "Server started on port $port")
@@ -78,7 +80,7 @@ class JettyUploadServer(
         val contextHandler = ServletContextHandler(ServletContextHandler.NO_SESSIONS)
         contextHandler.contextPath = "/"
 
-        val tusServlet = TusUploadServlet(tusService, uploadHandler, pinVerifier, isPinEnabled)
+        val tusServlet = TusUploadServlet(tusService, uploadHandler, pinVerifier, isPinEnabled, tusDataDir)
         contextHandler.addServlet(ServletHolder(tusServlet), "/tus/*")
 
         val apiServlet = ApiServlet(context, pinVerifier, isPinEnabled)

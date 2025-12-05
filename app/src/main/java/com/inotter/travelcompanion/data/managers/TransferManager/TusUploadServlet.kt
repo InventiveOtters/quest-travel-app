@@ -25,7 +25,8 @@ class TusUploadServlet(
     private val tusService: TusFileUploadService,
     private val uploadHandler: TusUploadHandler? = null,
     private val pinVerifier: (String) -> Boolean = { true },
-    private val isPinEnabled: () -> Boolean = { false }
+    private val isPinEnabled: () -> Boolean = { false },
+    private val tusDataDir: java.io.File? = null
 ) : HttpServlet() {
 
     companion object {
@@ -61,6 +62,13 @@ class TusUploadServlet(
             if (req.method == "PATCH" && resp.status in 200..299) {
                 checkUploadCompletion(req.requestURI)
             }
+
+            // Log DELETE requests for debugging storage cleanup
+            if (req.method == "DELETE") {
+                android.util.Log.i(TAG, "DELETE request for ${req.requestURI} completed with status ${resp.status}")
+                // Log remaining files in TUS directory for debugging
+                logTusDirectoryContents()
+            }
         } catch (e: Exception) {
             android.util.Log.e(TAG, "TUS processing error: ${e.message}", e)
             if (!resp.isCommitted) {
@@ -77,6 +85,29 @@ class TusUploadServlet(
             uploadHandler?.checkAndProcessUpload(uploadInfo, uploadUri)
         } catch (e: Exception) {
             android.util.Log.w(TAG, "Failed to check upload completion: ${e.message}")
+        }
+    }
+
+    private fun logTusDirectoryContents() {
+        try {
+            val tusDir = tusDataDir ?: return
+
+            if (!tusDir.exists()) {
+                android.util.Log.d(TAG, "TUS directory does not exist")
+                return
+            }
+
+            val files = tusDir.listFiles() ?: emptyArray()
+            val totalSize = files.sumOf { it.length() }
+            android.util.Log.i(TAG, "TUS directory after DELETE: ${files.size} files, total size: ${totalSize / 1024}KB")
+            files.take(10).forEach { file ->
+                android.util.Log.d(TAG, "  - ${file.name}: ${file.length() / 1024}KB")
+            }
+            if (files.size > 10) {
+                android.util.Log.d(TAG, "  ... and ${files.size - 10} more files")
+            }
+        } catch (e: Exception) {
+            android.util.Log.w(TAG, "Failed to log TUS directory: ${e.message}")
         }
     }
 }

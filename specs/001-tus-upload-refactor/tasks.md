@@ -107,7 +107,7 @@
 
 ---
 
-## Phase 5: User Story 3 - Cancel and Clean Up Upload (Priority: P2)
+## Phase 5: User Story 3 - Cancel and Clean Up Upload (Priority: P2) ✅ COMPLETE
 
 **Goal**: Users can cancel uploads and partial files are cleaned up
 
@@ -115,15 +115,15 @@
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Add Cancel button UI during active upload in `upload.js`
-- [ ] T031 [US3] Implement cancelUpload() with upload.abort() + localStorage cleanup in `upload.js`
-- [ ] T032 [US3] Add Discard button for incomplete uploads (removes from resume list) in `upload.js`
-- [ ] T033 [US3] Implement discardUpload() calling DELETE /tus/{id} to cleanup server-side in `upload.js`
-- [ ] T034 [US3] Implement cleanupExpiredUploads() for sessions >24h in UploadSessionRepository + TUS cache cleanup
-- [ ] T035 [US3] Create UploadCleanupWorker (WorkManager) for periodic cleanup in `app/.../workers/UploadCleanupWorker.kt`
-- [ ] T036 [US3] Schedule UploadCleanupWorker on app startup
+- [x] T030 [US3] Add Cancel button UI during active upload in `upload.js`
+- [x] T031 [US3] Implement cancelUpload() with upload.abort() + localStorage cleanup in `upload.js`
+- [x] T032 [US3] Add Discard button for incomplete uploads (removes from resume list) in `upload.js`
+- [x] T033 [US3] Implement discardUpload() calling DELETE /tus/{id} to cleanup server-side in `upload.js`
+- [x] T034 [US3] Implement cleanupExpiredUploads() for sessions >24h in UploadSessionRepository + TUS cache cleanup
+- [x] T035 [US3] Create UploadCleanupWorker (WorkManager) for periodic cleanup in `app/.../workers/UploadCleanupWorker.kt`
+- [x] T036 [US3] Schedule UploadCleanupWorker on app startup
 
-**Checkpoint**: User Story 3 complete - Cancel/Discard cleanup works, no orphaned files
+**Checkpoint**: ✅ User Story 3 complete - Cancel/Discard cleanup works, no orphaned files
 
 ---
 

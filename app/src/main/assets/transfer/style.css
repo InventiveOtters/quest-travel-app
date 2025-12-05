@@ -206,6 +206,10 @@ header h1 {
     background: var(--error);
 }
 
+.queue-item.cancelled .progress-fill {
+    background: var(--text-secondary);
+}
+
 .queue-status {
     font-size: 0.85rem;
     color: var(--text-secondary);
@@ -217,6 +221,42 @@ header h1 {
 
 .queue-item.error .queue-status {
     color: var(--error);
+}
+
+.queue-item.cancelled .queue-status {
+    color: var(--text-secondary);
+}
+
+/* Queue item actions (size and cancel button) */
+.queue-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+/* Cancel button */
+.cancel-btn {
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.cancel-btn:hover {
+    background: var(--error);
+    border-color: var(--error);
+    color: white;
 }
 
 /* File List */

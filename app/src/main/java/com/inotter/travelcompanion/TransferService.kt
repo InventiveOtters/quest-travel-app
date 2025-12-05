@@ -20,6 +20,7 @@ import com.inotter.travelcompanion.data.managers.TransferManager.NetworkUtils
 import com.inotter.travelcompanion.data.managers.TransferManager.TusUploadHandler
 import com.inotter.travelcompanion.data.repositories.UploadSessionRepository.UploadSessionRepository
 import com.inotter.travelcompanion.workers.MediaStoreScanWorker
+import com.inotter.travelcompanion.workers.UploadCleanupWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -179,7 +180,8 @@ class TransferService : Service() {
                 uploadHandler = uploadHandler,
                 pinVerifier = { pin: String -> verifyPin(pin) },
                 isPinEnabled = { _pinEnabled.value },
-                onFileUploaded = { uri: android.net.Uri -> onFileUploaded(uri) }
+                onFileUploaded = { uri: android.net.Uri -> onFileUploaded(uri) },
+                tusDataDir = tusDataDir
             )
             val server = result.first
             val actualPort = result.second
@@ -197,6 +199,9 @@ class TransferService : Service() {
             updateNotification("Server running at http://$ipAddress:$actualPort")
 
             android.util.Log.i("TransferService", "Jetty TUS server started on port $actualPort")
+
+            // Schedule cleanup worker to clean up expired upload sessions
+            scheduleUploadCleanup()
 
         } catch (e: java.net.BindException) {
             _state.value = State.Error("All server ports are in use. Please try again later.")
@@ -332,6 +337,27 @@ class TransferService : Service() {
             android.util.Log.d("TransferService", "Scheduled MediaStore scan for uploaded file")
         } catch (e: Exception) {
             android.util.Log.e("TransferService", "Failed to trigger MediaStore scan", e)
+        }
+    }
+
+    /**
+     * Schedules the upload cleanup worker to clean up expired sessions.
+     * The worker removes sessions older than 24 hours along with their
+     * associated MediaStore entries and TUS temporary files.
+     */
+    private fun scheduleUploadCleanup() {
+        try {
+            val workRequest = OneTimeWorkRequestBuilder<UploadCleanupWorker>().build()
+
+            WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+                UploadCleanupWorker.WORK_NAME,
+                ExistingWorkPolicy.KEEP, // Don't restart if already running
+                workRequest
+            )
+
+            android.util.Log.d("TransferService", "Scheduled upload cleanup worker")
+        } catch (e: Exception) {
+            android.util.Log.e("TransferService", "Failed to schedule cleanup worker", e)
         }
     }
 
