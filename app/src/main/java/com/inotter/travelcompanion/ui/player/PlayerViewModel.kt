@@ -64,8 +64,13 @@ class PlayerViewModel @Inject constructor(
   /**
    * Prepare and load a video for playback.
    * Applies stereo layout based on: override > detected > default setting.
+   *
+   * @param uri The URI of the video file
+   * @param videoId The database ID of the video
+   * @param video The video item metadata
+   * @param startPositionMs Optional starting position in milliseconds (for resume)
    */
-  fun loadVideo(uri: Uri, videoId: Long, video: VideoItem) {
+  fun loadVideo(uri: Uri, videoId: Long, video: VideoItem, startPositionMs: Long = 0L) {
     currentVideoId = videoId
     viewModelScope.launch {
       // Determine stereo layout: override > detected > default
@@ -73,7 +78,7 @@ class PlayerViewModel @Inject constructor(
       _currentStereoLayout.value = layout
       playbackCore.setStereoLayout(layout)
 
-      playbackCore.prepare(uri)
+      playbackCore.prepare(uri, startPositionMs)
       startProgressTracking()
     }
   }

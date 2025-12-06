@@ -2,10 +2,21 @@ package com.inotter.travelcompanion.playback
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.util.Log
 import android.view.Surface
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.decoder.ffmpeg.FfmpegAudioRenderer
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 
@@ -21,10 +32,128 @@ import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLa
  * - No allocations in play/pause/seek hot paths
  */
 class PlaybackCore(context: Context) {
+  companion object {
+    private const val TAG = "PlaybackCore"
+
+    // Audio codecs we can decode (via MediaCodec or FFmpeg extension)
+    // FFmpeg extension from Just Player includes: vorbis opus flac alac pcm_mulaw pcm_alaw
+    // mp3 amrnb amrwb aac ac3 eac3 dca mlp truehd
+    private val SUPPORTED_AUDIO_CODECS = setOf(
+        MimeTypes.AUDIO_AAC,
+        MimeTypes.AUDIO_MPEG,        // MP3
+        MimeTypes.AUDIO_MPEG_L2,     // MP2
+        MimeTypes.AUDIO_AC3,
+        MimeTypes.AUDIO_E_AC3,
+        MimeTypes.AUDIO_E_AC3_JOC,   // Dolby Digital Plus with Atmos
+        MimeTypes.AUDIO_DTS,
+        MimeTypes.AUDIO_DTS_HD,
+        MimeTypes.AUDIO_DTS_EXPRESS,
+        MimeTypes.AUDIO_VORBIS,
+        MimeTypes.AUDIO_OPUS,
+        MimeTypes.AUDIO_FLAC,
+        MimeTypes.AUDIO_ALAC,
+        MimeTypes.AUDIO_RAW,         // PCM
+        MimeTypes.AUDIO_TRUEHD,      // Dolby TrueHD - supported via FFmpeg extension
+        MimeTypes.AUDIO_AMR_NB,      // AMR Narrowband
+        MimeTypes.AUDIO_AMR_WB,      // AMR Wideband
+    )
+
+    // Audio codecs we CANNOT decode - used to identify and skip
+    // With the FFmpeg extension from Just Player, all common audio codecs are now supported
+    private val UNSUPPORTED_AUDIO_CODECS = setOf<String>(
+        // Currently empty - FFmpeg handles all common codecs
+    )
+  }
+
   private val trackSelector = DefaultTrackSelector(context)
-  private val player: ExoPlayer = ExoPlayer.Builder(context)
-      .setTrackSelector(trackSelector)
+
+  // Audio attributes for movie playback - required for proper audio output on Quest
+  private val audioAttributes = AudioAttributes.Builder()
+      .setUsage(C.USAGE_MEDIA)
+      .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
       .build()
+
+  // Custom renderers factory that adds FFmpeg audio decoder for full codec support
+  // Includes: AC3, EAC3, DTS, DTS-HD, TrueHD, Vorbis, Opus, FLAC, ALAC, MP3, AAC, AMR
+  // Using pre-built FFmpeg extension from Just Player project
+  private val renderersFactory = object : DefaultRenderersFactory(context) {
+    override fun buildAudioRenderers(
+        context: Context,
+        extensionRendererMode: Int,
+        mediaCodecSelector: androidx.media3.exoplayer.mediacodec.MediaCodecSelector,
+        enableDecoderFallback: Boolean,
+        audioSink: AudioSink,
+        eventHandler: Handler,
+        eventListener: AudioRendererEventListener,
+        out: ArrayList<Renderer>
+    ) {
+      // Add FFmpeg audio renderer first for full codec support (including TrueHD)
+      out.add(FfmpegAudioRenderer(eventHandler, eventListener, audioSink))
+      // Then add default audio renderers as fallback
+      super.buildAudioRenderers(
+          context, extensionRendererMode, mediaCodecSelector,
+          enableDecoderFallback, audioSink, eventHandler, eventListener, out
+      )
+    }
+  }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+
+  private val player: ExoPlayer = ExoPlayer.Builder(context, renderersFactory)
+      .setTrackSelector(trackSelector)
+      .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+      .build()
+
+  init {
+    // Listen for track changes to auto-select supported audio codec
+    player.addListener(object : Player.Listener {
+      override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+        selectSupportedAudioTrack()
+      }
+    })
+  }
+
+  /**
+   * Automatically select a supported audio track if current one is unsupported.
+   * This handles files with TrueHD + secondary AAC/AC3 tracks (common in anime releases).
+   */
+  private fun selectSupportedAudioTrack() {
+    val tracks = player.currentTracks
+    var foundSupportedTrack = false
+    var currentTrackSupported = true
+
+    for (group in tracks.groups) {
+      if (group.type != C.TRACK_TYPE_AUDIO) continue
+
+      for (i in 0 until group.length) {
+        val format = group.getTrackFormat(i)
+        val mimeType = format.sampleMimeType ?: continue
+        val isSelected = group.isTrackSelected(i)
+        val isSupported = mimeType !in UNSUPPORTED_AUDIO_CODECS
+
+        Log.d(TAG, "Audio track $i: $mimeType, selected=$isSelected, supported=$isSupported, lang=${format.language}")
+
+        if (isSelected && !isSupported) {
+          currentTrackSupported = false
+        }
+
+        if (isSupported && !foundSupportedTrack) {
+          foundSupportedTrack = true
+
+          // If current track is unsupported, switch to this supported one
+          if (!currentTrackSupported || !group.isTrackSelected(i)) {
+            Log.d(TAG, "Selecting supported audio track: $mimeType (${format.language})")
+            trackSelector.parameters = trackSelector.buildUponParameters()
+                .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, i))
+                .build()
+            return
+          }
+        }
+      }
+    }
+
+    if (!currentTrackSupported && !foundSupportedTrack) {
+      Log.w(TAG, "No supported audio track found! Audio will not play.")
+    }
+  }
 
   private var currentStereoLayout: StereoLayout = StereoLayout.TwoD
 
@@ -32,11 +161,11 @@ class PlaybackCore(context: Context) {
     player.setVideoSurface(surface)
   }
 
-  fun prepare(uri: Uri) {
+  fun prepare(uri: Uri, startPositionMs: Long = 0L) {
     val item = MediaItem.Builder()
         .setUri(uri)
         .build()
-    player.setMediaItem(item)
+    player.setMediaItem(item, startPositionMs)
     player.prepare()
   }
 

@@ -9,8 +9,8 @@ plugins {
 
 android {
   namespace = "com.inotter.travelcompanion"
-  //noinspection GradleDependency
-  compileSdk = 34
+  // compileSdk 35 required for Media3 1.9.0-rc01 and FFmpeg extension AARs
+  compileSdk = 35
 
   defaultConfig {
     applicationId = "com.inotter.travelcompanion"
@@ -94,8 +94,28 @@ dependencies {
   androidTestImplementation(libs.androidx.ui.test.junit4)
 
   // Media3/ExoPlayer
-  implementation(libs.androidx.media3.exoplayer)
-  implementation(libs.androidx.media3.ui)
+  // Using pre-built AARs from Just Player for FFmpeg decoder with full codec support
+  // (TrueHD, AC3, EAC3, DTS, DTS-HD, etc.)
+  // Source: https://github.com/moneytoo/Player/blob/master/app/build.gradle
+  // lib-exoplayer-release.aar replaces the standard media3-exoplayer dependency
+  implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("lib-*.aar"))))
+
+  // Core Media3 modules required by the custom lib-exoplayer-release.aar
+  // Must match the modules used by Just Player
+  implementation(libs.androidx.media3.common)
+  implementation(libs.androidx.media3.decoder)
+  implementation(libs.androidx.media3.datasource)
+  implementation(libs.androidx.media3.container)
+  implementation(libs.androidx.media3.extractor)
+
+  // Do NOT include libs.androidx.media3.exoplayer - we use lib-exoplayer-release.aar instead
+  // Exclude media3-exoplayer from all dependencies that pull it transitively
+  implementation(libs.androidx.media3.ui) {
+    exclude(group = "androidx.media3", module = "media3-exoplayer")
+  }
+  implementation(libs.androidx.media3.exoplayer.dash) {
+    exclude(group = "androidx.media3", module = "media3-exoplayer")
+  }
 
   // Room (with KSP for compiler)
   implementation(libs.androidx.room.runtime)

@@ -44,9 +44,7 @@ fun PlayerScreen(
   val duration by viewModel.duration.collectAsState()
   val currentStereoLayout by viewModel.currentStereoLayout.collectAsState()
 
-  var showResumeDialog by remember { mutableStateOf(false) }
   var showLayoutDialog by remember { mutableStateOf(false) }
-  var hasAskedResume by remember { mutableStateOf(false) }
   var showControls by remember { mutableStateOf(true) }
 
   // Auto-hide controls after 3 seconds of inactivity when playing
@@ -57,49 +55,10 @@ fun PlayerScreen(
     }
   }
 
-  // Check if we should show resume dialog
+  // Load video and automatically resume from last position if available
   LaunchedEffect(video.id) {
-    if (!hasAskedResume && video.lastPositionMs != null && video.lastPositionMs > 0) {
-      showResumeDialog = true
-      hasAskedResume = true
-    } else {
-      viewModel.loadVideo(Uri.parse(video.fileUri), video.id, video)
-    }
-  }
-
-  // Resume dialog
-  if (showResumeDialog) {
-    AlertDialog(
-        onDismissRequest = {
-          showResumeDialog = false
-          viewModel.loadVideo(Uri.parse(video.fileUri), video.id, video)
-        },
-        title = { Text("Resume Playback") },
-        text = {
-          Text("Resume from ${formatTime(video.lastPositionMs ?: 0L)}?")
-        },
-        confirmButton = {
-          Button(
-              onClick = {
-                showResumeDialog = false
-                viewModel.loadVideo(Uri.parse(video.fileUri), video.id, video)
-                video.lastPositionMs?.let { viewModel.seekTo(it) }
-              }
-          ) {
-            Text("Resume")
-          }
-        },
-        dismissButton = {
-          TextButton(
-              onClick = {
-                showResumeDialog = false
-                viewModel.loadVideo(Uri.parse(video.fileUri), video.id, video)
-              }
-          ) {
-            Text("Start from beginning")
-          }
-        }
-    )
+    val resumePosition = video.lastPositionMs ?: 0L
+    viewModel.loadVideo(Uri.parse(video.fileUri), video.id, video, resumePosition)
   }
 
   // Stereo layout selection dialog

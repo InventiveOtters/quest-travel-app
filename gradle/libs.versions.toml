@@ -1,6 +1,6 @@
 [versions]
 spatialsdk = "0.8.1"
-agp = "8.5.0"
+agp = "8.7.2"
 kotlin = "2.1.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -10,7 +10,7 @@ composeActivity = "1.9.2"
 lifecycleRuntimeKtx = "2.8.6"
 composeBom = "2024.09.03"
 
-media3 = "1.4.1"
+media3 = "1.9.0-rc01"
 room = "2.7.2"
 work = "2.9.1"
 documentfile = "1.0.1"
@@ -50,8 +50,18 @@ androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", versi
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 # Media3 / ExoPlayer
+# Core modules needed by lib-exoplayer-release.aar (custom ExoPlayer from Just Player)
+# See: https://github.com/moneytoo/Player/blob/master/app/build.gradle
+androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3" }
+androidx-media3-decoder = { group = "androidx.media3", name = "media3-decoder", version.ref = "media3" }
+androidx-media3-datasource = { group = "androidx.media3", name = "media3-datasource", version.ref = "media3" }
+androidx-media3-container = { group = "androidx.media3", name = "media3-container", version.ref = "media3" }
+androidx-media3-extractor = { group = "androidx.media3", name = "media3-extractor", version.ref = "media3" }
+# The standard exoplayer module is replaced by lib-exoplayer-release.aar in app/libs
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+# DASH streaming support
+androidx-media3-exoplayer-dash = { group = "androidx.media3", name = "media3-exoplayer-dash", version.ref = "media3" }
 
 # Room
 
