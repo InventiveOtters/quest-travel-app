@@ -22,6 +22,7 @@ import com.meta.spatial.runtime.ReferenceSpace
 import com.meta.spatial.runtime.SceneMaterial
 import com.meta.spatial.toolkit.ActivityPanelRegistration
 import com.meta.spatial.toolkit.AppSystemActivity
+import com.meta.spatial.toolkit.DpDisplayOptions
 import com.meta.spatial.toolkit.DpPerMeterDisplayOptions
 import com.meta.spatial.toolkit.GLXFInfo
 import com.meta.spatial.toolkit.Material
@@ -306,6 +307,9 @@ class ImmersiveActivity : AppSystemActivity() {
      * Creates the library panel registration.
      * Uses ActivityPanelRegistration to show VRNavigationHost UI.
      * Panel ID must match scene's VRVideoLibraryPanel: @id/library_panel
+     *
+     * Uses DpDisplayOptions with same dp values as 2D panel mode (1024x640dp)
+     * to ensure UI elements appear at the same logical size.
      */
     private fun createVideoLibraryPanelRegistration(): PanelRegistration {
         return ActivityPanelRegistration(
@@ -314,12 +318,15 @@ class ImmersiveActivity : AppSystemActivity() {
             settingsCreator = {
                 UIPanelSettings(
                     shape = QuadShapeOptions(
-                        width = SpatialConstants.SCREEN_WIDTH,
-                        height = SpatialConstants.SCREEN_HEIGHT
+                        width = SpatialConstants.LIBRARY_PANEL_WIDTH,
+                        height = SpatialConstants.LIBRARY_PANEL_HEIGHT
                     ),
                     style = PanelStyleOptions(themeResourceId = R.style.PanelAppThemeTransparent),
-                    display = DpPerMeterDisplayOptions(
-                        dpPerMeter = SpatialConstants.LIBRARY_PANEL_DP_PER_METER
+                    // Use DpDisplayOptions with same dp values as 2D panel mode
+                    // This ensures UI elements appear at the same size as in 2D mode
+                    display = DpDisplayOptions(
+                        width = SpatialConstants.LIBRARY_PANEL_DP_WIDTH,
+                        height = SpatialConstants.LIBRARY_PANEL_DP_HEIGHT
                     ),
                 )
             },
