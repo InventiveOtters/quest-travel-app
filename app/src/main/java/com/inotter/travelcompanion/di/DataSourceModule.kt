@@ -40,7 +40,8 @@ abstract class DataSourceModule {
                 .addMigrations(
                     VideoLibraryDatabase.MIGRATION_1_2,
                     VideoLibraryDatabase.MIGRATION_2_3,
-                    VideoLibraryDatabase.MIGRATION_3_4
+                    VideoLibraryDatabase.MIGRATION_3_4,
+                    VideoLibraryDatabase.MIGRATION_4_5
                 )
                 .fallbackToDestructiveMigration(true)
                 .build()

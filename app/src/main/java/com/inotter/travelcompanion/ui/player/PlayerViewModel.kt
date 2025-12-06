@@ -6,6 +6,7 @@ import android.view.Surface
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.inotter.travelcompanion.data.datasources.videolibrary.VideoLibraryDataSource
+import com.inotter.travelcompanion.data.datasources.videolibrary.models.PlaybackSettings
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import com.inotter.travelcompanion.data.repositories.VideoRepository.VideoRepository
 import com.inotter.travelcompanion.playback.PlaybackCore
@@ -40,9 +41,22 @@ class PlayerViewModel @Inject constructor(
   private val _duration = MutableStateFlow(0L)
   val duration: StateFlow<Long> = _duration.asStateFlow()
 
+  private val _volume = MutableStateFlow(0.5f)
+  val volume: StateFlow<Float> = _volume.asStateFlow()
+
   private var currentVideoId: Long? = null
   private var progressUpdateJob: Job? = null
   private var uiPositionUpdateJob: Job? = null
+
+  init {
+    // Load saved volume from settings
+    viewModelScope.launch {
+      val settings = dataSource.getPlaybackSettings()
+      val savedVolume = settings?.volume ?: 0.5f
+      _volume.value = savedVolume
+      playbackCore.setVolume(savedVolume)
+    }
+  }
 
   /**
    * Attach a surface for video rendering.
@@ -168,6 +182,24 @@ class PlayerViewModel @Inject constructor(
       val skipMs = settings?.skipIntervalMs?.toLong() ?: 10_000L
       val newPosition = (playbackCore.getCurrentPosition() - skipMs).coerceAtLeast(0L)
       seekTo(newPosition)
+    }
+  }
+
+  /**
+   * Set the audio volume and persist to settings.
+   * Volume is shared across all movies.
+   *
+   * @param volume Volume level from 0.0 (muted) to 1.0 (full volume)
+   */
+  fun setVolume(volume: Float) {
+    val clampedVolume = volume.coerceIn(0f, 1f)
+    playbackCore.setVolume(clampedVolume)
+    _volume.value = clampedVolume
+
+    // Persist volume to settings
+    viewModelScope.launch {
+      val current = dataSource.getPlaybackSettings() ?: PlaybackSettings()
+      dataSource.upsertPlaybackSettings(current.copy(volume = clampedVolume))
     }
   }
 

@@ -26,7 +26,7 @@ import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoIte
  */
 @Database(
     entities = [LibraryFolder::class, VideoItem::class, Thumbnail::class, PlaybackSettings::class, ScanSettings::class, UploadSession::class],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -128,6 +128,16 @@ abstract class VideoLibraryDatabase : RoomDatabase() {
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_upload_sessions_tusUploadId ON upload_sessions(tusUploadId)")
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_upload_sessions_uploadUrl ON upload_sessions(uploadUrl)")
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_upload_sessions_mediaStoreUri ON upload_sessions(mediaStoreUri)")
+      }
+    }
+
+    /**
+     * Migration from version 4 to 5:
+     * - Add volume column to playback_settings with default 0.5
+     */
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+      override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE playback_settings ADD COLUMN volume REAL NOT NULL DEFAULT 0.5")
       }
     }
   }

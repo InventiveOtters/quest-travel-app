@@ -10,19 +10,29 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import kotlinx.coroutines.delay
 
@@ -40,14 +50,26 @@ fun PlayerScreen(
   val isPlaying by viewModel.isPlaying.collectAsState()
   val currentPosition by viewModel.currentPosition.collectAsState()
   val duration by viewModel.duration.collectAsState()
+  val volume by viewModel.volume.collectAsState()
 
   var showControls by remember { mutableStateOf(true) }
+  var showVolumeSlider by remember { mutableStateOf(false) }
+  var volumeInteractionKey by remember { mutableIntStateOf(0) }
 
   // Auto-hide controls after 3 seconds of inactivity when playing
-  LaunchedEffect(showControls, isPlaying) {
-    if (showControls && isPlaying) {
+  LaunchedEffect(showControls, isPlaying, showVolumeSlider) {
+    if (showControls && isPlaying && !showVolumeSlider) {
       delay(3000)
       showControls = false
+    }
+  }
+
+  // Auto-hide volume slider after 2 seconds of inactivity
+  // Resets when volumeInteractionKey changes (user interacts with slider)
+  LaunchedEffect(showVolumeSlider, volumeInteractionKey) {
+    if (showVolumeSlider) {
+      delay(2000)
+      showVolumeSlider = false
     }
   }
 
@@ -230,6 +252,80 @@ fun PlayerScreen(
                   contentDescription = "Skip Forward",
                   tint = Color.White
               )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Volume button with popup overlay
+            Box {
+              IconButton(
+                  onClick = {
+                    showVolumeSlider = !showVolumeSlider
+                    showControls = true
+                  }
+              ) {
+                Icon(
+                    imageVector = if (volume > 0f) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                    contentDescription = "Volume",
+                    tint = Color.White
+                )
+              }
+
+              // Volume slider popup - renders in overlay layer, doesn't affect layout
+              if (showVolumeSlider) {
+                Popup(
+                    alignment = Alignment.BottomCenter,
+                    offset = IntOffset(0, -48),
+                    onDismissRequest = { showVolumeSlider = false },
+                    properties = PopupProperties(focusable = false)
+                ) {
+                  Surface(
+                      shape = RoundedCornerShape(8.dp),
+                      color = Color.Black.copy(alpha = 0.8f),
+                  ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+                    ) {
+                      // Vertical slider using rotated horizontal slider
+                      Slider(
+                          value = volume,
+                          onValueChange = { newVolume ->
+                            viewModel.setVolume(newVolume)
+                            volumeInteractionKey++ // Reset auto-hide timer
+                          },
+                          valueRange = 0f..1f,
+                          modifier = Modifier
+                              .graphicsLayer {
+                                rotationZ = -90f
+                                transformOrigin = TransformOrigin(0.5f, 0.5f)
+                              }
+                              .layout { measurable, constraints ->
+                                val placeable = measurable.measure(
+                                    Constraints(
+                                        minWidth = 120.dp.roundToPx(),
+                                        maxWidth = 120.dp.roundToPx(),
+                                        minHeight = constraints.minHeight,
+                                        maxHeight = constraints.maxHeight
+                                    )
+                                )
+                                layout(placeable.height, placeable.width) {
+                                  placeable.place(
+                                      x = -(placeable.width - placeable.height) / 2,
+                                      y = (placeable.width - placeable.height) / 2
+                                  )
+                                }
+                              },
+                          colors = SliderDefaults.colors(
+                              thumbColor = Color.White,
+                              activeTrackColor = Color.White,
+                              inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                          )
+                      )
+                    }
+                  }
+                }
+              }
             }
           }
         }

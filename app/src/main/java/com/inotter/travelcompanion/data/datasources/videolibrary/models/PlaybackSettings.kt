@@ -8,5 +8,6 @@ data class PlaybackSettings(
     @PrimaryKey val id: Int = 1,
     val skipIntervalMs: Int = 10_000,
     val resumeEnabled: Boolean = true,
+    val volume: Float = 0.5f,
 )
 

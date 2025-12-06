@@ -241,6 +241,22 @@ class PlaybackCore(context: Context) {
     }
   }
 
+  /**
+   * Set the audio volume. No allocations in this hot path.
+   *
+   * @param volume Volume level from 0.0 (muted) to 1.0 (full volume)
+   */
+  fun setVolume(volume: Float) {
+    player.volume = volume.coerceIn(0f, 1f)
+  }
+
+  /**
+   * Get the current audio volume. No allocations in this hot path.
+   *
+   * @return Current volume level from 0.0 to 1.0
+   */
+  fun getVolume(): Float = player.volume
+
   fun release() { player.release() }
 }
 
