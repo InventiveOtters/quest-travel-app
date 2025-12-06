@@ -36,6 +36,22 @@ android {
 
   lint { abortOnError = false }
 
+  // Define flavor dimensions
+  flavorDimensions += "mode"
+
+  productFlavors {
+    create("immersive") {
+      dimension = "mode"
+      // Immersive VR mode - full spatial experience
+      buildConfigField("Boolean", "IS_IMMERSIVE", "true")
+    }
+    create("panel") {
+      dimension = "mode"
+      // 2D panel mode - standard Android UI
+      buildConfigField("Boolean", "IS_IMMERSIVE", "false")
+    }
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = false
@@ -152,12 +168,21 @@ dependencies {
 val projectDir = layout.projectDirectory
 val sceneDirectory = projectDir.dir("scenes")
 
+// Determine Meta Spatial Editor CLI path based on OS
+val spatialCliPath: String = when {
+  org.gradle.internal.os.OperatingSystem.current().isMacOsX ->
+    "/Applications/Meta Spatial Editor.app/Contents/MacOS/CLI"
+  org.gradle.internal.os.OperatingSystem.current().isWindows ->
+    "D:\\Meta Spatial Editor\\v11\\Resources\\CLI.exe"
+  else ->
+    "/Applications/Meta Spatial Editor.app/Contents/MacOS/CLI" // Default to macOS
+}
+
 spatial {
   allowUsageDataCollection.set(true)
   scenes {
-    // if you have installed Meta Spatial Editor somewhere else, update the file path.
-
-    cliPath.set("D:\\Meta Spatial Editor\\v11\\Resources\\CLI.exe")
+    // Meta Spatial Editor CLI path (auto-detected based on OS)
+    cliPath.set(spatialCliPath)
 
     exportItems {
       item {

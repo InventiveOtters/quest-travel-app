@@ -91,25 +91,19 @@
       android:name="libossdk.oculus.so"
       android:required="true"
     />
-    <!-- Immersive VR Theatre Activity (default launcher) -->
+    <!-- Immersive VR Theatre Activity -->
+    <!-- Intent filter is defined in flavor-specific manifest (immersive/panel) -->
     <activity
       android:name="com.inotter.travelcompanion.ImmersiveActivity"
       android:launchMode="singleTask"
       android:excludeFromRecents="false"
       android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
-      android:exported="true"
+      android:exported="false"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-    >
-      <!-- This filter lets the apk show up as a launchable icon in VR -->
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-        <category android:name="com.oculus.intent.category.VR" />
-        <category android:name="android.intent.category.DEFAULT" />
-      </intent-filter>
-    </activity>
+    />
 
-    <!-- 2D panel activity (kept for fallback/testing) -->
+    <!-- 2D panel activity -->
+    <!-- Intent filter is defined in flavor-specific manifest (immersive/panel) -->
     <activity
       android:name="com.inotter.travelcompanion.MainActivity"
       android:launchMode="singleTask"
@@ -117,12 +111,7 @@
       android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
       android:exported="false"
       android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
-    >
-      <!-- Set default panel size for 2D mode -->
-      <layout
-        android:defaultHeight="640dp"
-        android:defaultWidth="1024dp" />
-    </activity>
+    />
 
     <!-- WiFi Transfer Service -->
     <service

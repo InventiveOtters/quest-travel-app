@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+>
+  <!-- Immersive flavor: ImmersiveActivity is the launcher -->
+  <application>
+    <!-- Immersive VR Theatre Activity (launcher for this flavor) -->
+    <activity
+      android:name="com.inotter.travelcompanion.ImmersiveActivity"
+      android:exported="true"
+      tools:replace="android:exported"
+    >
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+        <category android:name="com.oculus.intent.category.VR" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+
+    <!-- MainActivity is NOT the launcher in immersive mode -->
+    <activity
+      android:name="com.inotter.travelcompanion.MainActivity"
+      android:exported="false"
+      tools:replace="android:exported"
+    />
+  </application>
+</manifest>
+
