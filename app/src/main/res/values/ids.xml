@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
-  <item type="id" name="ui_example" />
-  <item type="id" name="options_panel" />
-  <item type="id" name="vr_video_library_panel" />
+  <!-- Panel IDs matching GLXF Composition.glxf -->
+  <!-- VRVideoLibraryPanel uses @id/library_panel for video surface -->
+  <item type="id" name="library_panel" />
+  <!-- ControlsPanel uses @id/controls_panel for playback controls -->
+  <item type="id" name="controls_panel" />
 </resources>

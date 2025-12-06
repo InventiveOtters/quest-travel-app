@@ -12,10 +12,10 @@
     horizonos:minSdkVersion="69"
     horizonos:targetSdkVersion="69"
   />
-  <!-- VR features are optional for 2D panel apps -->
+  <!-- VR head tracking is required for immersive experience -->
   <uses-feature
     android:name="android.hardware.vr.headtracking"
-    android:required="false"
+    android:required="true"
   />
   <uses-feature
     android:name="oculus.software.handtracking"
@@ -86,40 +86,65 @@
       android:value="V2.0"
     />
     <meta-data android:name="com.oculus.vr.focusaware" android:value="true" />
-    <!-- Main 2D panel activity -->
+    <!-- Native library for Spatial SDK -->
+    <uses-native-library
+      android:name="libossdk.oculus.so"
+      android:required="true"
+    />
+    <!-- Immersive VR Theatre Activity (default launcher) -->
+    <activity
+      android:name="com.inotter.travelcompanion.ImmersiveActivity"
+      android:launchMode="singleTask"
+      android:excludeFromRecents="false"
+      android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
+      android:exported="true"
+      android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+    >
+      <!-- This filter lets the apk show up as a launchable icon in VR -->
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+        <category android:name="com.oculus.intent.category.VR" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+
+    <!-- 2D panel activity (kept for fallback/testing) -->
     <activity
       android:name="com.inotter.travelcompanion.MainActivity"
       android:launchMode="singleTask"
       android:excludeFromRecents="false"
       android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
-      android:exported="true"
+      android:exported="false"
       android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
     >
-      <!-- This filter lets the apk show up as a launchable icon in 2D mode -->
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
       <!-- Set default panel size for 2D mode -->
       <layout
         android:defaultHeight="640dp"
         android:defaultWidth="1024dp" />
     </activity>
 
-    <!-- Keep ImmersiveActivity for potential future VR mode (not launched by default) -->
-    <activity
-      android:name="com.inotter.travelcompanion.ImmersiveActivity"
-      android:launchMode="singleTask"
-      android:excludeFromRecents="false"
-      android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
-      android:exported="false"
-    />
-
     <!-- WiFi Transfer Service -->
     <service
       android:name=".TransferService"
       android:foregroundServiceType="dataSync"
       android:exported="false"
+    />
+
+    <!-- Panel Activities (run in separate processes for Hilt compatibility) -->
+    <activity
+      android:name=".spatial.panels.LibraryPanelActivity"
+      android:allowEmbedded="true"
+      android:exported="false"
+      android:process=":library_panel"
+      android:theme="@style/PanelAppThemeTransparent"
+    />
+    <activity
+      android:name=".spatial.panels.ControlsPanelActivity"
+      android:allowEmbedded="true"
+      android:exported="false"
+      android:process=":controls_panel"
+      android:theme="@style/PanelAppThemeTransparent"
     />
   </application>
 </manifest>

@@ -5,7 +5,9 @@ entities:
           {}
         com.meta.components.Scene:
           nodes:
+            - ref:Environment2
             - ref:VRVideoLibraryPanel
+            - ref:ControlsPanel
             - ref:Environment
       tag: Scene
   com.meta.models.SceneNode:
@@ -25,10 +27,12 @@ entities:
             - 1
             - 1
             - 1
+          translation:
+            - 0
+            - 0
+            - -2.07133055
           componentVersion: 1
         com.meta.components.Visibility:
-          visible: true
-        com.meta.spatial.toolkit.SupportsLocomotion:
           {}
       tag: Environment
     - components:
@@ -46,20 +50,78 @@ entities:
             - -3.74939976e-33
           rotation.format: Quaternion
           scale:
-            - 2
-            - 1.5
+            - 6.17683506
+            - 3.37359142
             - 1
           translation:
-            - 0
-            - 1.10000002
-            - -1.69989443
+            - 0.646072805
+            - 1.63222444
+            - -4.9305582
           componentVersion: 1
         com.meta.components.Visibility:
           visible: true
         com.meta.spatial.toolkit.Panel:
-          panel: "@id/vr_video_library_panel"
+          panel: "@id/library_panel"
         com.meta.spatial.toolkit.PanelDimensions:
           {}
       tag: VRVideoLibraryPanel
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: ControlsPanel
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 0.309524238
+            - 5.82253161e-17
+            - 0.950891554
+            - 1.89528966e-17
+          rotation.format: Quaternion
+          scale:
+            - 1.20000005
+            - 0.84810847
+            - 1
+          translation:
+            - 1.71825504
+            - 1.0784955
+            - -1.39989448
+          componentVersion: 1
+        com.meta.components.Visibility:
+          {}
+        com.meta.spatial.toolkit.Grabbable:
+          {}
+        com.meta.spatial.toolkit.Panel:
+          panel: "@id/controls_panel"
+        com.meta.spatial.toolkit.PanelDimensions:
+          {}
+        com.meta.spatial.toolkit.Plane:
+          {}
+      tag: ControlsPanel
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.DocumentReference:
+          transformType: None
+          documentReference: projref:cinema/Main.metaspatialobj
+        com.meta.components.Name:
+          name: Environment2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.format: Euler
+          scale:
+            - 8
+            - 8
+            - 8
+          translation:
+            - 16.6081829
+            - 0
+            - 0.995526671
+          componentVersion: 1
+        com.meta.components.Visibility:
+          {}
+      tag: Environment2
 metadata:
-  version: 1.34
+  version: 1.35
