@@ -3,7 +3,10 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
 >
-  <!-- Panel flavor: MainActivity is the launcher (2D mode) -->
+  <!--
+    Panel flavor: MainActivity is the launcher.
+    User can switch to Immersive mode from Settings.
+  -->
 
   <!-- For 2D panel mode, VR head tracking is NOT required -->
   <uses-feature
@@ -13,7 +16,7 @@
   />
 
   <application>
-    <!-- MainActivity is the launcher in 2D panel mode -->
+    <!-- MainActivity is the launcher - handles onboarding and routes to correct mode -->
     <activity
       android:name="com.inotter.travelcompanion.MainActivity"
       android:exported="true"
@@ -30,12 +33,19 @@
         android:defaultWidth="1024dp" />
     </activity>
 
-    <!-- ImmersiveActivity is NOT the launcher in 2D panel mode -->
+    <!-- ImmersiveActivity can be launched when user switches to Immersive mode -->
     <activity
       android:name="com.inotter.travelcompanion.ImmersiveActivity"
-      android:exported="false"
+      android:exported="true"
       tools:replace="android:exported"
-    />
+    >
+      <!-- Add VR category so it runs in immersive mode when launched -->
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="com.oculus.intent.category.VR" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
   </application>
 </manifest>
 

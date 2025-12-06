@@ -29,9 +29,15 @@ import com.inotter.travelcompanion.ui.transfer.WiFiTransferScreen
  * Navigation host for VR UI.
  * Manages navigation between Onboarding → Library → Player screens.
  * Also handles incomplete uploads detection and dialog on startup.
+ *
+ * @param onLaunchImmersive Callback to launch immersive mode (transitions to ImmersiveActivity)
+ * @param onLaunchPanel Callback to ensure we're in panel mode (used from settings)
  */
 @Composable
-fun VRNavigationHost() {
+fun VRNavigationHost(
+    onLaunchImmersive: () -> Unit = {},
+    onLaunchPanel: () -> Unit = {},
+) {
   val navController = rememberNavController()
   val libraryViewModel: LibraryViewModel = viewModel()
   val playerViewModel: PlayerViewModel = viewModel()
@@ -69,9 +75,14 @@ fun VRNavigationHost() {
       OnboardingScreen(
           viewModel = onboardingViewModel,
           onComplete = {
+            // User selected 2D Panel Mode - navigate to library
             navController.navigate("library") {
               popUpTo("onboarding") { inclusive = true }
             }
+          },
+          onCompleteImmersive = {
+            // User selected Immersive Mode - launch ImmersiveActivity
+            onLaunchImmersive()
           },
           onUseSaf = {
             navController.navigate("addFolder") {
@@ -110,6 +121,8 @@ fun VRNavigationHost() {
       SettingsScreen(
           viewModel = settingsViewModel,
           onBack = { navController.popBackStack() },
+          onSwitchToImmersive = onLaunchImmersive,
+          onSwitchToPanel = onLaunchPanel,
       )
     }
 

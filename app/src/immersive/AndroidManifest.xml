@@ -3,28 +3,42 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
 >
-  <!-- Immersive flavor: ImmersiveActivity is the launcher -->
+  <!--
+    Immersive flavor: MainActivity is still the launcher for onboarding.
+    After onboarding, the app routes to ImmersiveActivity based on user preference.
+    This ensures permission dialogs work correctly (they don't work in VR panels).
+  -->
   <application>
-    <!-- Immersive VR Theatre Activity (launcher for this flavor) -->
+    <!-- MainActivity is the launcher - handles onboarding and routes to correct mode -->
     <activity
-      android:name="com.inotter.travelcompanion.ImmersiveActivity"
+      android:name="com.inotter.travelcompanion.MainActivity"
       android:exported="true"
       tools:replace="android:exported"
     >
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <!-- Set default panel size for 2D onboarding -->
+      <layout
+        android:defaultHeight="640dp"
+        android:defaultWidth="1024dp" />
+    </activity>
+
+    <!-- ImmersiveActivity is launched programmatically when user selects Immersive mode -->
+    <activity
+      android:name="com.inotter.travelcompanion.ImmersiveActivity"
+      android:exported="true"
+      tools:replace="android:exported"
+    >
+      <!-- Add VR category so it runs in immersive mode when launched -->
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
         <category android:name="com.oculus.intent.category.VR" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
     </activity>
-
-    <!-- MainActivity is NOT the launcher in immersive mode -->
-    <activity
-      android:name="com.inotter.travelcompanion.MainActivity"
-      android:exported="false"
-      tools:replace="android:exported"
-    />
   </application>
 </manifest>
 

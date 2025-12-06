@@ -9,6 +9,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionManager
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionStatus
+import com.inotter.travelcompanion.data.models.ViewingMode
 import com.inotter.travelcompanion.data.repositories.ScanSettingsRepository.ScanSettingsRepository
 import com.inotter.travelcompanion.workers.MediaStoreScanWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,14 +20,26 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
+ * Onboarding step progression.
+ */
+enum class OnboardingStep {
+    /** Step 1 & 2: Welcome and video access (permission or SAF) */
+    VIDEO_ACCESS,
+    /** Step 3: Viewing mode selection (2D Panel or Immersive VR) */
+    MODE_SELECTION
+}
+
+/**
  * UI state for the onboarding screen.
  */
 data class OnboardingUiState(
+    val currentStep: OnboardingStep = OnboardingStep.VIDEO_ACCESS,
     val permissionStatus: PermissionStatus = PermissionStatus.DENIED,
     val isScanning: Boolean = false,
     val scanComplete: Boolean = false,
     val videosFound: Int = 0,
     val errorMessage: String? = null,
+    val selectedViewingMode: ViewingMode = ViewingMode.DEFAULT,
 )
 
 /**
@@ -160,10 +173,54 @@ class OnboardingViewModel @Inject constructor(
         prefs.edit().putBoolean(KEY_HAS_SAF_FOLDERS, true).apply()
     }
 
+    /**
+     * Advances to the mode selection step after video access is configured.
+     */
+    fun proceedToModeSelection() {
+        _uiState.value = _uiState.value.copy(
+            currentStep = OnboardingStep.MODE_SELECTION
+        )
+    }
+
+    /**
+     * Updates the selected viewing mode in UI state.
+     */
+    fun selectViewingMode(mode: ViewingMode) {
+        _uiState.value = _uiState.value.copy(
+            selectedViewingMode = mode
+        )
+    }
+
+    /**
+     * Saves the viewing mode preference and completes onboarding.
+     */
+    fun saveViewingModeAndComplete() {
+        prefs.edit()
+            .putString(KEY_VIEWING_MODE, _uiState.value.selectedViewingMode.name)
+            .putBoolean(KEY_ONBOARDING_COMPLETE, true)
+            .apply()
+    }
+
+    /**
+     * Gets the saved viewing mode preference.
+     */
+    fun getViewingMode(): ViewingMode {
+        val modeString = prefs.getString(KEY_VIEWING_MODE, null)
+        return ViewingMode.fromString(modeString)
+    }
+
+    /**
+     * Sets the viewing mode preference (used from Settings).
+     */
+    fun setViewingMode(mode: ViewingMode) {
+        prefs.edit().putString(KEY_VIEWING_MODE, mode.name).apply()
+    }
+
     companion object {
-        private const val PREFS_NAME = "onboarding_prefs"
+        const val PREFS_NAME = "onboarding_prefs"
         private const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
         private const val KEY_HAS_SAF_FOLDERS = "has_saf_folders"
+        const val KEY_VIEWING_MODE = "viewing_mode"
     }
 }
 

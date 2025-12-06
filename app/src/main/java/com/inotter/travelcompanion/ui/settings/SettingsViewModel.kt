@@ -1,12 +1,15 @@
 package com.inotter.travelcompanion.ui.settings
 
 import android.app.Application
+import android.content.SharedPreferences
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.inotter.travelcompanion.data.datasources.videolibrary.VideoLibraryDataSource
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.PlaybackSettings
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionManager
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionStatus
+import com.inotter.travelcompanion.data.models.ViewingMode
+import com.inotter.travelcompanion.ui.onboarding.OnboardingViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,7 +21,7 @@ import javax.inject.Inject
 
 /**
  * ViewModel for the settings screen.
- * Manages playback settings (skipInterval, resumeEnabled) and permission status.
+ * Manages playback settings (skipInterval, resumeEnabled), permission status, and viewing mode.
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -27,6 +30,11 @@ class SettingsViewModel @Inject constructor(
     private val permissionManager: PermissionManager,
 ) : AndroidViewModel(application) {
 
+  private val prefs: SharedPreferences = application.getSharedPreferences(
+      OnboardingViewModel.PREFS_NAME,
+      android.content.Context.MODE_PRIVATE
+  )
+
   /**
    * Current permission status for video access.
    */
@@ -34,6 +42,12 @@ class SettingsViewModel @Inject constructor(
       permissionManager.getPermissionStatus()
   )
   val permissionStatus: StateFlow<PermissionStatus> = _permissionStatus.asStateFlow()
+
+  /**
+   * Current viewing mode preference.
+   */
+  private val _viewingMode = MutableStateFlow(getStoredViewingMode())
+  val viewingMode: StateFlow<ViewingMode> = _viewingMode.asStateFlow()
 
   /**
    * Flow of current playback settings.
@@ -52,6 +66,24 @@ class SettingsViewModel @Inject constructor(
         dataSource.upsertPlaybackSettings(PlaybackSettings())
       }
     }
+  }
+
+  /**
+   * Get the stored viewing mode from SharedPreferences.
+   */
+  private fun getStoredViewingMode(): ViewingMode {
+    val modeString = prefs.getString(OnboardingViewModel.KEY_VIEWING_MODE, null)
+    return ViewingMode.fromString(modeString)
+  }
+
+  /**
+   * Update the viewing mode preference.
+   * Returns the new mode so the caller can trigger mode transition.
+   */
+  fun updateViewingMode(mode: ViewingMode): ViewingMode {
+    prefs.edit().putString(OnboardingViewModel.KEY_VIEWING_MODE, mode.name).apply()
+    _viewingMode.value = mode
+    return mode
   }
 
   /**
