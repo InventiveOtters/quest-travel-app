@@ -1,0 +1,9 @@
+entities:
+  components:
+    com.meta.components.Name:
+      name: texture10
+    com.meta.components.Texture:
+      image: ref:Part22Mtl
+      sampler: ref:sampler4
+metadata:
+  version: 1.35

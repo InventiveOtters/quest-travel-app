@@ -6,12 +6,9 @@ entities:
         com.meta.components.Scene:
           nodes:
             - ref:Environment2
-            - ref:Projector
-            - ref:Cube
             - ref:VRVideoLibraryPanel
             - ref:ControlsPanel
             - ref:Environment
-            - ref:Cube duplicate
       tag: Scene
   com.meta.models.SceneNode:
     - components:
@@ -30,9 +27,13 @@ entities:
             - 1
             - 1
             - 1
+          translation:
+            - 0
+            - 0
+            - -2.07133055
           componentVersion: 1
         com.meta.components.Visibility:
-          visible: true
+          {}
       tag: Environment
     - components:
         com.meta.components.Animatable:
@@ -49,13 +50,13 @@ entities:
             - -3.74939976e-33
           rotation.format: Quaternion
           scale:
-            - 2.09300327
-            - 1.56975245
+            - 6.17683506
+            - 3.37359142
             - 1
           translation:
-            - 0
-            - 1.10000002
-            - -1.69989443
+            - 0.646072805
+            - 1.63222444
+            - -4.9305582
           componentVersion: 1
         com.meta.components.Visibility:
           visible: true
@@ -103,84 +104,7 @@ entities:
           {}
         com.meta.components.DocumentReference:
           transformType: None
-          documentReference: projref:Cube/Main.metaspatialobj
-        com.meta.components.Name:
-          name: Cube
-        com.meta.components.PointerNodeInverseComponent:
-          {}
-        com.meta.components.SceneNode:
-          rotation.format: Euler
-          scale:
-            - 1.19536567
-            - 1
-            - 4.68660784
-          translation:
-            - 3.83623219
-            - 0.5677948
-            - 0.435128093
-          componentVersion: 1
-        com.meta.components.Visibility:
-          visible: true
-      tag: Cube
-    - components:
-        com.meta.components.Animatable:
-          {}
-        com.meta.components.DocumentReference:
-          transformType: None
-          documentReference: projref:Cube/Main.metaspatialobj
-        com.meta.components.Name:
-          name: Cube duplicate
-        com.meta.components.PointerNodeInverseComponent:
-          {}
-        com.meta.components.SceneNode:
-          rotation.format: Euler
-          scale:
-            - 4.16303253
-            - 1
-            - 4.68660784
-          translation:
-            - 4.08265591
-            - 0.207433879
-            - 0.435128093
-          componentVersion: 1
-        com.meta.components.Visibility:
-          visible: true
-      tag: Cube duplicate
-    - components:
-        com.meta.components.Animatable:
-          {}
-        com.meta.components.DocumentReference:
-          transformType: None
-          documentReference: projref:Projector/Main.metaspatialobj
-        com.meta.components.Name:
-          name: Projector
-        com.meta.components.PointerNodeInverseComponent:
-          {}
-        com.meta.components.SceneNode:
-          rotation.data:
-            - 0.720139086
-            - 0
-            - 0.693829715
-            - 4.13554808e-08
-          rotation.format: Quaternion
-          scale:
-            - 1
-            - 1
-            - 1
-          translation:
-            - -2.68096089
-            - 0
-            - 0
-          componentVersion: 1
-        com.meta.components.Visibility:
-          visible: true
-      tag: Projector
-    - components:
-        com.meta.components.Animatable:
-          {}
-        com.meta.components.DocumentReference:
-          transformType: None
-          documentReference: projref:collab_room1/Main.metaspatialobj
+          documentReference: projref:cinema/Main.metaspatialobj
         com.meta.components.Name:
           name: Environment2
         com.meta.components.PointerNodeInverseComponent:
@@ -188,9 +112,13 @@ entities:
         com.meta.components.SceneNode:
           rotation.format: Euler
           scale:
-            - 1
-            - 1
-            - 1
+            - 8
+            - 8
+            - 8
+          translation:
+            - 16.6081829
+            - 0
+            - 0.995526671
           componentVersion: 1
         com.meta.components.Visibility:
           {}
