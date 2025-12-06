@@ -1,7 +1,5 @@
 package com.inotter.travelcompanion.di
 
-import com.inotter.travelcompanion.data.managers.LayoutDetectionManager.LayoutDetectionManager
-import com.inotter.travelcompanion.data.managers.LayoutDetectionManager.LayoutDetectionManagerImpl
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionManager
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionManagerImpl
 import com.inotter.travelcompanion.data.managers.SAFManager.SAFManager
@@ -37,12 +35,6 @@ abstract class ManagerModule {
     abstract fun bindThumbnailManager(
         impl: ThumbnailManagerImpl
     ): ThumbnailManager
-
-    @Binds
-    @Singleton
-    abstract fun bindLayoutDetectionManager(
-        impl: LayoutDetectionManagerImpl
-    ): LayoutDetectionManager
 
     @Binds
     @Singleton

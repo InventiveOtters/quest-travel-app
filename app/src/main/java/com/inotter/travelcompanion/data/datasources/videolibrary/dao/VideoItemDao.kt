@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.SourceType
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import kotlinx.coroutines.flow.Flow
 
@@ -22,9 +21,6 @@ interface VideoItemDao {
 
   @Query("SELECT * FROM video_items WHERE contentSignature = :sig LIMIT 1")
   suspend fun findBySignature(sig: String): VideoItem?
-
-  @Query("UPDATE video_items SET stereoLayoutOverride = :layout WHERE id = :id")
-  suspend fun setStereoLayoutOverride(id: Long, layout: StereoLayout?)
 
   @Query("UPDATE video_items SET lastPlayedAt = :lastPlayedAt, lastPositionMs = :lastPositionMs WHERE id = :id")
   suspend fun updatePlaybackProgress(id: Long, lastPlayedAt: Long?, lastPositionMs: Long?)

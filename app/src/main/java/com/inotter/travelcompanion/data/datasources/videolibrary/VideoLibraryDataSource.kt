@@ -4,7 +4,6 @@ import com.inotter.travelcompanion.data.datasources.videolibrary.models.LibraryF
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.PlaybackSettings
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.ScanSettings
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.SourceType
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.Thumbnail
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.UploadSession
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.UploadSessionStatus
@@ -31,7 +30,6 @@ interface VideoLibraryDataSource {
     fun getAllVideos(): Flow<List<VideoItem>>
     suspend fun deleteVideoById(id: Long)
     suspend fun findVideoBySignature(sig: String): VideoItem?
-    suspend fun setVideoStereoLayoutOverride(id: Long, layout: StereoLayout?)
     suspend fun updateVideoPlaybackProgress(id: Long, lastPlayedAt: Long?, lastPositionMs: Long?)
     suspend fun markVideosUnavailable(ids: List<Long>, flag: Boolean = true)
     suspend fun getVideosByFolderId(folderId: Long): List<VideoItem>
@@ -51,7 +49,6 @@ interface VideoLibraryDataSource {
     suspend fun upsertPlaybackSettings(settings: PlaybackSettings)
     fun getPlaybackSettingsFlow(): Flow<PlaybackSettings?>
     suspend fun getPlaybackSettings(): PlaybackSettings?
-    suspend fun updatePlaybackSettings(mode: StereoLayout, skip: Int, resume: Boolean)
 
     // ============== Scan Settings Operations ==============
 

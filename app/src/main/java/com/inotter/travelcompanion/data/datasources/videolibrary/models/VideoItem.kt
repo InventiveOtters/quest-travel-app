@@ -19,8 +19,6 @@ import androidx.room.PrimaryKey
  * @property createdAt Timestamp when first indexed (immutable on rescan)
  * @property lastPlayedAt Timestamp of last playback (epoch millis)
  * @property lastPositionMs Last playback position in milliseconds
- * @property stereoLayout Detected stereo layout from metadata/filename
- * @property stereoLayoutOverride User-specified stereo layout override
  * @property unavailable True if file is missing during rescan
  * @property thumbnailPath Absolute path to cached thumbnail file
  * @property sourceType Source of discovery (SAF or MEDIASTORE)
@@ -49,8 +47,6 @@ data class VideoItem(
     val createdAt: Long,
     val lastPlayedAt: Long? = null,
     val lastPositionMs: Long? = null,
-    val stereoLayout: StereoLayout = StereoLayout.Unknown,
-    val stereoLayoutOverride: StereoLayout? = null,
     val unavailable: Boolean = false,
     val thumbnailPath: String? = null,
     val sourceType: SourceType = SourceType.SAF,

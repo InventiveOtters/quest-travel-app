@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.inotter.travelcompanion.data.datasources.videolibrary.VideoLibraryDataSource
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.PlaybackSettings
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionManager
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +18,7 @@ import javax.inject.Inject
 
 /**
  * ViewModel for the settings screen.
- * Manages playback settings (defaultViewMode, skipInterval, resumeEnabled) and permission status.
+ * Manages playback settings (skipInterval, resumeEnabled) and permission status.
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -52,16 +51,6 @@ class SettingsViewModel @Inject constructor(
       if (dataSource.getPlaybackSettings() == null) {
         dataSource.upsertPlaybackSettings(PlaybackSettings())
       }
-    }
-  }
-
-  /**
-   * Update the default view mode.
-   */
-  fun updateDefaultViewMode(mode: StereoLayout) {
-    viewModelScope.launch {
-      val current = dataSource.getPlaybackSettings() ?: PlaybackSettings()
-      dataSource.upsertPlaybackSettings(current.copy(defaultViewMode = mode))
     }
   }
 

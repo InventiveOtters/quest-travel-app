@@ -14,12 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionStatus
 
 /**
  * Settings screen for playback preferences and permission management.
- * Allows configuration of defaultViewMode, skipInterval, resumeEnabled, and shows permission status.
+ * Allows configuration of skipInterval, resumeEnabled, and shows permission status.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,42 +75,6 @@ fun SettingsScreen(
       )
 
       settings?.let { currentSettings ->
-        // Default View Mode
-        Card(modifier = Modifier.fillMaxWidth()) {
-          Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Default View Mode",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = "Default stereo layout for videos",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            
-            val viewModes = listOf(StereoLayout.TwoD, StereoLayout.SBS, StereoLayout.TAB)
-            viewModes.forEach { mode ->
-              Row(
-                  modifier = Modifier
-                      .fillMaxWidth()
-                      .padding(vertical = 4.dp),
-                  verticalAlignment = Alignment.CenterVertically
-              ) {
-                RadioButton(
-                    selected = currentSettings.defaultViewMode == mode,
-                    onClick = { viewModel.updateDefaultViewMode(mode) }
-                )
-                Text(
-                    text = mode.name,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-              }
-            }
-          }
-        }
-
         // Skip Interval
         Card(modifier = Modifier.fillMaxWidth()) {
           Column(modifier = Modifier.padding(16.dp)) {

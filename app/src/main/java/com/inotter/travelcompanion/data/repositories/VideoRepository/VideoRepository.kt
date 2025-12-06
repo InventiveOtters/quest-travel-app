@@ -1,6 +1,5 @@
 package com.inotter.travelcompanion.data.repositories.VideoRepository
 
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import kotlinx.coroutines.flow.Flow
 
@@ -23,14 +22,6 @@ interface VideoRepository {
      * @param id The video item ID to delete
      */
     suspend fun deleteById(id: Long)
-
-    /**
-     * Sets or clears the stereo layout override for a video.
-     *
-     * @param id The video item ID
-     * @param layout The stereo layout to set, or null to clear the override
-     */
-    suspend fun setStereoLayoutOverride(id: Long, layout: StereoLayout?)
 
     /**
      * Updates the playback progress for a video.

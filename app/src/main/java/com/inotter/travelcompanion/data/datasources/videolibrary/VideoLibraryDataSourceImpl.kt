@@ -4,7 +4,6 @@ import com.inotter.travelcompanion.data.datasources.videolibrary.models.LibraryF
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.PlaybackSettings
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.ScanSettings
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.SourceType
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.Thumbnail
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.UploadSession
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.UploadSessionStatus
@@ -60,9 +59,6 @@ class VideoLibraryDataSourceImpl @Inject constructor(
     override suspend fun findVideoBySignature(sig: String): VideoItem? =
         videoItemDao.findBySignature(sig)
 
-    override suspend fun setVideoStereoLayoutOverride(id: Long, layout: StereoLayout?) =
-        videoItemDao.setStereoLayoutOverride(id, layout)
-
     override suspend fun updateVideoPlaybackProgress(id: Long, lastPlayedAt: Long?, lastPositionMs: Long?) =
         videoItemDao.updatePlaybackProgress(id, lastPlayedAt, lastPositionMs)
 
@@ -105,9 +101,6 @@ class VideoLibraryDataSourceImpl @Inject constructor(
 
     override suspend fun getPlaybackSettings(): PlaybackSettings? =
         playbackSettingsDao.get()
-
-    override suspend fun updatePlaybackSettings(mode: StereoLayout, skip: Int, resume: Boolean) =
-        playbackSettingsDao.update(mode, skip, resume)
 
     // ============== Scan Settings Operations ==============
 

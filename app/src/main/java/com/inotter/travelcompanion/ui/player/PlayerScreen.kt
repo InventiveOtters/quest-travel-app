@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import kotlinx.coroutines.delay
 
@@ -42,9 +40,7 @@ fun PlayerScreen(
   val isPlaying by viewModel.isPlaying.collectAsState()
   val currentPosition by viewModel.currentPosition.collectAsState()
   val duration by viewModel.duration.collectAsState()
-  val currentStereoLayout by viewModel.currentStereoLayout.collectAsState()
 
-  var showLayoutDialog by remember { mutableStateOf(false) }
   var showControls by remember { mutableStateOf(true) }
 
   // Auto-hide controls after 3 seconds of inactivity when playing
@@ -59,54 +55,6 @@ fun PlayerScreen(
   LaunchedEffect(video.id) {
     val resumePosition = video.lastPositionMs ?: 0L
     viewModel.loadVideo(Uri.parse(video.fileUri), video.id, video, resumePosition)
-  }
-
-  // Stereo layout selection dialog
-  if (showLayoutDialog) {
-    AlertDialog(
-        onDismissRequest = { showLayoutDialog = false },
-        title = { Text("Stereo Layout") },
-        text = {
-          Column {
-            Text(
-                text = "Select viewing mode for this video",
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            val layouts = listOf(
-                StereoLayout.TwoD to "2D (Flat)",
-                StereoLayout.SBS to "Side-by-Side",
-                StereoLayout.TAB to "Top-and-Bottom",
-                StereoLayout.HSBS to "Half SBS",
-                StereoLayout.HTAB to "Half TAB"
-            )
-            layouts.forEach { (layout, label) ->
-              Row(
-                  modifier = Modifier
-                      .fillMaxWidth()
-                      .padding(vertical = 4.dp),
-                  verticalAlignment = Alignment.CenterVertically
-              ) {
-                RadioButton(
-                    selected = currentStereoLayout == layout,
-                    onClick = {
-                      viewModel.setStereoLayoutOverride(layout)
-                      showLayoutDialog = false
-                    }
-                )
-                Text(
-                    text = label,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-              }
-            }
-          }
-        },
-        confirmButton = {
-          TextButton(onClick = { showLayoutDialog = false }) {
-            Text("Close")
-          }
-        }
-    )
   }
 
   // Handler for back button - stops playback before navigating back
@@ -160,6 +108,25 @@ fun PlayerScreen(
               .fillMaxSize()
               .background(Color.Black),
       )
+
+      // Back button at top left corner
+      AnimatedVisibility(
+          visible = showControls,
+          enter = fadeIn(),
+          exit = fadeOut(),
+          modifier = Modifier.align(Alignment.TopStart)
+      ) {
+        IconButton(
+            onClick = handleBack,
+            modifier = Modifier.padding(16.dp)
+        ) {
+          Icon(
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = "Back",
+              tint = Color.White
+          )
+        }
+      }
 
       // Playback controls overlay with fade animation
       AnimatedVisibility(
@@ -234,15 +201,6 @@ fun PlayerScreen(
               horizontalArrangement = Arrangement.spacedBy(8.dp),
               verticalAlignment = Alignment.CenterVertically,
           ) {
-            // Back button - using IconButton for consistent styling with other controls
-            IconButton(onClick = handleBack) {
-              Icon(
-                  imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                  contentDescription = "Back",
-                  tint = Color.White
-              )
-            }
-
             // Skip backward
             IconButton(onClick = { viewModel.skipBackward() }) {
               Icon(
@@ -273,22 +231,6 @@ fun PlayerScreen(
                   tint = Color.White
               )
             }
-
-            // Stereo layout button
-            IconButton(
-                onClick = { showLayoutDialog = true }
-            ) {
-              Icon(
-                  imageVector = Icons.Default.Settings,
-                  contentDescription = "Stereo Layout",
-                  tint = Color.White
-              )
-            }
-            Text(
-                text = currentStereoLayout.name,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White
-            )
           }
         }
       }

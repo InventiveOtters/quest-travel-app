@@ -6,7 +6,6 @@ import android.view.Surface
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.inotter.travelcompanion.data.datasources.videolibrary.VideoLibraryDataSource
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import com.inotter.travelcompanion.data.repositories.VideoRepository.VideoRepository
 import com.inotter.travelcompanion.playback.PlaybackCore
@@ -41,9 +40,6 @@ class PlayerViewModel @Inject constructor(
   private val _duration = MutableStateFlow(0L)
   val duration: StateFlow<Long> = _duration.asStateFlow()
 
-  private val _currentStereoLayout = MutableStateFlow(StereoLayout.TwoD)
-  val currentStereoLayout: StateFlow<StereoLayout> = _currentStereoLayout.asStateFlow()
-
   private var currentVideoId: Long? = null
   private var progressUpdateJob: Job? = null
   private var uiPositionUpdateJob: Job? = null
@@ -63,7 +59,6 @@ class PlayerViewModel @Inject constructor(
 
   /**
    * Prepare and load a video for playback.
-   * Applies stereo layout based on: override > detected > default setting.
    *
    * @param uri The URI of the video file
    * @param videoId The database ID of the video
@@ -73,44 +68,8 @@ class PlayerViewModel @Inject constructor(
   fun loadVideo(uri: Uri, videoId: Long, video: VideoItem, startPositionMs: Long = 0L) {
     currentVideoId = videoId
     viewModelScope.launch {
-      // Determine stereo layout: override > detected > default
-      val layout = determineStereoLayout(video)
-      _currentStereoLayout.value = layout
-      playbackCore.setStereoLayout(layout)
-
       playbackCore.prepare(uri, startPositionMs)
       startProgressTracking()
-    }
-  }
-
-  /**
-   * Determine the stereo layout for a video.
-   * Priority: stereoLayoutOverride > stereoLayout (detected) > defaultViewMode (settings)
-   */
-  private suspend fun determineStereoLayout(video: VideoItem): StereoLayout {
-    // 1. Check for user override
-    video.stereoLayoutOverride?.let { return it }
-
-    // 2. Use detected layout if not Unknown
-    if (video.stereoLayout != StereoLayout.Unknown) {
-      return video.stereoLayout
-    }
-
-    // 3. Fallback to default from settings
-    val settings = dataSource.getPlaybackSettings()
-    return settings?.defaultViewMode ?: StereoLayout.TwoD
-  }
-
-  /**
-   * Set stereo layout override for the current video.
-   */
-  fun setStereoLayoutOverride(layout: StereoLayout) {
-    viewModelScope.launch {
-      currentVideoId?.let { id ->
-        videoRepo.setStereoLayoutOverride(id, layout)
-        _currentStereoLayout.value = layout
-        playbackCore.setStereoLayout(layout)
-      }
     }
   }
 

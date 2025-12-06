@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.PlaybackSettings
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,8 +17,5 @@ interface PlaybackSettingsDao {
 
   @Query("SELECT * FROM playback_settings WHERE id = 1")
   suspend fun get(): PlaybackSettings?
-
-  @Query("UPDATE playback_settings SET defaultViewMode = :mode, skipIntervalMs = :skip, resumeEnabled = :resume WHERE id = 1")
-  suspend fun update(mode: StereoLayout, skip: Int, resume: Boolean)
 }
 

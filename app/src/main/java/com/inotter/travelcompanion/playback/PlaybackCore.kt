@@ -18,11 +18,9 @@ import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import com.inotter.travelcompanion.data.datasources.videolibrary.models.StereoLayout
-
 /**
  * Core playback engine using ExoPlayer.
- * Handles video decoding, subtitle tracks, surface rendering, and stereo layout.
+ * Handles video decoding, subtitle tracks, and surface rendering.
  *
  * Performance optimizations (T052):
  * - ExoPlayer handles decoding on background threads (no main thread blocking)
@@ -155,8 +153,6 @@ class PlaybackCore(context: Context) {
     }
   }
 
-  private var currentStereoLayout: StereoLayout = StereoLayout.TwoD
-
   fun setSurface(surface: Surface?) {
     player.setVideoSurface(surface)
   }
@@ -199,21 +195,6 @@ class PlaybackCore(context: Context) {
    * @return Duration in milliseconds, or 0 if unknown
    */
   fun getDuration(): Long = player.duration.coerceAtLeast(0L)
-
-  /**
-   * Set the stereo layout for the current video.
-   * This determines how the video is rendered in VR space.
-   */
-  fun setStereoLayout(layout: StereoLayout) {
-    currentStereoLayout = layout
-    // TODO: In full VR implementation, this would update the VR surface shader/geometry
-    // to render the video according to the stereo layout (SBS, TAB, etc.)
-  }
-
-  /**
-   * Get the current stereo layout.
-   */
-  fun getStereoLayout(): StereoLayout = currentStereoLayout
 
   /**
    * Get available subtitle tracks.
