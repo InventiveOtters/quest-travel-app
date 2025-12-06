@@ -217,111 +217,125 @@ fun PlayerScreen(
             }
           }
 
-          // Control buttons
+          // Control buttons - play/pause centered with volume on the right
           Row(
-              modifier = Modifier.padding(top = 16.dp),
-              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
               verticalAlignment = Alignment.CenterVertically,
           ) {
-            // Skip backward
-            IconButton(onClick = { viewModel.skipBackward() }) {
-              Icon(
-                  imageVector = Icons.Default.FastRewind,
-                  contentDescription = "Skip Backward",
-                  tint = Color.White
-              )
-            }
+            // Left spacer to balance the volume button on the right
+            Spacer(modifier = Modifier.weight(1f))
 
-            // Play/Pause
-            IconButton(
-                onClick = { viewModel.togglePlayPause() },
-                modifier = Modifier.size(64.dp),
+            // Center controls
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-              Icon(
-                  imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                  contentDescription = if (isPlaying) "Pause" else "Play",
-                  modifier = Modifier.size(48.dp),
-                  tint = Color.White
-              )
-            }
-
-            // Skip forward
-            IconButton(onClick = { viewModel.skipForward() }) {
-              Icon(
-                  imageVector = Icons.Default.FastForward,
-                  contentDescription = "Skip Forward",
-                  tint = Color.White
-              )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Volume button with popup overlay
-            Box {
-              IconButton(
-                  onClick = {
-                    showVolumeSlider = !showVolumeSlider
-                    showControls = true
-                  }
-              ) {
+              // Skip backward
+              IconButton(onClick = { viewModel.skipBackward() }) {
                 Icon(
-                    imageVector = if (volume > 0f) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
-                    contentDescription = "Volume",
+                    imageVector = Icons.Default.FastRewind,
+                    contentDescription = "Skip Backward",
                     tint = Color.White
                 )
               }
 
-              // Volume slider popup - renders in overlay layer, doesn't affect layout
-              if (showVolumeSlider) {
-                Popup(
-                    alignment = Alignment.BottomCenter,
-                    offset = IntOffset(0, -48),
-                    onDismissRequest = { showVolumeSlider = false },
-                    properties = PopupProperties(focusable = false)
+              // Play/Pause
+              IconButton(
+                  onClick = { viewModel.togglePlayPause() },
+                  modifier = Modifier.size(64.dp),
+              ) {
+                Icon(
+                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    modifier = Modifier.size(48.dp),
+                    tint = Color.White
+                )
+              }
+
+              // Skip forward
+              IconButton(onClick = { viewModel.skipForward() }) {
+                Icon(
+                    imageVector = Icons.Default.FastForward,
+                    contentDescription = "Skip Forward",
+                    tint = Color.White
+                )
+              }
+            }
+
+            // Right side with volume button
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.Start,
+            ) {
+              Spacer(modifier = Modifier.width(16.dp))
+
+              // Volume button with popup overlay
+              Box {
+                IconButton(
+                    onClick = {
+                      showVolumeSlider = !showVolumeSlider
+                      showControls = true
+                    }
                 ) {
-                  Surface(
-                      shape = RoundedCornerShape(8.dp),
-                      color = Color.Black.copy(alpha = 0.8f),
+                  Icon(
+                      imageVector = if (volume > 0f) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                      contentDescription = "Volume",
+                      tint = Color.White
+                  )
+                }
+
+                // Volume slider popup - renders in overlay layer, doesn't affect layout
+                if (showVolumeSlider) {
+                  Popup(
+                      alignment = Alignment.BottomCenter,
+                      offset = IntOffset(0, -48),
+                      onDismissRequest = { showVolumeSlider = false },
+                      properties = PopupProperties(focusable = false)
                   ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color.Black.copy(alpha = 0.8f),
                     ) {
-                      // Vertical slider using rotated horizontal slider
-                      Slider(
-                          value = volume,
-                          onValueChange = { newVolume ->
-                            viewModel.setVolume(newVolume)
-                            volumeInteractionKey++ // Reset auto-hide timer
-                          },
-                          valueRange = 0f..1f,
-                          modifier = Modifier
-                              .graphicsLayer {
-                                rotationZ = -90f
-                                transformOrigin = TransformOrigin(0.5f, 0.5f)
-                              }
-                              .layout { measurable, constraints ->
-                                val placeable = measurable.measure(
-                                    Constraints(
-                                        minWidth = 120.dp.roundToPx(),
-                                        maxWidth = 120.dp.roundToPx(),
-                                        minHeight = constraints.minHeight,
-                                        maxHeight = constraints.maxHeight
-                                    )
-                                )
-                                layout(placeable.height, placeable.width) {
-                                  placeable.place(
-                                      x = -(placeable.width - placeable.height) / 2,
-                                      y = (placeable.width - placeable.height) / 2
-                                  )
+                      Column(
+                          horizontalAlignment = Alignment.CenterHorizontally,
+                          modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+                      ) {
+                        // Vertical slider using rotated horizontal slider
+                        Slider(
+                            value = volume,
+                            onValueChange = { newVolume ->
+                              viewModel.setVolume(newVolume)
+                              volumeInteractionKey++ // Reset auto-hide timer
+                            },
+                            valueRange = 0f..1f,
+                            modifier = Modifier
+                                .graphicsLayer {
+                                  rotationZ = -90f
+                                  transformOrigin = TransformOrigin(0.5f, 0.5f)
                                 }
-                              },
-                          colors = SliderDefaults.colors(
-                              thumbColor = Color.White,
-                              activeTrackColor = Color.White,
-                              inactiveTrackColor = Color.White.copy(alpha = 0.3f)
-                          )
-                      )
+                                .layout { measurable, constraints ->
+                                  val placeable = measurable.measure(
+                                      Constraints(
+                                          minWidth = 120.dp.roundToPx(),
+                                          maxWidth = 120.dp.roundToPx(),
+                                          minHeight = constraints.minHeight,
+                                          maxHeight = constraints.maxHeight
+                                      )
+                                  )
+                                  layout(placeable.height, placeable.width) {
+                                    placeable.place(
+                                        x = -(placeable.width - placeable.height) / 2,
+                                        y = (placeable.width - placeable.height) / 2
+                                    )
+                                  }
+                                },
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.White,
+                                activeTrackColor = Color.White,
+                                inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                            )
+                        )
+                      }
                     }
                   }
                 }

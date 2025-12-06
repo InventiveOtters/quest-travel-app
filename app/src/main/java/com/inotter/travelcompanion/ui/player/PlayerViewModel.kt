@@ -83,6 +83,7 @@ class PlayerViewModel @Inject constructor(
     currentVideoId = videoId
     viewModelScope.launch {
       playbackCore.prepare(uri, startPositionMs)
+      play() // Auto-play when video is loaded
       startProgressTracking()
     }
   }
