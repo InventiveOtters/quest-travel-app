@@ -1,5 +1,6 @@
 package com.inotter.travelcompanion.spatial.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,9 +30,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inotter.travelcompanion.spatial.data.EnvironmentType
@@ -209,7 +215,7 @@ private fun EnvironmentSelectorSection(
 }
 
 /**
- * Environment selection chip.
+ * Environment selection card with image and text overlay.
  */
 @Composable
 private fun EnvironmentChip(
@@ -217,27 +223,76 @@ private fun EnvironmentChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val cardWidth = 120.dp
+    val cardHeight = 80.dp
+    
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (isSelected) Color(0xFF4A90D9) else Color(0x40FFFFFF)
-            )
+            .width(cardWidth)
+            .height(cardHeight)
+            .clip(RoundedCornerShape(12.dp))
             .border(
-                width = if (isSelected) 0.dp else 1.dp,
-                color = Color.White.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(16.dp)
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) Color(0xFF4A90D9) else Color.White.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(12.dp)
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = environment.displayName,
-            color = Color.White,
-            fontSize = 13.sp,
-            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
-            textAlign = TextAlign.Center
+        // Background image or fallback color
+        environment.previewImage?.let { imageRes ->
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = environment.displayName,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } ?: Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF2A2A4E))
         )
+        
+        // Gradient overlay for text readability
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.7f)
+                        ),
+                        startY = 0f,
+                        endY = Float.POSITIVE_INFINITY
+                    )
+                )
+        )
+        
+        // Selection overlay
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF4A90D9).copy(alpha = 0.3f))
+            )
+        }
+        
+        // Text label at bottom
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Text(
+                text = environment.displayName,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }

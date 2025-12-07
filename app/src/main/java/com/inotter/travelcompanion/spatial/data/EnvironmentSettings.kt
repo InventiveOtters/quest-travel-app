@@ -1,5 +1,7 @@
 package com.inotter.travelcompanion.spatial.data
 
+import androidx.annotation.DrawableRes
+import com.inotter.travelcompanion.R
 import com.meta.spatial.core.Vector3
 
 /**
@@ -9,11 +11,12 @@ import com.meta.spatial.core.Vector3
 enum class EnvironmentType(
     val displayName: String,
     val nodeName: String?,  // Node name in the GLXF composition
+    @DrawableRes val previewImage: Int? = null,  // R.drawable reference for preview thumbnail
     val skyboxResource: Int? = null  // R.drawable reference for skybox
 ) {
-    COLLAB_ROOM("Collab Room", nodeName = "Environment"),
-    COLLAB_ROOM_2("Collab Room 2", nodeName = "Environment2"),
-    VOID("Void", nodeName = null);  // No environment, just panels in space
+    COLLAB_ROOM("Winter Lodge", nodeName = "Environment", previewImage = R.drawable.room1),
+    COLLAB_ROOM_2("Private Theatre", nodeName = "Environment2", previewImage = R.drawable.room2),
+    VOID("Void", nodeName = null, previewImage = null);  // No environment, just panels in space
 
     companion object {
         val default = COLLAB_ROOM
