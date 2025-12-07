@@ -201,8 +201,8 @@ class ImmersiveActivity : AppSystemActivity() {
         // Load environment IBL for reflections
         scene.updateIBLEnvironment("environment.env")
 
-        // Set view origin
-        scene.setViewOrigin(0.0f, 0.0f, 0.0f, 0.0f)
+        // Set view origin - rotate 180 degrees to face the panel
+        scene.setViewOrigin(0.0f, 0.0f, 0.0f, 180.0f)
 
         skybox =
         Entity.create(
