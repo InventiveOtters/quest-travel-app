@@ -39,7 +39,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.inotter.travelcompanion.R
 import com.inotter.travelcompanion.spatial.data.EnvironmentType
+import com.inotter.travelcompanion.ui.theme.QuestDimensions
+import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
+import com.inotter.travelcompanion.ui.theme.QuestTypography
+import com.meta.spatial.uiset.theme.LocalColorScheme
 
 /**
  * Data class representing the playback state.
@@ -74,7 +79,7 @@ interface ControlsPanelCallback {
 
 /**
  * Main composable for the controls panel content.
- * Simplified to show only scene settings (lighting slider + environment selector).
+ * Styled to match LibraryScreen with Quest theme.
  */
 @Composable
 fun ControlsPanelContent(
@@ -83,37 +88,38 @@ fun ControlsPanelContent(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier.fillMaxSize(),
-        color = Color(0xCC1A1A2E),
-        shape = RoundedCornerShape(16.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .background(brush = LocalColorScheme.current.panel),
+        color = Color.Transparent,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(QuestDimensions.ContentPadding.dp),
+            verticalArrangement = Arrangement.spacedBy(QuestDimensions.ItemSpacing.dp)
         ) {
-            // Header
+            // Header with title and logo
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.LightMode,
-                        contentDescription = null,
-                        tint = Color(0xFFFFB74D),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Scene Settings",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                Text(
+                    text = "Settings",
+                    style = QuestTypography.headlineMedium,
+                    color = QuestThemeExtras.colors.primaryText,
+                )
+                
+                // App logo
+                Image(
+                    painter = painterResource(id = R.drawable.onthego_logo),
+                    contentDescription = "On The Go Logo",
+                    modifier = Modifier
+                        .height(32.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    contentScale = ContentScale.Fit
+                )
             }
             
             // Lighting Slider Section
@@ -139,45 +145,36 @@ private fun LightingSliderSection(
     lightingIntensity: Float,
     onLightingChanged: (Float) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Lighting",
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 12.sp,
-            modifier = Modifier.padding(bottom = 4.dp)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.DarkMode,
+            contentDescription = "Dark",
+            tint = QuestThemeExtras.colors.secondaryText,
+            modifier = Modifier.size(22.dp)
         )
         
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.DarkMode,
-                contentDescription = "Dark",
-                tint = Color.White.copy(alpha = 0.7f),
-                modifier = Modifier.size(22.dp)
+        Slider(
+            value = lightingIntensity,
+            onValueChange = onLightingChanged,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp),
+            colors = SliderDefaults.colors(
+                thumbColor = LocalColorScheme.current.primaryButton,
+                activeTrackColor = LocalColorScheme.current.primaryButton,
+                inactiveTrackColor = QuestThemeExtras.colors.secondary
             )
-            
-            Slider(
-                value = lightingIntensity,
-                onValueChange = onLightingChanged,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp),
-                colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFFFFB74D),
-                    activeTrackColor = Color(0xFFFFB74D),
-                    inactiveTrackColor = Color(0x40FFFFFF)
-                )
-            )
-            
-            Icon(
-                imageVector = Icons.Default.LightMode,
-                contentDescription = "Bright",
-                tint = Color(0xFFFFB74D),
-                modifier = Modifier.size(22.dp)
-            )
-        }
+        )
+        
+        Icon(
+            imageVector = Icons.Default.LightMode,
+            contentDescription = "Bright",
+            tint = LocalColorScheme.current.primaryButton,
+            modifier = Modifier.size(22.dp)
+        )
     }
 }
 
@@ -192,8 +189,8 @@ private fun EnvironmentSelectorSection(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Environment",
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 12.sp,
+            style = QuestTypography.labelMedium,
+            color = QuestThemeExtras.colors.secondaryText,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         
@@ -223,8 +220,14 @@ private fun EnvironmentChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val cardWidth = 120.dp
-    val cardHeight = 80.dp
+    val cardWidth = 140.dp
+    val cardHeight = 100.dp
+    
+    val borderColor = if (isSelected) {
+        LocalColorScheme.current.primaryButton
+    } else {
+        QuestThemeExtras.colors.secondary
+    }
     
     Box(
         modifier = Modifier
@@ -233,7 +236,7 @@ private fun EnvironmentChip(
             .clip(RoundedCornerShape(12.dp))
             .border(
                 width = if (isSelected) 2.dp else 1.dp,
-                color = if (isSelected) Color(0xFF4A90D9) else Color.White.copy(alpha = 0.3f),
+                color = borderColor,
                 shape = RoundedCornerShape(12.dp)
             )
             .clickable(onClick = onClick)
@@ -249,7 +252,7 @@ private fun EnvironmentChip(
         } ?: Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF2A2A4E))
+                .background(QuestThemeExtras.colors.secondary)
         )
         
         // Gradient overlay for text readability
@@ -273,7 +276,7 @@ private fun EnvironmentChip(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFF4A90D9).copy(alpha = 0.3f))
+                    .background(LocalColorScheme.current.primaryButton.copy(alpha = 0.3f))
             )
         }
         
@@ -286,8 +289,8 @@ private fun EnvironmentChip(
         ) {
             Text(
                 text = environment.displayName,
+                style = QuestTypography.labelSmall,
                 color = Color.White,
-                fontSize = 12.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
