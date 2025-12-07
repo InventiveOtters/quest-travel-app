@@ -77,6 +77,8 @@ object QuestDimensions {
 
 /**
  * Local composition for Quest-specific colors that extend beyond SpatialTheme.
+ * Note: Primary button text color now uses LocalColorScheme.current.primaryOpaqueButton
+ * for proper contrast as per Meta Horizon OS UI Set guidelines.
  */
 data class QuestExtendedColors(
     val success: Color,
@@ -88,7 +90,6 @@ data class QuestExtendedColors(
     val secondary: Color,
     val primaryText: Color,
     val secondaryText: Color,
-    val primaryButtonText: Color,
     val secondaryButtonText: Color
 )
 
@@ -102,7 +103,6 @@ val LocalQuestColors = staticCompositionLocalOf {
         secondary = QuestColors.surfaceDark,
         primaryText = QuestColors.onSurfaceDark,
         secondaryText = QuestColors.onSurfaceVariantDark,
-        primaryButtonText = Color.White,
         secondaryButtonText = QuestColors.onSurfaceDark
     )
 }
@@ -134,7 +134,6 @@ fun QuestTheme(
         secondary = if (darkTheme) QuestColors.surfaceDark else QuestColors.surfaceLight,
         primaryText = if (darkTheme) QuestColors.onSurfaceDark else QuestColors.onSurfaceLight,
         secondaryText = if (darkTheme) QuestColors.onSurfaceVariantDark else QuestColors.onSurfaceVariantLight,
-        primaryButtonText = Color.White,
         secondaryButtonText = if (darkTheme) QuestColors.onSurfaceDark else QuestColors.onSurfaceLight
     )
 

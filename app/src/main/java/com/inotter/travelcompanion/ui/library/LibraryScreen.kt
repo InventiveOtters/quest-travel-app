@@ -122,7 +122,11 @@ private fun LibraryHeader(
             color = QuestThemeExtras.colors.primaryText,
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Wrap buttons in a Row with intrinsic size to prevent stretching
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             QuestSecondaryButton(text = "Settings", onClick = onSettings)
             QuestSecondaryButton(text = "Manage Sources", onClick = onManageSources)
             QuestSecondaryButton(text = "WiFi Transfer", onClick = onWifiTransfer)
@@ -319,6 +323,7 @@ private fun VideoPlaceholderIcon() {
 
 /**
  * Quest-styled status badge.
+ * Uses proper contrast colors following Meta Horizon OS UI Set guidelines.
  */
 @Composable
 private fun VideoBadge(
@@ -332,6 +337,12 @@ private fun VideoBadge(
         LocalColorScheme.current.primaryButton.copy(alpha = 0.9f)
     }
 
+    val textColor = if (isError) {
+        Color.White  // White text on red error background has good contrast
+    } else {
+        LocalColorScheme.current.primaryOpaqueButton  // Proper contrast for primary button
+    }
+
     Surface(
         modifier = modifier,
         color = backgroundColor,
@@ -341,7 +352,7 @@ private fun VideoBadge(
             text = text,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = QuestTypography.labelSmall,
-            color = Color.White,
+            color = textColor,
         )
     }
 }

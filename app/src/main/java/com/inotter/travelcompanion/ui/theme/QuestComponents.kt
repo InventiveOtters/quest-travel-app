@@ -135,7 +135,7 @@ fun QuestPrimaryButton(
         modifier = modifier
             .scale(scale)
             .height(QuestDimensions.ButtonHeight.dp)
-            .then(if (expanded) Modifier.fillMaxWidth() else Modifier)
+            .then(if (expanded) Modifier.fillMaxWidth() else Modifier.wrapContentWidth())
             .clip(SpatialTheme.shapes.medium)
             .hoverable(interactionSource)
             .clickable(
@@ -149,14 +149,16 @@ fun QuestPrimaryButton(
         color = backgroundColor
     ) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            modifier = Modifier
+                .then(if (expanded) Modifier.fillMaxWidth() else Modifier.wrapContentWidth())
+                .padding(horizontal = 24.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = text,
                 style = QuestTypography.button,
-                color = if (enabled) QuestThemeExtras.colors.primaryButtonText
-                       else QuestThemeExtras.colors.primaryButtonText.copy(alpha = 0.6f),
+                color = if (enabled) LocalColorScheme.current.primaryOpaqueButton
+                       else LocalColorScheme.current.primaryOpaqueButton.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -200,7 +202,7 @@ fun QuestSecondaryButton(
         modifier = modifier
             .scale(scale)
             .height(QuestDimensions.SmallButtonHeight.dp)
-            .then(if (expanded) Modifier.fillMaxWidth() else Modifier)
+            .then(if (expanded) Modifier.fillMaxWidth() else Modifier.wrapContentWidth())
             .clip(SpatialTheme.shapes.medium)
             .border(
                 width = 2.dp,
@@ -219,7 +221,9 @@ fun QuestSecondaryButton(
         color = if (isHovered) LocalColorScheme.current.hover.copy(alpha = 0.1f) else Color.Transparent
     ) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            modifier = Modifier
+                .then(if (expanded) Modifier.fillMaxWidth() else Modifier.wrapContentWidth())
+                .padding(horizontal = 20.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
