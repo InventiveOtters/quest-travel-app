@@ -1,0 +1,9 @@
+entities:
+  components:
+    com.meta.components.Name:
+      name: texture15
+    com.meta.components.Texture:
+      image: ref:Block1Mtl
+      sampler: ref:sampler2
+metadata:
+  version: 1.35

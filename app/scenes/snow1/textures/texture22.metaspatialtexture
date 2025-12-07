@@ -1,0 +1,9 @@
+entities:
+  components:
+    com.meta.components.Name:
+      name: texture22
+    com.meta.components.Texture:
+      image: ref:Part35Mtl1
+      sampler: ref:sampler9
+metadata:
+  version: 1.35

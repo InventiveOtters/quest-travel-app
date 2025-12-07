@@ -1,0 +1,9 @@
+entities:
+  components:
+    com.meta.components.Name:
+      name: texture23
+    com.meta.components.Texture:
+      image: ref:Redwoodtreessnowy01leaf1Mtl
+      sampler: ref:sampler10
+metadata:
+  version: 1.35

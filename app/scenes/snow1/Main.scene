@@ -1,0 +1,2788 @@
+entities:
+  com.meta.models.Scene:
+    - components:
+        com.meta.components.Name:
+          {}
+        com.meta.components.Scene:
+          nodes:
+            - ref:RootNode
+      tag: Scene
+  com.meta.models.SceneNode:
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: SnowTreeFree1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:SnowTreeFree11
+        com.meta.components.Visibility:
+          visible: true
+      tag: SnowTreeFree1
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part27
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part271
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part27
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: RootNode
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 0.00999999978
+            - 0.00999999978
+            - 0.00999999978
+          componentVersion: 1
+          children:
+            - ref:snow_root
+        com.meta.components.Visibility:
+          visible: true
+      tag: RootNode
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part43
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part431
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part43
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Leaves2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Leaves2
+        com.meta.components.Visibility:
+          visible: true
+      tag: Leaves21
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: SnowTreeFree3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:SnowTreeFree31
+        com.meta.components.Visibility:
+          visible: true
+      tag: SnowTreeFree3
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part59
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part59
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part591
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part17
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part171
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part17
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshesicebushlol0011
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshesicebushlol0011
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshesicebushlol00111
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge31
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge3
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part36
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part361
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part36
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part47
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part471
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part47
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part60
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part601
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part60
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part19
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part191
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part19
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part14
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part141
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part14
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part35
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part351
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part35
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Block4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Block4
+        com.meta.components.Visibility:
+          visible: true
+      tag: Block41
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Bulb1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Bulb1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Bulb11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part25
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part251
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part25
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part38
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part381
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part38
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part33
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part331
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part33
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part10
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part10
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part101
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge41
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge4
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part11
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part111
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part112
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part37
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part371
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part37
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge5
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge51
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge5
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Mesheskutzoii4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Mesheskutzoii4
+        com.meta.components.Visibility:
+          visible: true
+      tag: Mesheskutzoii41
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part13
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part13
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part131
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Union1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Union11
+        com.meta.components.Visibility:
+          visible: true
+      tag: Union1
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part50
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part50
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part501
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge9
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge91
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge9
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Mesheskutzoii2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Mesheskutzoii2
+        com.meta.components.Visibility:
+          visible: true
+      tag: Mesheskutzoii21
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part56
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part56
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part561
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part9
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part91
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part9
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part45
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part45
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part451
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part40
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part40
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part401
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part21
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part21
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part211
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: G1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:G1
+        com.meta.components.Visibility:
+          visible: true
+      tag: G11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: E1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:E1
+        com.meta.components.Visibility:
+          visible: true
+      tag: E11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part57
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part57
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part571
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: snow_root
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          translation:
+            - 408.669891
+            - 0
+            - -45.7778053
+          componentVersion: 1
+          children:
+            - ref:Block11
+            - ref:Block21
+            - ref:Block31
+            - ref:Block41
+            - ref:Bulb11
+            - ref:E11
+            - ref:G11
+            - ref:Glass11
+            - ref:H11
+            - ref:Leaves11
+            - ref:Leaves21
+            - ref:Main11
+            - ref:Meshesicebushlol00111
+            - ref:Meshesicebushlol00121
+            - ref:Meshesicebushlol00211
+            - ref:Meshesicebushlol00221
+            - ref:Meshesicebushlol1
+            - ref:Meshesicebushlol21
+            - ref:Mesheskutzoii11
+            - ref:Mesheskutzoii21
+            - ref:Mesheskutzoii3
+            - ref:Mesheskutzoii41
+            - ref:Meshesnoobsswd11
+            - ref:Meshpart11
+            - ref:Meshpart2
+            - ref:Meshpart3
+            - ref:Meshpart41
+            - ref:N11
+            - ref:O1
+            - ref:O21
+            - ref:Part1
+            - ref:Part101
+            - ref:Part112
+            - ref:Part12
+            - ref:Part131
+            - ref:Part14
+            - ref:Part15
+            - ref:Part161
+            - ref:Part17
+            - ref:Part18
+            - ref:Part19
+            - ref:Part210
+            - ref:Part20
+            - ref:Part211
+            - ref:Part22
+            - ref:Part231
+            - ref:Part241
+            - ref:Part25
+            - ref:Part26
+            - ref:Part27
+            - ref:Part281
+            - ref:Part291
+            - ref:Part310
+            - ref:Part301
+            - ref:Part311
+            - ref:Part32
+            - ref:Part33
+            - ref:Part341
+            - ref:Part35
+            - ref:Part36
+            - ref:Part37
+            - ref:Part38
+            - ref:Part391
+            - ref:Part4
+            - ref:Part401
+            - ref:Part411
+            - ref:Part422
+            - ref:Part43
+            - ref:Part44
+            - ref:Part451
+            - ref:Part46
+            - ref:Part47
+            - ref:Part481
+            - ref:Part491
+            - ref:Part510
+            - ref:Part501
+            - ref:Part511
+            - ref:Part521
+            - ref:Part531
+            - ref:Part541
+            - ref:Part55
+            - ref:Part561
+            - ref:Part571
+            - ref:Part58
+            - ref:Part591
+            - ref:Part63
+            - ref:Part60
+            - ref:Part611
+            - ref:Part62
+            - ref:Part7
+            - ref:Part81
+            - ref:Part9
+            - ref:Redwoodtreessnowy01leaf11
+            - ref:Redwoodtreessnowy01trunk11
+            - ref:SnowTreeFree1
+            - ref:SnowTreeFree21
+            - ref:SnowTreeFree3
+            - ref:SnowTreeFree41
+            - ref:T1
+            - ref:Union1
+            - ref:Wedge11
+            - ref:Wedge21
+            - ref:Wedge3
+            - ref:Wedge4
+            - ref:Wedge5
+            - ref:Wedge6
+            - ref:Wedge7
+            - ref:Wedge81
+            - ref:Wedge9
+        com.meta.components.Visibility:
+          visible: true
+      tag: snow_root
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: N1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:N1
+        com.meta.components.Visibility:
+          visible: true
+      tag: N11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge2
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge21
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part3
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part310
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Block3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Block3
+        com.meta.components.Visibility:
+          visible: true
+      tag: Block31
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part55
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part551
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part55
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part30
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part30
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part301
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: SnowTreeFree4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:SnowTreeFree4
+        com.meta.components.Visibility:
+          visible: true
+      tag: SnowTreeFree41
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part39
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part39
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part391
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part6
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part6
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part63
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Mesheskutzoii1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Mesheskutzoii1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Mesheskutzoii11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshesicebushlol1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshesicebushlol11
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshesicebushlol1
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part49
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part49
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part491
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Leaves1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Leaves1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Leaves11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshesnoobsswd1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshesnoobsswd1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshesnoobsswd11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Block2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Block2
+        com.meta.components.Visibility:
+          visible: true
+      tag: Block21
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Block1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Block1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Block11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Glass1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Glass1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Glass11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: H1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:H1
+        com.meta.components.Visibility:
+          visible: true
+      tag: H11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Main1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Main1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Main11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshesicebushlol0012
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshesicebushlol0012
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshesicebushlol00121
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshesicebushlol0021
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshesicebushlol0021
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshesicebushlol00211
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshesicebushlol0022
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshesicebushlol0022
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshesicebushlol00221
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshesicebushlol2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshesicebushlol2
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshesicebushlol21
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Mesheskutzoii3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Mesheskutzoii31
+        com.meta.components.Visibility:
+          visible: true
+      tag: Mesheskutzoii3
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshpart1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshpart1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshpart11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshpart2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshpart21
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshpart2
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part41
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part41
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part411
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshpart3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshpart31
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshpart3
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Meshpart4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Meshpart4
+        com.meta.components.Visibility:
+          visible: true
+      tag: Meshpart41
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: O1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:O11
+        com.meta.components.Visibility:
+          visible: true
+      tag: O1
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: O2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:O2
+        com.meta.components.Visibility:
+          visible: true
+      tag: O21
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part11
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part1
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part54
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part54
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part541
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part12
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part121
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part12
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part15
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part151
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part15
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part16
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part16
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part161
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part18
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part181
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part18
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part2
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part210
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part20
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part201
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part20
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part22
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part221
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part22
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part23
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part23
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part231
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part24
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part24
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part241
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part26
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part261
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part26
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part28
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part28
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part281
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part29
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part29
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part291
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part31
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part31
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part311
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part32
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part321
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part32
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part34
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part34
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part341
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part42
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part4
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part42
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part421
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part422
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part44
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part441
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part44
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part46
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part461
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part46
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part48
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part48
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part481
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part5
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part5
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part510
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part51
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part51
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part511
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part52
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part52
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part521
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part53
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part53
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part531
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part58
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part581
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part58
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part61
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part61
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part611
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part62
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part621
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part62
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part7
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part71
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part7
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Part8
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Part8
+        com.meta.components.Visibility:
+          visible: true
+      tag: Part81
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Redwoodtreessnowy01leaf1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Redwoodtreessnowy01leaf1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Redwoodtreessnowy01leaf11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Redwoodtreessnowy01trunk1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Redwoodtreessnowy01trunk1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Redwoodtreessnowy01trunk11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: SnowTreeFree2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:SnowTreeFree2
+        com.meta.components.Visibility:
+          visible: true
+      tag: SnowTreeFree21
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: T1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:T11
+        com.meta.components.Visibility:
+          visible: true
+      tag: T1
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge1
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge11
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge6
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge61
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge6
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge7
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge71
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge7
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.Name:
+          name: Wedge8
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.data:
+            - 1
+            - 0
+            - 0
+            - 0
+          rotation.format: Quaternion
+          scale:
+            - 1
+            - 1
+            - 1
+          componentVersion: 1
+        com.meta.components.SceneNodeMesh:
+          mesh: ref:Wedge8
+        com.meta.components.Visibility:
+          visible: true
+      tag: Wedge81
+metadata:
+  version: 1.35

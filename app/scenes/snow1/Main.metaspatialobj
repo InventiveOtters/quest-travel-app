@@ -1,0 +1,2982 @@
+scene: docref:Main.scene
+entities:
+  com.meta.models.AssetFolder:
+    - components:
+        com.meta.components.AssetFolder:
+          assets:
+            - ref:Block1Mtl
+            - ref:Block2Mtl
+            - ref:Main1Mtl
+            - ref:Part2Mtl
+            - ref:Part35Mtl1
+            - ref:Part9Mtl
+            - ref:Redwoodtreessnowy01leaf1Mtl
+            - ref:Redwoodtreessnowy01trunk1Mtl1
+            - ref:SnowTreeFree1Mtl
+            - ref:Block1Mtl1
+            - ref:Block2Mtl1
+            - ref:Block3Mtl
+            - ref:Block4Mtl
+            - ref:Bulb1Mtl
+            - ref:G1Mtl
+            - ref:Glass1Mtl
+            - ref:Leaves1Mtl
+            - ref:Leaves2Mtl
+            - ref:Main1Mtl1
+            - ref:Meshesicebushlol1Mtl
+            - ref:Mesheskutzoii1Mtl
+            - ref:Mesheskutzoii2Mtl
+            - ref:Mesheskutzoii3Mtl
+            - ref:Meshesnoobsswd1Mtl
+            - ref:Meshpart1Mtl
+            - ref:Meshpart3Mtl
+            - ref:Meshpart4Mtl
+            - ref:Part14Mtl
+            - ref:Part15Mtl
+            - ref:Part1Mtl
+            - ref:Part2Mtl1
+            - ref:Part32Mtl
+            - ref:Part35Mtl
+            - ref:Part36Mtl
+            - ref:Part43Mtl
+            - ref:Part4Mtl
+            - ref:Part50Mtl
+            - ref:Part9Mtl1
+            - ref:Redwoodtreessnowy01leaf1Mtl1
+            - ref:Redwoodtreessnowy01trunk1Mtl
+            - ref:SnowTreeFree1Mtl1
+            - ref:Union1Mtl
+            - ref:Block1
+            - ref:Block2
+            - ref:Block3
+            - ref:Block4
+            - ref:Bulb1
+            - ref:E1
+            - ref:G1
+            - ref:Glass1
+            - ref:H1
+            - ref:Leaves1
+            - ref:Leaves2
+            - ref:Main1
+            - ref:Meshesicebushlol0011
+            - ref:Meshesicebushlol0012
+            - ref:Meshesicebushlol0021
+            - ref:Meshesicebushlol0022
+            - ref:Meshesicebushlol11
+            - ref:Meshesicebushlol2
+            - ref:Mesheskutzoii1
+            - ref:Mesheskutzoii2
+            - ref:Mesheskutzoii31
+            - ref:Mesheskutzoii4
+            - ref:Meshesnoobsswd1
+            - ref:Meshpart1
+            - ref:Meshpart21
+            - ref:Meshpart31
+            - ref:Meshpart4
+            - ref:N1
+            - ref:O11
+            - ref:O2
+            - ref:Part11
+            - ref:Part10
+            - ref:Part111
+            - ref:Part121
+            - ref:Part13
+            - ref:Part141
+            - ref:Part151
+            - ref:Part16
+            - ref:Part171
+            - ref:Part181
+            - ref:Part191
+            - ref:Part2
+            - ref:Part201
+            - ref:Part21
+            - ref:Part221
+            - ref:Part23
+            - ref:Part24
+            - ref:Part251
+            - ref:Part261
+            - ref:Part271
+            - ref:Part28
+            - ref:Part29
+            - ref:Part3
+            - ref:Part30
+            - ref:Part31
+            - ref:Part321
+            - ref:Part331
+            - ref:Part34
+            - ref:Part351
+            - ref:Part361
+            - ref:Part371
+            - ref:Part381
+            - ref:Part39
+            - ref:Part42
+            - ref:Part40
+            - ref:Part41
+            - ref:Part421
+            - ref:Part431
+            - ref:Part441
+            - ref:Part45
+            - ref:Part461
+            - ref:Part471
+            - ref:Part48
+            - ref:Part49
+            - ref:Part5
+            - ref:Part50
+            - ref:Part51
+            - ref:Part52
+            - ref:Part53
+            - ref:Part54
+            - ref:Part551
+            - ref:Part56
+            - ref:Part57
+            - ref:Part581
+            - ref:Part59
+            - ref:Part6
+            - ref:Part601
+            - ref:Part61
+            - ref:Part621
+            - ref:Part71
+            - ref:Part8
+            - ref:Part91
+            - ref:Redwoodtreessnowy01leaf1
+            - ref:Redwoodtreessnowy01trunk1
+            - ref:SnowTreeFree11
+            - ref:SnowTreeFree2
+            - ref:SnowTreeFree31
+            - ref:SnowTreeFree4
+            - ref:T11
+            - ref:Union11
+            - ref:Wedge1
+            - ref:Wedge2
+            - ref:Wedge31
+            - ref:Wedge41
+            - ref:Wedge51
+            - ref:Wedge61
+            - ref:Wedge71
+            - ref:Wedge8
+            - ref:Wedge91
+        com.meta.components.Name:
+          name: snow
+  com.meta.models.AssetRoot:
+    - components:
+        com.meta.components.AssetMetadata:
+          {}
+        com.meta.components.AssetRoot:
+          defaultScene: ref:Scene
+          scenes:
+            - ref:Scene
+  com.meta.models.Geometry:
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry.bin
+          mode: Triangles
+      tag: Geometry
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry1.bin
+          mode: Triangles
+      tag: Geometry1
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry3.bin
+          mode: Triangles
+      tag: Geometry3
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry4.bin
+          mode: Triangles
+      tag: Geometry4
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry2.bin
+          mode: Triangles
+      tag: Geometry2
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry6.bin
+          mode: Triangles
+      tag: Geometry6
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry10.bin
+          mode: Triangles
+      tag: Geometry10
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry12.bin
+          mode: Triangles
+      tag: Geometry12
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry14.bin
+          mode: Triangles
+      tag: Geometry14
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry15.bin
+          mode: Triangles
+      tag: Geometry15
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry18.bin
+          mode: Triangles
+      tag: Geometry18
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry20.bin
+          mode: Triangles
+      tag: Geometry20
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry23.bin
+          mode: Triangles
+      tag: Geometry23
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry26.bin
+          mode: Triangles
+      tag: Geometry26
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry30.bin
+          mode: Triangles
+      tag: Geometry30
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry31.bin
+          mode: Triangles
+      tag: Geometry31
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry33.bin
+          mode: Triangles
+      tag: Geometry33
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry35.bin
+          mode: Triangles
+      tag: Geometry35
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry43.bin
+          mode: Triangles
+      tag: Geometry43
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry44.bin
+          mode: Triangles
+      tag: Geometry44
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry46.bin
+          mode: Triangles
+      tag: Geometry46
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry50.bin
+          mode: Triangles
+      tag: Geometry50
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry51.bin
+          mode: Triangles
+      tag: Geometry51
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry53.bin
+          mode: Triangles
+      tag: Geometry53
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry55.bin
+          mode: Triangles
+      tag: Geometry55
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry57.bin
+          mode: Triangles
+      tag: Geometry57
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry58.bin
+          mode: Triangles
+      tag: Geometry58
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry60.bin
+          mode: Triangles
+      tag: Geometry60
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry63.bin
+          mode: Triangles
+      tag: Geometry63
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry64.bin
+          mode: Triangles
+      tag: Geometry64
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry65.bin
+          mode: Triangles
+      tag: Geometry65
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry66.bin
+          mode: Triangles
+      tag: Geometry66
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry67.bin
+          mode: Triangles
+      tag: Geometry67
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry27.bin
+          mode: Triangles
+      tag: Geometry27
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry68.bin
+          mode: Triangles
+      tag: Geometry68
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry69.bin
+          mode: Triangles
+      tag: Geometry69
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry70.bin
+          mode: Triangles
+      tag: Geometry70
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry28.bin
+          mode: Triangles
+      tag: Geometry28
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry71.bin
+          mode: Triangles
+      tag: Geometry71
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry45.bin
+          mode: Triangles
+      tag: Geometry45
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry72.bin
+          mode: Triangles
+      tag: Geometry72
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry73.bin
+          mode: Triangles
+      tag: Geometry73
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry74.bin
+          mode: Triangles
+      tag: Geometry74
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry54.bin
+          mode: Triangles
+      tag: Geometry54
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry62.bin
+          mode: Triangles
+      tag: Geometry62
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry75.bin
+          mode: Triangles
+      tag: Geometry75
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry76.bin
+          mode: Triangles
+      tag: Geometry76
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry77.bin
+          mode: Triangles
+      tag: Geometry77
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry78.bin
+          mode: Triangles
+      tag: Geometry78
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry79.bin
+          mode: Triangles
+      tag: Geometry79
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry59.bin
+          mode: Triangles
+      tag: Geometry59
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry36.bin
+          mode: Triangles
+      tag: Geometry36
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry80.bin
+          mode: Triangles
+      tag: Geometry80
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry81.bin
+          mode: Triangles
+      tag: Geometry81
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry82.bin
+          mode: Triangles
+      tag: Geometry82
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry61.bin
+          mode: Triangles
+      tag: Geometry61
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry83.bin
+          mode: Triangles
+      tag: Geometry83
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry34.bin
+          mode: Triangles
+      tag: Geometry34
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry84.bin
+          mode: Triangles
+      tag: Geometry84
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry5.bin
+          mode: Triangles
+      tag: Geometry5
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry85.bin
+          mode: Triangles
+      tag: Geometry85
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry13.bin
+          mode: Triangles
+      tag: Geometry13
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry56.bin
+          mode: Triangles
+      tag: Geometry56
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry11.bin
+          mode: Triangles
+      tag: Geometry11
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry86.bin
+          mode: Triangles
+      tag: Geometry86
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry49.bin
+          mode: Triangles
+      tag: Geometry49
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry87.bin
+          mode: Triangles
+      tag: Geometry87
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry24.bin
+          mode: Triangles
+      tag: Geometry24
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry88.bin
+          mode: Triangles
+      tag: Geometry88
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry39.bin
+          mode: Triangles
+      tag: Geometry39
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry37.bin
+          mode: Triangles
+      tag: Geometry37
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry89.bin
+          mode: Triangles
+      tag: Geometry89
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry52.bin
+          mode: Triangles
+      tag: Geometry52
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry90.bin
+          mode: Triangles
+      tag: Geometry90
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry29.bin
+          mode: Triangles
+      tag: Geometry29
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry91.bin
+          mode: Triangles
+      tag: Geometry91
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry16.bin
+          mode: Triangles
+      tag: Geometry16
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry92.bin
+          mode: Triangles
+      tag: Geometry92
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry93.bin
+          mode: Triangles
+      tag: Geometry93
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry94.bin
+          mode: Triangles
+      tag: Geometry94
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry47.bin
+          mode: Triangles
+      tag: Geometry47
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry95.bin
+          mode: Triangles
+      tag: Geometry95
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry19.bin
+          mode: Triangles
+      tag: Geometry19
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry96.bin
+          mode: Triangles
+      tag: Geometry96
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry41.bin
+          mode: Triangles
+      tag: Geometry41
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry97.bin
+          mode: Triangles
+      tag: Geometry97
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry42.bin
+          mode: Triangles
+      tag: Geometry42
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry98.bin
+          mode: Triangles
+      tag: Geometry98
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry48.bin
+          mode: Triangles
+      tag: Geometry48
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry99.bin
+          mode: Triangles
+      tag: Geometry99
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry22.bin
+          mode: Triangles
+      tag: Geometry22
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry100.bin
+          mode: Triangles
+      tag: Geometry100
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry17.bin
+          mode: Triangles
+      tag: Geometry17
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry101.bin
+          mode: Triangles
+      tag: Geometry101
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry21.bin
+          mode: Triangles
+      tag: Geometry21
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry102.bin
+          mode: Triangles
+      tag: Geometry102
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry38.bin
+          mode: Triangles
+      tag: Geometry38
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry103.bin
+          mode: Triangles
+      tag: Geometry103
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry9.bin
+          mode: Triangles
+      tag: Geometry9
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry104.bin
+          mode: Triangles
+      tag: Geometry104
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry7.bin
+          mode: Triangles
+      tag: Geometry7
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry105.bin
+          mode: Triangles
+      tag: Geometry105
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry25.bin
+          mode: Triangles
+      tag: Geometry25
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry106.bin
+          mode: Triangles
+      tag: Geometry106
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry40.bin
+          mode: Triangles
+      tag: Geometry40
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry107.bin
+          mode: Triangles
+      tag: Geometry107
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry32.bin
+          mode: Triangles
+      tag: Geometry32
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry108.bin
+          mode: Triangles
+      tag: Geometry108
+    - components:
+        com.meta.components.Geometry:
+          data: binary/Geometry8.bin
+          mode: Triangles
+      tag: Geometry8
+  com.meta.models.Image:
+    - components:
+        com.meta.components.Asset:
+          path: assets/Block1Mtl.png
+        com.meta.components.Image:
+          height: 1024
+          mimeType: image/png
+          width: 1024
+        com.meta.components.Name:
+          name: Block1Mtl
+      tag: Block1Mtl
+    - components:
+        com.meta.components.Asset:
+          path: assets/Block2Mtl.png
+        com.meta.components.Image:
+          height: 1024
+          mimeType: image/png
+          width: 1024
+        com.meta.components.Name:
+          name: Block2Mtl
+      tag: Block2Mtl
+    - components:
+        com.meta.components.Asset:
+          path: assets/Part35Mtl1.png
+        com.meta.components.Image:
+          height: 1024
+          mimeType: image/png
+          width: 1024
+        com.meta.components.Name:
+          name: Part35Mtl
+      tag: Part35Mtl1
+    - components:
+        com.meta.components.Asset:
+          path: assets/Main1Mtl.png
+        com.meta.components.Image:
+          height: 512
+          mimeType: image/png
+          width: 512
+        com.meta.components.Name:
+          name: Main1Mtl
+      tag: Main1Mtl
+    - components:
+        com.meta.components.Asset:
+          path: assets/Part9Mtl.png
+        com.meta.components.Image:
+          height: 1024
+          mimeType: image/png
+          width: 1024
+        com.meta.components.Name:
+          name: Part9Mtl
+      tag: Part9Mtl
+    - components:
+        com.meta.components.Asset:
+          path: assets/Part2Mtl.png
+        com.meta.components.Image:
+          height: 256
+          mimeType: image/png
+          width: 256
+        com.meta.components.Name:
+          name: Part2Mtl
+      tag: Part2Mtl
+    - components:
+        com.meta.components.Asset:
+          path: assets/Redwoodtreessnowy01leaf1Mtl.png
+        com.meta.components.Image:
+          height: 1024
+          mimeType: image/png
+          width: 1024
+        com.meta.components.Name:
+          name: Redwoodtreessnowy01leaf1Mtl
+      tag: Redwoodtreessnowy01leaf1Mtl
+    - components:
+        com.meta.components.Asset:
+          path: assets/Redwoodtreessnowy01trunk1Mtl1.png
+        com.meta.components.Image:
+          height: 1024
+          mimeType: image/png
+          width: 512
+        com.meta.components.Name:
+          name: Redwoodtreessnowy01trunk1Mtl
+      tag: Redwoodtreessnowy01trunk1Mtl1
+    - components:
+        com.meta.components.Asset:
+          path: assets/SnowTreeFree1Mtl.png
+        com.meta.components.Image:
+          height: 1024
+          mimeType: image/png
+          width: 1024
+        com.meta.components.Name:
+          name: SnowTreeFree1Mtl
+      tag: SnowTreeFree1Mtl
+  com.meta.models.Material:
+    - uri: docref:materials/Part50Mtl.metaspatialmaterial
+      tag: Part50Mtl
+    - uri: docref:materials/Part35Mtl.metaspatialmaterial
+      tag: Part35Mtl
+    - uri: docref:materials/Meshesnoobsswd1Mtl.metaspatialmaterial
+      tag: Meshesnoobsswd1Mtl
+    - uri: docref:materials/Block4Mtl.metaspatialmaterial
+      tag: Block4Mtl
+    - uri: docref:materials/Meshpart1Mtl.metaspatialmaterial
+      tag: Meshpart1Mtl
+    - uri: docref:materials/Part36Mtl.metaspatialmaterial
+      tag: Part36Mtl
+    - uri: docref:materials/Part2Mtl1.metaspatialmaterial
+      tag: Part2Mtl1
+    - uri: docref:materials/Redwoodtreessnowy01trunk1Mtl.metaspatialmaterial
+      tag: Redwoodtreessnowy01trunk1Mtl
+    - uri: docref:materials/Main1Mtl1.metaspatialmaterial
+      tag: Main1Mtl1
+    - uri: docref:materials/Bulb1Mtl.metaspatialmaterial
+      tag: Bulb1Mtl
+    - uri: docref:materials/G1Mtl.metaspatialmaterial
+      tag: G1Mtl
+    - uri: docref:materials/Glass1Mtl.metaspatialmaterial
+      tag: Glass1Mtl
+    - uri: docref:materials/Leaves1Mtl.metaspatialmaterial
+      tag: Leaves1Mtl
+    - uri: docref:materials/SnowTreeFree1Mtl1.metaspatialmaterial
+      tag: SnowTreeFree1Mtl1
+    - uri: docref:materials/Leaves2Mtl.metaspatialmaterial
+      tag: Leaves2Mtl
+    - uri: docref:materials/Part4Mtl.metaspatialmaterial
+      tag: Part4Mtl
+    - uri: docref:materials/Meshesicebushlol1Mtl.metaspatialmaterial
+      tag: Meshesicebushlol1Mtl
+    - uri: docref:materials/Mesheskutzoii1Mtl.metaspatialmaterial
+      tag: Mesheskutzoii1Mtl
+    - uri: docref:materials/Mesheskutzoii2Mtl.metaspatialmaterial
+      tag: Mesheskutzoii2Mtl
+    - uri: docref:materials/Mesheskutzoii3Mtl.metaspatialmaterial
+      tag: Mesheskutzoii3Mtl
+    - uri: docref:materials/Meshpart3Mtl.metaspatialmaterial
+      tag: Meshpart3Mtl
+    - uri: docref:materials/Meshpart4Mtl.metaspatialmaterial
+      tag: Meshpart4Mtl
+    - uri: docref:materials/Part1Mtl.metaspatialmaterial
+      tag: Part1Mtl
+    - uri: docref:materials/Part15Mtl.metaspatialmaterial
+      tag: Part15Mtl
+    - uri: docref:materials/Part14Mtl.metaspatialmaterial
+      tag: Part14Mtl
+    - uri: docref:materials/Part32Mtl.metaspatialmaterial
+      tag: Part32Mtl
+    - uri: docref:materials/Part9Mtl1.metaspatialmaterial
+      tag: Part9Mtl1
+    - uri: docref:materials/Block2Mtl1.metaspatialmaterial
+      tag: Block2Mtl1
+    - uri: docref:materials/Union1Mtl.metaspatialmaterial
+      tag: Union1Mtl
+    - uri: docref:materials/Block1Mtl1.metaspatialmaterial
+      tag: Block1Mtl1
+    - uri: docref:materials/Block3Mtl.metaspatialmaterial
+      tag: Block3Mtl
+    - uri: docref:materials/Part43Mtl.metaspatialmaterial
+      tag: Part43Mtl
+    - uri: docref:materials/Redwoodtreessnowy01leaf1Mtl1.metaspatialmaterial
+      tag: Redwoodtreessnowy01leaf1Mtl1
+  com.meta.models.Mesh:
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive69
+        com.meta.components.Name:
+          name: Block2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Block2
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive71
+        com.meta.components.Name:
+          name: Part24
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part24
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive70
+        com.meta.components.Name:
+          name: Meshesicebushlol2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshesicebushlol2
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive68
+        com.meta.components.Name:
+          name: Meshesicebushlol0011
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshesicebushlol0011
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive72
+        com.meta.components.Name:
+          name: Glass1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Glass1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive74
+        com.meta.components.Name:
+          name: Part52
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part52
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive75
+        com.meta.components.Name:
+          name: Part57
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part57
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive10
+        com.meta.components.Name:
+          name: Redwoodtreessnowy01trunk1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Redwoodtreessnowy01trunk1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive77
+        com.meta.components.Name:
+          name: Part59
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part59
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive41
+        com.meta.components.Name:
+          name: Block3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Block3
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive28
+        com.meta.components.Name:
+          name: Part40
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part40
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive61
+        com.meta.components.Name:
+          name: Meshesicebushlol0012
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshesicebushlol0012
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive22
+        com.meta.components.Name:
+          name: Wedge2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge2
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive36
+        com.meta.components.Name:
+          name: Meshesicebushlol0021
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshesicebushlol0021
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive46
+        com.meta.components.Name:
+          name: Bulb1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Bulb1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive78
+        com.meta.components.Name:
+          name: Main1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Main1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive37
+        com.meta.components.Name:
+          name: Part50
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part50
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive62
+        com.meta.components.Name:
+          name: Part41
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part41
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive57
+        com.meta.components.Name:
+          name: Part29
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part29
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive79
+        com.meta.components.Name:
+          name: Block1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Block1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive76
+        com.meta.components.Name:
+          name: SnowTreeFree2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: SnowTreeFree2
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive80
+        com.meta.components.Name:
+          name: Part54
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part54
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive24
+        com.meta.components.Name:
+          name: G1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: G1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive81
+        com.meta.components.Name:
+          name: Part62
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part621
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive59
+        com.meta.components.Name:
+          name: Mesheskutzoii3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Mesheskutzoii31
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive82
+        com.meta.components.Name:
+          name: Part51
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part51
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive27
+        com.meta.components.Name:
+          name: Block4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Block4
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive40
+        com.meta.components.Name:
+          name: Meshesicebushlol0022
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshesicebushlol0022
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive17
+        com.meta.components.Name:
+          name: Part56
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part56
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive35
+        com.meta.components.Name:
+          name: E1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: E1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive83
+        com.meta.components.Name:
+          name: Leaves1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Leaves1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive48
+        com.meta.components.Name:
+          name: H1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: H1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive84
+        com.meta.components.Name:
+          name: SnowTreeFree3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: SnowTreeFree31
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive42
+        com.meta.components.Name:
+          name: Leaves2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Leaves2
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive85
+        com.meta.components.Name:
+          name: SnowTreeFree1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: SnowTreeFree11
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive12
+        com.meta.components.Name:
+          name: Meshesicebushlol1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshesicebushlol11
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive26
+        com.meta.components.Name:
+          name: Mesheskutzoii1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Mesheskutzoii1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive86
+        com.meta.components.Name:
+          name: Mesheskutzoii2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Mesheskutzoii2
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive
+        com.meta.components.Name:
+          name: Mesheskutzoii4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Mesheskutzoii4
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive87
+        com.meta.components.Name:
+          name: Meshesnoobsswd1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshesnoobsswd1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive88
+        com.meta.components.Name:
+          name: Meshpart1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshpart1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive13
+        com.meta.components.Name:
+          name: Meshpart2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshpart21
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive89
+        com.meta.components.Name:
+          name: Part36
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part361
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive21
+        com.meta.components.Name:
+          name: Meshpart3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshpart31
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive20
+        com.meta.components.Name:
+          name: Meshpart4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Meshpart4
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive25
+        com.meta.components.Name:
+          name: N1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: N1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive90
+        com.meta.components.Name:
+          name: O1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: O11
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive39
+        com.meta.components.Name:
+          name: O2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: O2
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive91
+        com.meta.components.Name:
+          name: Wedge6
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge61
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive8
+        com.meta.components.Name:
+          name: Part1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part11
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive93
+        com.meta.components.Name:
+          name: Part22
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part221
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive92
+        com.meta.components.Name:
+          name: Part10
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part10
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive94
+        com.meta.components.Name:
+          name: Part11
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part111
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive55
+        com.meta.components.Name:
+          name: Part12
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part121
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive34
+        com.meta.components.Name:
+          name: SnowTreeFree4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: SnowTreeFree4
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive38
+        com.meta.components.Name:
+          name: Part38
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part381
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive9
+        com.meta.components.Name:
+          name: Part13
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part13
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive32
+        com.meta.components.Name:
+          name: Part14
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part141
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive50
+        com.meta.components.Name:
+          name: Part15
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part151
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive66
+        com.meta.components.Name:
+          name: Part16
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part16
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive53
+        com.meta.components.Name:
+          name: Part39
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part39
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive95
+        com.meta.components.Name:
+          name: Part17
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part171
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive52
+        com.meta.components.Name:
+          name: Part18
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part181
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive56
+        com.meta.components.Name:
+          name: Part19
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part191
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive54
+        com.meta.components.Name:
+          name: Part23
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part23
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive96
+        com.meta.components.Name:
+          name: Part2
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part2
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive6
+        com.meta.components.Name:
+          name: Part20
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part201
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive97
+        com.meta.components.Name:
+          name: Part21
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part21
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive98
+        com.meta.components.Name:
+          name: Part25
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part251
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive4
+        com.meta.components.Name:
+          name: Part26
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part261
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive60
+        com.meta.components.Name:
+          name: Part27
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part271
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive99
+        com.meta.components.Name:
+          name: Part28
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part28
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive3
+        com.meta.components.Name:
+          name: Part3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part3
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive100
+        com.meta.components.Name:
+          name: Part30
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part30
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive45
+        com.meta.components.Name:
+          name: Part46
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part461
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive7
+        com.meta.components.Name:
+          name: Part31
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part31
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive1
+        com.meta.components.Name:
+          name: Part32
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part321
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive51
+        com.meta.components.Name:
+          name: Part33
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part331
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive65
+        com.meta.components.Name:
+          name: Part34
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part34
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive101
+        com.meta.components.Name:
+          name: Part35
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part351
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive63
+        com.meta.components.Name:
+          name: Part37
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part371
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive15
+        com.meta.components.Name:
+          name: Part4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part42
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive102
+        com.meta.components.Name:
+          name: Part42
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part421
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive29
+        com.meta.components.Name:
+          name: Part43
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part431
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive18
+        com.meta.components.Name:
+          name: Part44
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part441
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive19
+        com.meta.components.Name:
+          name: Part45
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part45
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive31
+        com.meta.components.Name:
+          name: Part5
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part5
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive47
+        com.meta.components.Name:
+          name: Part47
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part471
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive103
+        com.meta.components.Name:
+          name: Part48
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part48
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive44
+        com.meta.components.Name:
+          name: Part49
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part49
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive64
+        com.meta.components.Name:
+          name: Part53
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part53
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive5
+        com.meta.components.Name:
+          name: Part55
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part551
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive104
+        com.meta.components.Name:
+          name: Part58
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part581
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive73
+        com.meta.components.Name:
+          name: Part6
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part6
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive30
+        com.meta.components.Name:
+          name: Part60
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part601
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive43
+        com.meta.components.Name:
+          name: Part61
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part61
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive105
+        com.meta.components.Name:
+          name: Part7
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part71
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive67
+        com.meta.components.Name:
+          name: Part8
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part8
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive33
+        com.meta.components.Name:
+          name: Wedge1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive106
+        com.meta.components.Name:
+          name: Part9
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Part91
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive23
+        com.meta.components.Name:
+          name: Redwoodtreessnowy01leaf1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Redwoodtreessnowy01leaf1
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive16
+        com.meta.components.Name:
+          name: T1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: T11
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive49
+        com.meta.components.Name:
+          name: Union1
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Union11
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive107
+        com.meta.components.Name:
+          name: Wedge3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge31
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive11
+        com.meta.components.Name:
+          name: Wedge4
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge41
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive2
+        com.meta.components.Name:
+          name: Wedge5
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge51
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive14
+        com.meta.components.Name:
+          name: Wedge7
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge71
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive108
+        com.meta.components.Name:
+          name: Wedge8
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge8
+    - components:
+        com.meta.components.Mesh:
+          morphTargetNames:
+            []
+          morphTargetWeights:
+            []
+          primitives:
+            - ref:Primitive58
+        com.meta.components.Name:
+          name: Wedge9
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+      tag: Wedge91
+  com.meta.models.Primitive:
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry59
+          material: ref:Part9Mtl1
+      tag: Primitive2
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry16
+          material: ref:Part15Mtl
+      tag: Primitive4
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry25
+          material: ref:Part36Mtl
+      tag: Primitive5
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry79
+          material: ref:Mesheskutzoii3Mtl
+      tag: Primitive
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry73
+          material: ref:Part2Mtl1
+      tag: Primitive3
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry33
+          material: ref:Redwoodtreessnowy01trunk1Mtl
+      tag: Primitive10
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry23
+          material: ref:Part9Mtl1
+      tag: Primitive14
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry104
+          material: ref:Part4Mtl
+      tag: Primitive15
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry29
+          material: ref:Part4Mtl
+      tag: Primitive18
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry12
+          material: ref:Part36Mtl
+      tag: Primitive19
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry43
+          material: ref:Part32Mtl
+      tag: Primitive1
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry97
+          material: ref:Meshpart4Mtl
+      tag: Primitive20
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry41
+          material: ref:Meshpart3Mtl
+      tag: Primitive21
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry56
+          material: ref:Part9Mtl1
+      tag: Primitive22
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry27
+          material: ref:Part14Mtl
+      tag: Primitive32
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry101
+          material: ref:SnowTreeFree1Mtl1
+      tag: Primitive34
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry91
+          material: ref:G1Mtl
+      tag: Primitive35
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry31
+          material: ref:G1Mtl
+      tag: Primitive39
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry107
+          material: ref:Part36Mtl
+      tag: Primitive43
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry9
+          material: ref:Part36Mtl
+      tag: Primitive45
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry62
+          material: ref:Part15Mtl
+      tag: Primitive50
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry38
+          material: ref:Part15Mtl
+      tag: Primitive52
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry28
+          material: ref:Part15Mtl
+      tag: Primitive57
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry103
+          material: ref:Part15Mtl
+      tag: Primitive60
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry11
+          material: ref:Part4Mtl
+      tag: Primitive61
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry65
+          material: ref:Part4Mtl
+      tag: Primitive68
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry6
+          material: ref:Block2Mtl1
+      tag: Primitive69
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry69
+          material: ref:Meshesicebushlol1Mtl
+      tag: Primitive70
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry78
+          material: ref:Part15Mtl
+      tag: Primitive71
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry34
+          material: ref:Glass1Mtl
+      tag: Primitive72
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry5
+          material: ref:Part2Mtl1
+      tag: Primitive74
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry71
+          material: ref:Part36Mtl
+      tag: Primitive75
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry85
+          material: ref:Leaves1Mtl
+      tag: Primitive28
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry72
+          material: ref:SnowTreeFree1Mtl1
+      tag: Primitive76
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry75
+          material: ref:Block3Mtl
+      tag: Primitive41
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry13
+          material: ref:Part14Mtl
+      tag: Primitive77
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry66
+          material: ref:Leaves1Mtl
+      tag: Primitive36
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry40
+          material: ref:Part36Mtl
+      tag: Primitive30
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry49
+          material: ref:Main1Mtl1
+      tag: Primitive78
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry86
+          material: ref:Bulb1Mtl
+      tag: Primitive46
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry68
+          material: ref:Part50Mtl
+      tag: Primitive37
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry87
+          material: ref:Leaves1Mtl
+      tag: Primitive62
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry24
+          material: ref:Block1Mtl1
+      tag: Primitive79
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry88
+          material: ref:Part36Mtl
+      tag: Primitive80
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry39
+          material: ref:G1Mtl
+      tag: Primitive24
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry26
+          material: ref:Part14Mtl
+      tag: Primitive81
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry30
+          material: ref:Part36Mtl
+      tag: Primitive64
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry37
+          material: ref:Mesheskutzoii3Mtl
+      tag: Primitive59
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry50
+          material: ref:Block4Mtl
+      tag: Primitive27
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry36
+          material: ref:Part2Mtl1
+      tag: Primitive82
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry52
+          material: ref:Leaves1Mtl
+      tag: Primitive40
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry90
+          material: ref:Part36Mtl
+      tag: Primitive17
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry92
+          material: ref:Leaves1Mtl
+      tag: Primitive83
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry3
+          material: ref:G1Mtl
+      tag: Primitive48
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry81
+          material: ref:Leaves2Mtl
+      tag: Primitive42
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry94
+          material: ref:SnowTreeFree1Mtl1
+      tag: Primitive84
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry47
+          material: ref:SnowTreeFree1Mtl1
+      tag: Primitive85
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry89
+          material: ref:Meshesicebushlol1Mtl
+      tag: Primitive12
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry95
+          material: ref:Mesheskutzoii1Mtl
+      tag: Primitive26
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry35
+          material: ref:Mesheskutzoii2Mtl
+      tag: Primitive86
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry4
+          material: ref:Part36Mtl
+      tag: Primitive47
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry74
+          material: ref:Meshesnoobsswd1Mtl
+      tag: Primitive87
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry100
+          material: ref:Part36Mtl
+      tag: Primitive38
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry54
+          material: ref:Meshpart1Mtl
+      tag: Primitive88
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry19
+          material: ref:Meshpart1Mtl
+      tag: Primitive13
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry96
+          material: ref:Part36Mtl
+      tag: Primitive89
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry98
+          material: ref:G1Mtl
+      tag: Primitive25
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry70
+          material: ref:G1Mtl
+      tag: Primitive90
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry93
+          material: ref:G1Mtl
+      tag: Primitive16
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry
+          material: ref:Part9Mtl1
+      tag: Primitive91
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry10
+          material: ref:Part4Mtl
+      tag: Primitive31
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry51
+          material: ref:Part1Mtl
+      tag: Primitive8
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry63
+          material: ref:Part9Mtl1
+      tag: Primitive92
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry21
+          material: ref:Part15Mtl
+      tag: Primitive66
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry99
+          material: ref:Part15Mtl
+      tag: Primitive93
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry84
+          material: ref:Part9Mtl1
+      tag: Primitive33
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry15
+          material: ref:Part9Mtl1
+      tag: Primitive94
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry48
+          material: ref:Part9Mtl1
+      tag: Primitive55
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry22
+          material: ref:Leaves1Mtl
+      tag: Primitive9
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry102
+          material: ref:Leaves1Mtl
+      tag: Primitive53
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry77
+          material: ref:Part15Mtl
+      tag: Primitive95
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry60
+          material: ref:Part15Mtl
+      tag: Primitive56
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry53
+          material: ref:Part2Mtl1
+      tag: Primitive96
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry2
+          material: ref:Part9Mtl1
+      tag: Primitive11
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry55
+          material: ref:Part15Mtl
+      tag: Primitive54
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry76
+          material: ref:Part15Mtl
+      tag: Primitive6
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry18
+          material: ref:Part15Mtl
+      tag: Primitive97
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry1
+          material: ref:Part15Mtl
+      tag: Primitive98
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry83
+          material: ref:Part15Mtl
+      tag: Primitive99
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry64
+          material: ref:Part15Mtl
+      tag: Primitive100
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry42
+          material: ref:Part15Mtl
+      tag: Primitive7
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry58
+          material: ref:Leaves1Mtl
+      tag: Primitive51
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry46
+          material: ref:Part14Mtl
+      tag: Primitive65
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry44
+          material: ref:Part35Mtl
+      tag: Primitive101
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry14
+          material: ref:Part14Mtl
+      tag: Primitive63
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry7
+          material: ref:Part1Mtl
+      tag: Primitive102
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry61
+          material: ref:Part43Mtl
+      tag: Primitive29
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry105
+          material: ref:Part36Mtl
+      tag: Primitive103
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry80
+          material: ref:Part36Mtl
+      tag: Primitive44
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry67
+          material: ref:Leaves1Mtl
+      tag: Primitive104
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry106
+          material: ref:Part4Mtl
+      tag: Primitive73
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry20
+          material: ref:Part1Mtl
+      tag: Primitive105
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry17
+          material: ref:Part1Mtl
+      tag: Primitive67
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry45
+          material: ref:Part9Mtl1
+      tag: Primitive106
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry82
+          material: ref:Redwoodtreessnowy01leaf1Mtl1
+      tag: Primitive23
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry32
+          material: ref:Union1Mtl
+      tag: Primitive49
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry108
+          material: ref:Part9Mtl1
+      tag: Primitive107
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry57
+          material: ref:Part9Mtl1
+      tag: Primitive108
+    - components:
+        com.meta.components.Primitive:
+          geometry: ref:Geometry8
+          material: ref:Part9Mtl1
+      tag: Primitive58
+  com.meta.models.Sampler:
+    - components:
+        com.meta.components.Name:
+          name: sampler3
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler3
+    - components:
+        com.meta.components.Name:
+          name: sampler5
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler5
+    - components:
+        com.meta.components.Name:
+          name: sampler0
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler0
+    - components:
+        com.meta.components.Name:
+          name: sampler8
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler8
+    - components:
+        com.meta.components.Name:
+          name: sampler2
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler2
+    - components:
+        com.meta.components.Name:
+          name: sampler6
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler6
+    - components:
+        com.meta.components.Name:
+          name: sampler11
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler11
+    - components:
+        com.meta.components.Name:
+          name: sampler7
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler7
+    - components:
+        com.meta.components.Name:
+          name: sampler4
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler4
+    - components:
+        com.meta.components.Name:
+          name: sampler12
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler12
+    - components:
+        com.meta.components.Name:
+          name: sampler1
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler1
+    - components:
+        com.meta.components.Name:
+          name: sampler9
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler9
+    - components:
+        com.meta.components.Name:
+          name: sampler10
+        com.meta.components.Sampler:
+          magFilter: Linear
+          minFilter: LinearMipmapLinear
+          wrapS: Repeat
+          wrapT: Repeat
+      tag: sampler10
+  com.meta.models.Texture:
+    - uri: docref:textures/texture24.metaspatialtexture
+      tag: texture24
+    - uri: docref:textures/texture19.metaspatialtexture
+      tag: texture19
+    - uri: docref:textures/texture21.metaspatialtexture
+      tag: texture21
+    - uri: docref:textures/texture16.metaspatialtexture
+      tag: texture16
+    - uri: docref:textures/texture18.metaspatialtexture
+      tag: texture18
+    - uri: docref:textures/texture20.metaspatialtexture
+      tag: texture20
+    - uri: docref:textures/texture17.metaspatialtexture
+      tag: texture17
+    - uri: docref:textures/texture25.metaspatialtexture
+      tag: texture25
+    - uri: docref:textures/texture14.metaspatialtexture
+      tag: texture14
+    - uri: docref:textures/texture13.metaspatialtexture
+      tag: texture13
+    - uri: docref:textures/texture15.metaspatialtexture
+      tag: texture15
+    - uri: docref:textures/texture22.metaspatialtexture
+      tag: texture22
+    - uri: docref:textures/texture23.metaspatialtexture
+      tag: texture23
+metadata:
+  version: 1.35

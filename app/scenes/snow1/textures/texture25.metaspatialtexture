@@ -1,0 +1,9 @@
+entities:
+  components:
+    com.meta.components.Name:
+      name: texture25
+    com.meta.components.Texture:
+      image: ref:SnowTreeFree1Mtl
+      sampler: ref:sampler12
+metadata:
+  version: 1.35
