@@ -16,6 +16,7 @@ enum class EnvironmentType(
 ) {
     COLLAB_ROOM("Winter Lodge", nodeName = "Environment", previewImage = R.drawable.room1),
     COLLAB_ROOM_2("Private Theatre", nodeName = "Environment2", previewImage = R.drawable.room2),
+    COLLAB_ROOM_3("Car Cinema", nodeName = "Environment3", previewImage = R.drawable.room3),
     VOID("Void", nodeName = null, previewImage = null);  // No environment, just panels in space
 
     companion object {

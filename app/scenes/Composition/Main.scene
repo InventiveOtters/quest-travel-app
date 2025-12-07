@@ -5,37 +5,13 @@ entities:
           {}
         com.meta.components.Scene:
           nodes:
+            - ref:Environment3
             - ref:Environment
             - ref:Environment2
             - ref:VRVideoLibraryPanel
             - ref:ControlsPanel
-            - ref:Environment3
       tag: Scene
   com.meta.models.SceneNode:
-    - components:
-        com.meta.components.Animatable:
-          {}
-        com.meta.components.DocumentReference:
-          transformType: None
-          documentReference: projref:collab_room/Main.metaspatialobj
-        com.meta.components.Name:
-          name: Environment3
-        com.meta.components.PointerNodeInverseComponent:
-          {}
-        com.meta.components.SceneNode:
-          rotation.format: Euler
-          scale:
-            - 1
-            - 1
-            - 1
-          translation:
-            - 0
-            - 0
-            - -2.07133055
-          componentVersion: 1
-        com.meta.components.Visibility:
-          {}
-      tag: Environment3
     - components:
         com.meta.components.Animatable:
           {}
@@ -146,7 +122,31 @@ entities:
             - -0.323181033
           componentVersion: 1
         com.meta.components.Visibility:
-          visible: true
+          {}
       tag: Environment
+    - components:
+        com.meta.components.Animatable:
+          {}
+        com.meta.components.DocumentReference:
+          transformType: None
+          documentReference: projref:parking/Main.metaspatialobj
+        com.meta.components.Name:
+          name: Environment3
+        com.meta.components.PointerNodeInverseComponent:
+          {}
+        com.meta.components.SceneNode:
+          rotation.format: Euler
+          scale:
+            - 10
+            - 10
+            - 10
+          translation:
+            - -1.25552511
+            - 0.178550005
+            - 0
+          componentVersion: 1
+        com.meta.components.Visibility:
+          {}
+      tag: Environment3
 metadata:
   version: 1.35
