@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
 import com.inotter.travelcompanion.data.models.ViewingMode
+import com.inotter.travelcompanion.ui.theme.QuestTheme
 import com.inotter.travelcompanion.ui.VRNavigationHost
 import com.inotter.travelcompanion.ui.onboarding.OnboardingViewModel
 import com.meta.spatial.okhttp3.OkHttpAssetFetcher
@@ -53,9 +53,9 @@ class MainActivity : ComponentActivity() {
       return
     }
 
-    // Set up Compose UI for 2D panel mode
+    // Set up Compose UI for 2D panel mode with Quest-native theming
     setContent {
-      MaterialTheme {
+      QuestTheme {
         VRNavigationHost(
             onLaunchImmersive = { launchImmersiveMode() },
             onLaunchPanel = { /* Already in panel mode */ }

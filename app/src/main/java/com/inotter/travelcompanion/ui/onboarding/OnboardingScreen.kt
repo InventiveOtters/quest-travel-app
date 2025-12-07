@@ -2,21 +2,33 @@ package com.inotter.travelcompanion.ui.onboarding
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionManagerImpl
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionStatus
 import com.inotter.travelcompanion.data.models.ViewingMode
+import com.inotter.travelcompanion.ui.theme.QuestColors
+import com.inotter.travelcompanion.ui.theme.QuestDimensions
+import com.inotter.travelcompanion.ui.theme.QuestInfoCard
+import com.inotter.travelcompanion.ui.theme.QuestPrimaryButton
+import com.inotter.travelcompanion.ui.theme.QuestSecondaryButton
+import com.inotter.travelcompanion.ui.theme.QuestSelectableCard
+import com.inotter.travelcompanion.ui.theme.QuestTextButton
+import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
+import com.inotter.travelcompanion.ui.theme.QuestTypography
+import com.meta.spatial.uiset.theme.LocalColorScheme
 
 /**
  * Onboarding screen for first-time users.
@@ -60,11 +72,15 @@ fun OnboardingScreen(
     }
 
     Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
+        modifier = modifier
+            .fillMaxSize()
+            .background(brush = LocalColorScheme.current.panel),
+        color = androidx.compose.ui.graphics.Color.Transparent,
     ) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(32.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(QuestDimensions.SectionSpacing.dp),
             contentAlignment = Alignment.Center,
         ) {
             when (uiState.currentStep) {
@@ -115,6 +131,9 @@ fun OnboardingScreen(
     }
 }
 
+/**
+ * Quest-styled welcome content with proper hit targets and VR typography.
+ */
 @Composable
 private fun WelcomeContent(
     permissionStatus: PermissionStatus,
@@ -124,108 +143,106 @@ private fun WelcomeContent(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        modifier = Modifier.widthIn(max = 500.dp),
+        verticalArrangement = Arrangement.spacedBy(QuestDimensions.SectionSpacing.dp),
+        modifier = Modifier.widthIn(max = 550.dp),
     ) {
-        Text(
-            text = "🎬",
-            style = MaterialTheme.typography.displayLarge,
-        )
+        // Icon
+        OnboardingIcon(emoji = "🎬")
 
         Text(
             text = "Welcome to Travel Companion",
-            style = MaterialTheme.typography.headlineMedium,
+            style = QuestTypography.headlineMedium,
             textAlign = TextAlign.Center,
+            color = QuestThemeExtras.colors.primaryText,
         )
 
         Text(
             text = "Find and play your videos in immersive VR. " +
                    "Grant permission to automatically discover all videos on your device, " +
                    "or manually select folders.",
-            style = MaterialTheme.typography.bodyLarge,
+            style = QuestTypography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = QuestThemeExtras.colors.secondaryText,
         )
 
         // Permission explanation card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
+        QuestInfoCard {
+            Text(
+                text = "Auto-Scan Permission",
+                style = QuestTypography.titleMedium,
+                color = QuestThemeExtras.colors.primaryText,
             )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = "📁 Auto-Scan Permission",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = "Allows the app to find video files in Movies, Downloads, DCIM, and other folders. " +
-                           "Your videos stay on your device - nothing is uploaded.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            Text(
+                text = "Allows the app to find video files in Movies, Downloads, DCIM, and other folders. " +
+                       "Your videos stay on your device - nothing is uploaded.",
+                style = QuestTypography.bodyMedium,
+                color = QuestThemeExtras.colors.secondaryText,
+            )
         }
 
         errorMessage?.let {
             Text(
                 text = it,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
+                color = QuestColors.error,
+                style = QuestTypography.bodyMedium,
             )
         }
 
-        // Primary action
-        Button(
+        // Primary action with proper hit target
+        QuestPrimaryButton(
+            text = "Find My Videos",
             onClick = onFindVideos,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-        ) {
-            Text("Find My Videos", style = MaterialTheme.typography.titleMedium)
-        }
+            expanded = true,
+        )
 
         // Secondary action
-        TextButton(onClick = onUseSaf) {
-            Text("Select folders manually instead")
-        }
+        QuestTextButton(
+            text = "Select folders manually instead",
+            onClick = onUseSaf,
+        )
     }
 }
 
+/**
+ * Quest-styled scanning progress content.
+ */
 @Composable
 private fun ScanningContent(videosFound: Int) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(QuestDimensions.SectionSpacing.dp),
     ) {
         CircularProgressIndicator(
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(72.dp),
             strokeWidth = 6.dp,
+            color = LocalColorScheme.current.primaryButton,
         )
 
         Text(
             text = "Scanning your videos...",
-            style = MaterialTheme.typography.headlineSmall,
+            style = QuestTypography.headlineSmall,
+            color = QuestThemeExtras.colors.primaryText,
         )
 
         if (videosFound > 0) {
             Text(
                 text = "Found $videosFound videos",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
+                style = QuestTypography.bodyLarge,
+                color = LocalColorScheme.current.primaryButton,
             )
         }
 
         Text(
             text = "This may take a moment for large libraries",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = QuestTypography.bodyMedium,
+            color = QuestThemeExtras.colors.secondaryText,
         )
     }
 }
 
+/**
+ * Quest-styled partial access content.
+ */
 @Composable
 private fun PartialAccessContent(
     onRequestFullAccess: () -> Unit,
@@ -234,50 +251,47 @@ private fun PartialAccessContent(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        modifier = Modifier.widthIn(max = 500.dp),
+        verticalArrangement = Arrangement.spacedBy(QuestDimensions.SectionSpacing.dp),
+        modifier = Modifier.widthIn(max = 550.dp),
     ) {
-        Text(
-            text = "⚠️",
-            style = MaterialTheme.typography.displayLarge,
-        )
+        OnboardingIcon(emoji = "⚠️")
 
         Text(
             text = "Limited Access Granted",
-            style = MaterialTheme.typography.headlineMedium,
+            style = QuestTypography.headlineMedium,
             textAlign = TextAlign.Center,
+            color = QuestThemeExtras.colors.primaryText,
         )
 
         Text(
             text = "You've granted access to selected files only. " +
                    "For the best experience, we recommend allowing access to all videos.",
-            style = MaterialTheme.typography.bodyLarge,
+            style = QuestTypography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = QuestThemeExtras.colors.secondaryText,
         )
 
-        Button(
+        QuestPrimaryButton(
+            text = "Allow All Videos",
             onClick = onRequestFullAccess,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-        ) {
-            Text("Allow All Videos", style = MaterialTheme.typography.titleMedium)
-        }
+            expanded = true,
+        )
 
-        OutlinedButton(
+        QuestSecondaryButton(
+            text = "Continue with Selected Videos",
             onClick = onContinueWithPartial,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Continue with Selected Videos")
-        }
+            expanded = true,
+        )
 
-        TextButton(onClick = onUseSaf) {
-            Text("Select folders manually instead")
-        }
+        QuestTextButton(
+            text = "Select folders manually instead",
+            onClick = onUseSaf,
+        )
     }
 }
 
 /**
- * Step 3: Mode selection content.
+ * Step 3: Quest-styled mode selection content.
  * User chooses between 2D Panel Mode and Immersive VR Mode.
  */
 @Composable
@@ -289,39 +303,36 @@ private fun ModeSelectionContent(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        modifier = Modifier.widthIn(max = 600.dp),
+        verticalArrangement = Arrangement.spacedBy(QuestDimensions.SectionSpacing.dp),
+        modifier = Modifier.widthIn(max = 650.dp),
     ) {
         // Success indicator
         if (videosFound > 0) {
-            Text(
-                text = "✅",
-                style = MaterialTheme.typography.displayLarge,
-            )
+            OnboardingIcon(emoji = "✓", isSuccess = true)
             Text(
                 text = "Found $videosFound videos!",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
+                style = QuestTypography.titleMedium,
+                color = QuestColors.success,
             )
         }
 
         Text(
             text = "How would you like to watch?",
-            style = MaterialTheme.typography.headlineMedium,
+            style = QuestTypography.headlineMedium,
             textAlign = TextAlign.Center,
+            color = QuestThemeExtras.colors.primaryText,
         )
 
         Text(
             text = "Choose your preferred viewing experience. You can change this later in Settings.",
-            style = MaterialTheme.typography.bodyLarge,
+            style = QuestTypography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = QuestThemeExtras.colors.secondaryText,
         )
 
-        // Mode selection cards
+        // Mode selection cards with hover support
         Column(
-            modifier = Modifier.selectableGroup(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(QuestDimensions.ItemSpacing.dp),
         ) {
             ModeOptionCard(
                 emoji = "📱",
@@ -342,18 +353,17 @@ private fun ModeSelectionContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Continue button
-        Button(
+        // Continue button with proper hit target
+        QuestPrimaryButton(
+            text = "Continue",
             onClick = onContinue,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-        ) {
-            Text("Continue", style = MaterialTheme.typography.titleMedium)
-        }
+            expanded = true,
+        )
     }
 }
 
 /**
- * A selectable card for viewing mode options.
+ * Quest-styled selectable card for viewing mode options with hover support.
  */
 @Composable
 private fun ModeOptionCard(
@@ -363,64 +373,78 @@ private fun ModeOptionCard(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(
-                selected = isSelected,
-                onClick = onClick,
-                role = Role.RadioButton
-            ),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
-        ),
-        border = if (isSelected) {
-            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-        } else {
-            null
-        }
+    QuestSelectableCard(
+        selected = isSelected,
+        onClick = onClick,
     ) {
-        Row(
+        // Emoji icon
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                .size(56.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    if (isSelected) LocalColorScheme.current.primaryButton.copy(alpha = 0.2f)
+                    else QuestThemeExtras.colors.secondary
+                ),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = emoji,
-                style = MaterialTheme.typography.headlineLarge,
-            )
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                    }
-                )
-            }
-
-            RadioButton(
-                selected = isSelected,
-                onClick = null, // handled by card
+                style = QuestTypography.headlineMedium,
             )
         }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = QuestTypography.titleLarge,
+                color = if (isSelected) {
+                    QuestThemeExtras.colors.primaryText
+                } else {
+                    QuestThemeExtras.colors.secondaryText
+                }
+            )
+            Text(
+                text = description,
+                style = QuestTypography.bodyMedium,
+                color = if (isSelected) {
+                    QuestThemeExtras.colors.primaryText.copy(alpha = 0.8f)
+                } else {
+                    QuestThemeExtras.colors.secondaryText.copy(alpha = 0.8f)
+                }
+            )
+        }
+
+        RadioButton(
+            selected = isSelected,
+            onClick = null, // handled by card
+        )
+    }
+}
+
+/**
+ * Quest-styled icon container for onboarding screens.
+ */
+@Composable
+private fun OnboardingIcon(
+    emoji: String,
+    isSuccess: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(88.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                if (isSuccess) QuestColors.success.copy(alpha = 0.15f)
+                else QuestThemeExtras.colors.secondary
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = emoji,
+            style = QuestTypography.displayMedium,
+            color = if (isSuccess) QuestColors.success else QuestThemeExtras.colors.primaryText,
+        )
     }
 }

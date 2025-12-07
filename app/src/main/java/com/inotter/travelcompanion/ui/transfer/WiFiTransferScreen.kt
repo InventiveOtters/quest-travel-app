@@ -20,6 +20,16 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.inotter.travelcompanion.ui.theme.QuestColors
+import com.inotter.travelcompanion.ui.theme.QuestDimensions
+import com.inotter.travelcompanion.ui.theme.QuestDivider
+import com.inotter.travelcompanion.ui.theme.QuestIconButton
+import com.inotter.travelcompanion.ui.theme.QuestInfoCard
+import com.inotter.travelcompanion.ui.theme.QuestPrimaryButton
+import com.inotter.travelcompanion.ui.theme.QuestSecondaryButton
+import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
+import com.inotter.travelcompanion.ui.theme.QuestTypography
+import com.meta.spatial.uiset.theme.LocalColorScheme
 
 /**
  * WiFi Transfer screen for uploading videos from other devices.
@@ -34,50 +44,70 @@ fun WiFiTransferScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("WiFi Transfer") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        },
+    Surface(
         modifier = modifier
-    ) { padding ->
+            .fillMaxSize()
+            .background(brush = LocalColorScheme.current.panel),
+        color = androidx.compose.ui.graphics.Color.Transparent,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(QuestDimensions.ContentPadding.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Quest-styled header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    QuestIconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = QuestThemeExtras.colors.primaryText,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Text(
+                        text = "WiFi Transfer",
+                        style = QuestTypography.headlineMedium,
+                        color = QuestThemeExtras.colors.primaryText,
+                    )
+                }
+            }
+
+            QuestDivider(modifier = Modifier.padding(vertical = QuestDimensions.ItemSpacing.dp))
+
             // WiFi Status Warning
             if (!uiState.isWifiConnected) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    ),
+                Surface(
+                    color = QuestColors.error.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = QuestDimensions.ItemSpacing.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(QuestDimensions.ContentPadding.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             Icons.Default.Warning,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
+                            tint = QuestColors.error
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             "Not connected to WiFi. Please connect to a WiFi network.",
-                            color = MaterialTheme.colorScheme.onErrorContainer
+                            style = QuestTypography.bodyMedium,
+                            color = QuestThemeExtras.colors.primaryText,
                         )
                     }
                 }
@@ -85,18 +115,18 @@ fun WiFiTransferScreen(
 
             // Error Display
             uiState.error?.let { error ->
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    ),
+                Surface(
+                    color = QuestColors.error.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = QuestDimensions.ItemSpacing.dp)
                 ) {
                     Text(
                         text = error,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp)
+                        style = QuestTypography.bodyMedium,
+                        color = QuestColors.error,
+                        modifier = Modifier.padding(QuestDimensions.ContentPadding.dp)
                     )
                 }
             }
@@ -110,44 +140,37 @@ fun WiFiTransferScreen(
                 onSpeakAddress = { viewModel.speakAddress() }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
 
-            // Info hints
+            // Info hints - Quest styled
             if (uiState.isServerRunning) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = "💡 Both devices must be on the same WiFi network",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "📁 Uploaded videos are saved to Movies/TravelCompanion",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "✓ Videos appear in your library automatically",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-                        )
-                        Text(
-                            text = "✓ Files remain even if the app is uninstalled",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-                        )
-                    }
+                QuestInfoCard {
+                    Text(
+                        text = "Both devices must be on the same WiFi network",
+                        style = QuestTypography.bodyMedium,
+                        color = QuestThemeExtras.colors.primaryText,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Uploaded videos are saved to Movies/TravelCompanion",
+                        style = QuestTypography.bodyMedium,
+                        color = QuestThemeExtras.colors.primaryText,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "• Videos appear in your library automatically",
+                        style = QuestTypography.bodySmall,
+                        color = QuestThemeExtras.colors.secondaryText,
+                    )
+                    Text(
+                        text = "• Files remain even if the app is uninstalled",
+                        style = QuestTypography.bodySmall,
+                        color = QuestThemeExtras.colors.secondaryText,
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
 
             // PIN Protection Section
             PinProtectionCard(
@@ -156,14 +179,14 @@ fun WiFiTransferScreen(
                 onTogglePin = { viewModel.togglePinProtection() }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(QuestDimensions.SectionSpacing.dp))
 
             // Recent Uploads Section
             if (uiState.recentUploads.isNotEmpty()) {
                 RecentUploadsSection(uploads = uiState.recentUploads)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(QuestDimensions.SectionSpacing.dp))
 
             // Storage Info
             StorageInfoCard(
@@ -172,40 +195,31 @@ fun WiFiTransferScreen(
                 isCritical = viewModel.isStorageCritical()
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
 
-            // Start/Stop Button
-            Button(
-                onClick = { viewModel.toggleServer() },
-                enabled = uiState.isWifiConnected && !uiState.isStarting,
-                colors = if (uiState.isServerRunning) {
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                } else {
-                    ButtonDefaults.buttonColors()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                when {
-                    uiState.isStarting -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Starting Server...")
-                    }
-                    uiState.isServerRunning -> Text("Stop Server")
-                    else -> Text("Start Server")
-                }
+            // Start/Stop Button - Quest styled
+            if (uiState.isServerRunning) {
+                QuestSecondaryButton(
+                    text = if (uiState.isStarting) "Starting Server..." else "Stop Server",
+                    onClick = { viewModel.toggleServer() },
+                    enabled = uiState.isWifiConnected && !uiState.isStarting,
+                    expanded = true,
+                )
+            } else {
+                QuestPrimaryButton(
+                    text = if (uiState.isStarting) "Starting Server..." else "Start Server",
+                    onClick = { viewModel.toggleServer() },
+                    enabled = uiState.isWifiConnected && !uiState.isStarting,
+                    expanded = true,
+                )
             }
         }
     }
 }
 
+/**
+ * Quest-styled server status card.
+ */
 @Composable
 private fun ServerStatusCard(
     isRunning: Boolean,
@@ -214,51 +228,54 @@ private fun ServerStatusCard(
     port: Int,
     onSpeakAddress: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = QuestThemeExtras.colors.secondary,
+        shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(QuestDimensions.SectionSpacing.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "📶 WiFi Transfer Server",
-                style = MaterialTheme.typography.headlineSmall,
+                text = "WiFi Transfer Server",
+                style = QuestTypography.headlineSmall,
+                color = QuestThemeExtras.colors.primaryText,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
 
             if (isRunning && ipAddress != null) {
                 Text(
                     text = "On your phone or computer, open a browser and type this address:",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = QuestTypography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = QuestThemeExtras.colors.secondaryText,
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
 
-                // Full URL Display (with http://)
+                // Full URL Display - Quest styled
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(LocalColorScheme.current.primaryButton.copy(alpha = 0.1f))
                         .border(
                             2.dp,
-                            MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(8.dp)
+                            LocalColorScheme.current.primaryButton,
+                            RoundedCornerShape(12.dp)
                         )
-                        .padding(16.dp),
+                        .padding(QuestDimensions.ContentPadding.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "http://$ipAddress:$port",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = QuestTypography.headlineMedium,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = LocalColorScheme.current.primaryButton,
                     )
                 }
 
@@ -266,33 +283,42 @@ private fun ServerStatusCard(
 
                 // Important: HTTP notice
                 Text(
-                    text = "⚠️ Use http:// (not https://)",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = "Use http:// (not https://)",
+                    style = QuestTypography.bodySmall,
+                    color = QuestColors.warning,
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Read Aloud Button
-                OutlinedButton(onClick = onSpeakAddress) {
-                    Text("🔊 Read Aloud")
-                }
+                QuestSecondaryButton(
+                    text = "Read Aloud",
+                    onClick = onSpeakAddress,
+                )
             } else if (isStarting) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    color = LocalColorScheme.current.primaryButton,
+                    strokeWidth = 4.dp,
+                    modifier = Modifier.size(48.dp)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Starting server...")
+                Text(
+                    text = "Starting server...",
+                    style = QuestTypography.bodyMedium,
+                    color = QuestThemeExtras.colors.secondaryText,
+                )
             } else {
                 Text(
                     text = "Server is stopped",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = QuestTypography.bodyLarge,
+                    color = QuestThemeExtras.colors.secondaryText,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Tap 'Start Server' to begin accepting uploads",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = QuestTypography.bodyMedium,
+                    color = QuestThemeExtras.colors.secondaryText,
                     textAlign = TextAlign.Center
                 )
             }
@@ -300,44 +326,48 @@ private fun ServerStatusCard(
     }
 }
 
+/**
+ * Quest-styled recent uploads section.
+ */
 @Composable
 private fun RecentUploadsSection(uploads: List<TransferViewModel.UploadInfo>) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Recently Uploaded:",
-            style = MaterialTheme.typography.titleMedium,
+            style = QuestTypography.titleMedium,
+            color = QuestThemeExtras.colors.primaryText,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 200.dp),
+                .heightIn(max = 250.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(uploads) { upload ->
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                Surface(
+                    color = QuestThemeExtras.colors.secondary,
+                    shape = RoundedCornerShape(12.dp),
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
+                            .padding(QuestDimensions.ItemSpacing.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "• ${upload.name}",
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = upload.name,
+                                style = QuestTypography.bodyMedium,
+                                color = QuestThemeExtras.colors.primaryText,
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
                                 text = "${upload.sizeFormatted} - ${upload.timeAgo}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = QuestTypography.bodySmall,
+                                color = QuestThemeExtras.colors.secondaryText,
                             )
                         }
                     }
@@ -347,6 +377,9 @@ private fun RecentUploadsSection(uploads: List<TransferViewModel.UploadInfo>) {
     }
 }
 
+/**
+ * Quest-styled storage info card.
+ */
 @Composable
 private fun StorageInfoCard(
     availableStorage: String,
@@ -354,25 +387,26 @@ private fun StorageInfoCard(
     isCritical: Boolean
 ) {
     val backgroundColor = when {
-        isCritical -> MaterialTheme.colorScheme.errorContainer
-        isLow -> MaterialTheme.colorScheme.tertiaryContainer
-        else -> MaterialTheme.colorScheme.surfaceVariant
+        isCritical -> QuestColors.error.copy(alpha = 0.15f)
+        isLow -> QuestColors.warning.copy(alpha = 0.15f)
+        else -> QuestThemeExtras.colors.secondary
     }
 
-    val textColor = when {
-        isCritical -> MaterialTheme.colorScheme.onErrorContainer
-        isLow -> MaterialTheme.colorScheme.onTertiaryContainer
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    val statusColor = when {
+        isCritical -> QuestColors.error
+        isLow -> QuestColors.warning
+        else -> QuestThemeExtras.colors.primaryText
     }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+    Surface(
+        color = backgroundColor,
+        shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(QuestDimensions.ContentPadding.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -381,18 +415,18 @@ private fun StorageInfoCard(
             ) {
                 Text(
                     text = when {
-                        isCritical -> "⚠️ Storage Critical:"
-                        isLow -> "⚠️ Storage Low:"
+                        isCritical -> "Storage Critical:"
+                        isLow -> "Storage Low:"
                         else -> "Storage Available:"
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = textColor
+                    style = QuestTypography.bodyMedium,
+                    color = statusColor,
                 )
                 Text(
                     text = availableStorage,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = QuestTypography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    color = textColor
+                    color = statusColor,
                 )
             }
 
@@ -401,38 +435,42 @@ private fun StorageInfoCard(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Storage is critically low. Uploads are disabled until you free up space.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = textColor
+                    style = QuestTypography.bodySmall,
+                    color = statusColor,
                 )
             } else if (isLow) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Storage is running low. Consider freeing up space soon.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = textColor
+                    style = QuestTypography.bodySmall,
+                    color = statusColor,
                 )
             }
         }
     }
 }
 
+/**
+ * Quest-styled PIN protection card.
+ */
 @Composable
 private fun PinProtectionCard(
     pinEnabled: Boolean,
     currentPin: String?,
     onTogglePin: () -> Unit
 ) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (pinEnabled) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
-        ),
+    val backgroundColor = if (pinEnabled) {
+        LocalColorScheme.current.primaryButton.copy(alpha = 0.15f)
+    } else {
+        QuestThemeExtras.colors.secondary
+    }
+
+    Surface(
+        color = backgroundColor,
+        shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(QuestDimensions.ContentPadding.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -440,58 +478,64 @@ private fun PinProtectionCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "🔒 PIN Protection",
-                        style = MaterialTheme.typography.titleMedium,
+                        text = "PIN Protection",
+                        style = QuestTypography.titleMedium,
+                        color = QuestThemeExtras.colors.primaryText,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = if (pinEnabled) "Uploads require PIN" else "Anyone on the network can upload",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = QuestTypography.bodySmall,
+                        color = QuestThemeExtras.colors.secondaryText,
                     )
                 }
-                Switch(
-                    checked = pinEnabled,
-                    onCheckedChange = { onTogglePin() }
-                )
+                Box(
+                    modifier = Modifier.heightIn(min = QuestDimensions.MinHitTarget.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Switch(
+                        checked = pinEnabled,
+                        onCheckedChange = { onTogglePin() }
+                    )
+                }
             }
 
             // Show PIN when enabled
             if (pinEnabled && currentPin != null) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(QuestThemeExtras.colors.secondary)
                         .border(
                             width = 2.dp,
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(8.dp)
+                            color = LocalColorScheme.current.primaryButton,
+                            shape = RoundedCornerShape(12.dp)
                         )
-                        .padding(16.dp),
+                        .padding(QuestDimensions.ContentPadding.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "PIN Code",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = QuestTypography.labelMedium,
+                            color = QuestThemeExtras.colors.secondaryText,
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = currentPin,
-                            style = MaterialTheme.typography.headlineLarge,
+                            style = QuestTypography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace,
                             letterSpacing = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp),
-                            color = MaterialTheme.colorScheme.primary
+                            color = LocalColorScheme.current.primaryButton,
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Enter this PIN in the web browser",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = QuestTypography.bodySmall,
+                            color = QuestThemeExtras.colors.secondaryText,
                         )
                     }
                 }

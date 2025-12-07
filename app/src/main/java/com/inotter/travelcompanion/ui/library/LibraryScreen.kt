@@ -1,29 +1,51 @@
 package com.inotter.travelcompanion.ui.library
 
 import android.graphics.BitmapFactory
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.SourceType
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
+import com.inotter.travelcompanion.ui.theme.QuestCard
+import com.inotter.travelcompanion.ui.theme.QuestColors
+import com.inotter.travelcompanion.ui.theme.QuestDimensions
+import com.inotter.travelcompanion.ui.theme.QuestDivider
+import com.inotter.travelcompanion.ui.theme.QuestEmptyState
+import com.inotter.travelcompanion.ui.theme.QuestPrimaryButton
+import com.inotter.travelcompanion.ui.theme.QuestSecondaryButton
+import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
+import com.inotter.travelcompanion.ui.theme.QuestTypography
+import com.meta.spatial.uiset.theme.LocalColorScheme
 import java.io.File
 
 /**
  * Library screen displaying a grid of videos with thumbnails.
- * Supports basic title sorting and video selection.
+ * Quest-native design with proper hit targets, hover states, and VR-optimized styling.
  */
 @Composable
 fun LibraryScreen(
@@ -35,210 +57,303 @@ fun LibraryScreen(
     onWifiTransfer: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-  val videos by viewModel.videos.collectAsState()
+    val videos by viewModel.videos.collectAsState()
 
-  Surface(
-      modifier = modifier.fillMaxSize(),
-      color = MaterialTheme.colorScheme.background,
-  ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-      // Header
-      Row(
-          modifier = Modifier.fillMaxWidth().padding(16.dp),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-            text = "Travel Companion",
-            style = MaterialTheme.typography.headlineMedium,
-        )
+    Surface(
+        modifier = modifier
+            .fillMaxSize()
+            .background(brush = LocalColorScheme.current.panel),
+        color = androidx.compose.ui.graphics.Color.Transparent,
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Header with Quest-styled buttons
+            LibraryHeader(
+                onSettings = onSettings,
+                onManageSources = onManageSources,
+                onWifiTransfer = onWifiTransfer,
+                onAddFolder = onAddFolder
+            )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          OutlinedButton(onClick = onSettings) { Text("Settings") }
-          OutlinedButton(onClick = onManageSources) { Text("Manage Sources") }
-          OutlinedButton(onClick = onWifiTransfer) { Text("📶 WiFi Transfer") }
-          Button(onClick = onAddFolder) { Text("Add Folder") }
+            QuestDivider()
+
+            // Video grid
+            if (videos.isEmpty()) {
+                EmptyLibraryContent(
+                    onAddFolder = onAddFolder,
+                    onManageSources = onManageSources,
+                )
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = QuestDimensions.GridCellMinWidth.dp),
+                    contentPadding = PaddingValues(QuestDimensions.ContentPadding.dp),
+                    horizontalArrangement = Arrangement.spacedBy(QuestDimensions.ItemSpacing.dp),
+                    verticalArrangement = Arrangement.spacedBy(QuestDimensions.ItemSpacing.dp),
+                ) {
+                    items(videos.sortedBy { it.title }) { video ->
+                        VideoCard(video = video, onClick = { onVideoSelected(video) })
+                    }
+                }
+            }
         }
-      }
-
-      HorizontalDivider()
-
-      // Video grid
-      if (videos.isEmpty()) {
-        EmptyLibraryContent(
-            onAddFolder = onAddFolder,
-            onManageSources = onManageSources,
-        )
-      } else {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 200.dp),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-          items(videos.sortedBy { it.title }) { video -> VideoCard(video = video, onClick = { onVideoSelected(video) }) }
-        }
-      }
     }
-  }
 }
 
+/**
+ * Quest-styled header with proper hit targets and spacing.
+ */
+@Composable
+private fun LibraryHeader(
+    onSettings: () -> Unit,
+    onManageSources: () -> Unit,
+    onWifiTransfer: () -> Unit,
+    onAddFolder: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(QuestDimensions.ContentPadding.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "Travel Companion",
+            style = QuestTypography.headlineMedium,
+            color = QuestThemeExtras.colors.primaryText,
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            QuestSecondaryButton(text = "Settings", onClick = onSettings)
+            QuestSecondaryButton(text = "Manage Sources", onClick = onManageSources)
+            QuestSecondaryButton(text = "WiFi Transfer", onClick = onWifiTransfer)
+            QuestPrimaryButton(text = "Add Folder", onClick = onAddFolder)
+        }
+    }
+}
+
+/**
+ * Quest-styled empty state with proper typography and buttons.
+ */
 @Composable
 private fun EmptyLibraryContent(
     onAddFolder: () -> Unit,
     onManageSources: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-  Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(32.dp).widthIn(max = 400.dp),
-    ) {
-      Text(
-          text = "🎬",
-          style = MaterialTheme.typography.displayLarge,
-      )
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(QuestDimensions.ItemSpacing.dp),
+            modifier = Modifier
+                .padding(QuestDimensions.SectionSpacing.dp)
+                .widthIn(max = 500.dp),
+        ) {
+            // Icon placeholder - could be replaced with proper icon
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(QuestThemeExtras.colors.secondary),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "🎬",
+                    style = QuestTypography.displayMedium,
+                )
+            }
 
-      Text(
-          text = "No Videos Found",
-          style = MaterialTheme.typography.headlineSmall,
-      )
+            Spacer(modifier = Modifier.height(8.dp))
 
-      Text(
-          text = "Add videos to your library by enabling auto-scan or selecting folders manually.",
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.padding(bottom = 8.dp),
-      )
+            Text(
+                text = "No Videos Found",
+                style = QuestTypography.headlineMedium,
+                color = QuestThemeExtras.colors.primaryText,
+                textAlign = TextAlign.Center,
+            )
 
-      Button(
-          onClick = onManageSources,
-          modifier = Modifier.fillMaxWidth(),
-      ) {
-        Text("Enable Auto-Scan")
-      }
+            Text(
+                text = "Add videos to your library by enabling auto-scan or selecting folders manually.",
+                style = QuestTypography.bodyMedium,
+                color = QuestThemeExtras.colors.secondaryText,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
 
-      OutlinedButton(
-          onClick = onAddFolder,
-          modifier = Modifier.fillMaxWidth(),
-      ) {
-        Text("Add Folder Manually")
-      }
+            QuestPrimaryButton(
+                text = "Enable Auto-Scan",
+                onClick = onManageSources,
+                expanded = true,
+            )
+
+            QuestSecondaryButton(
+                text = "Add Folder Manually",
+                onClick = onAddFolder,
+                expanded = true,
+            )
+        }
     }
-  }
 }
 
+/**
+ * Quest-styled video card with hover states and proper hit targets.
+ */
 @Composable
 private fun VideoCard(
     video: VideoItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-  Card(
-      modifier = modifier.fillMaxWidth().height(180.dp).clickable(onClick = onClick),
-      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(12.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isHovered) 1.03f else 1f,
+        animationSpec = tween(150),
+        label = "video_card_scale"
+    )
+
+    val borderColor = if (isHovered) {
+        LocalColorScheme.current.primaryButton.copy(alpha = 0.5f)
+    } else {
+        Color.Transparent
+    }
+
+    QuestCard(
+        onClick = onClick,
+        modifier = modifier
+            .scale(scale)
+            .hoverable(interactionSource),
+        minHeight = QuestDimensions.CardMinHeight.dp,
     ) {
-      // Thumbnail
-      Box(
-          modifier = Modifier.fillMaxWidth().weight(1f),
-          contentAlignment = Alignment.Center,
-      ) {
-        if (video.thumbnailPath != null && File(video.thumbnailPath).exists()) {
-          val bitmap = BitmapFactory.decodeFile(video.thumbnailPath)
-          if (bitmap != null) {
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = "Video thumbnail",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-          } else {
-            Text(
-                text = "📹",
-                style = MaterialTheme.typography.displayMedium,
-            )
-          }
-        } else {
-          Text(
-              text = "📹",
-              style = MaterialTheme.typography.displayMedium,
-          )
-        }
-
-        // Show status badges
-        Row(
-            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        // Thumbnail area
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(QuestThemeExtras.colors.secondary),
+            contentAlignment = Alignment.Center,
         ) {
-          // Source type badge
-          if (video.sourceType == SourceType.MEDIASTORE) {
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = MaterialTheme.shapes.small,
-            ) {
-              Text(
-                  text = "Auto",
-                  modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                  style = MaterialTheme.typography.labelSmall,
-                  color = MaterialTheme.colorScheme.onPrimaryContainer,
-              )
+            if (video.thumbnailPath != null && File(video.thumbnailPath).exists()) {
+                val bitmap = BitmapFactory.decodeFile(video.thumbnailPath)
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Video thumbnail",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                } else {
+                    VideoPlaceholderIcon()
+                }
+            } else {
+                VideoPlaceholderIcon()
             }
-          }
 
-          // Unavailable badge
-          if (video.unavailable) {
-            Surface(
-                color = MaterialTheme.colorScheme.error,
-                shape = MaterialTheme.shapes.small,
+            // Status badges overlay
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-              Text(
-                  text = "Unavailable",
-                  modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                  style = MaterialTheme.typography.labelSmall,
-                  color = MaterialTheme.colorScheme.onError,
-              )
+                // Source type badge
+                if (video.sourceType == SourceType.MEDIASTORE) {
+                    VideoBadge(text = "Auto", isError = false)
+                }
+
+                // Unavailable badge
+                if (video.unavailable) {
+                    VideoBadge(text = "Unavailable", isError = true)
+                }
             }
-          }
+
+            // Duration badge
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = formatDuration(video.durationMs),
+                    style = QuestTypography.labelSmall,
+                    color = Color.White,
+                )
+            }
         }
-      }
 
-      // Video info
-      Column {
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Video info
         Text(
             text = video.title,
-            style = MaterialTheme.typography.bodyMedium,
+            style = QuestTypography.titleSmall,
+            color = QuestThemeExtras.colors.primaryText,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Text(
-              text = formatDuration(video.durationMs),
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
-      }
     }
-  }
+}
+
+/**
+ * Placeholder icon for videos without thumbnails.
+ */
+@Composable
+private fun VideoPlaceholderIcon() {
+    Box(
+        modifier = Modifier
+            .size(60.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(LocalColorScheme.current.hover.copy(alpha = 0.1f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "🎬",
+            style = QuestTypography.headlineMedium,
+        )
+    }
+}
+
+/**
+ * Quest-styled status badge.
+ */
+@Composable
+private fun VideoBadge(
+    text: String,
+    isError: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isError) {
+        QuestColors.error.copy(alpha = 0.9f)
+    } else {
+        LocalColorScheme.current.primaryButton.copy(alpha = 0.9f)
+    }
+
+    Surface(
+        modifier = modifier,
+        color = backgroundColor,
+        shape = RoundedCornerShape(6.dp),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = QuestTypography.labelSmall,
+            color = Color.White,
+        )
+    }
 }
 
 private fun formatDuration(ms: Long): String {
-  val seconds = ms / 1000
-  val minutes = seconds / 60
-  val hours = minutes / 60
-  return if (hours > 0) {
-    "%d:%02d:%02d".format(hours, minutes % 60, seconds % 60)
-  } else {
-    "%d:%02d".format(minutes, seconds % 60)
-  }
+    val seconds = ms / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return if (hours > 0) {
+        "%d:%02d:%02d".format(hours, minutes % 60, seconds % 60)
+    } else {
+        "%d:%02d".format(minutes, seconds % 60)
+    }
 }
 

@@ -3,10 +3,10 @@ package com.inotter.travelcompanion.ui.settings
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -14,11 +14,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionStatus
 import com.inotter.travelcompanion.data.models.ViewingMode
+import com.inotter.travelcompanion.ui.theme.QuestColors
+import com.inotter.travelcompanion.ui.theme.QuestDimensions
+import com.inotter.travelcompanion.ui.theme.QuestDivider
+import com.inotter.travelcompanion.ui.theme.QuestIconButton
+import com.inotter.travelcompanion.ui.theme.QuestSecondaryButton
+import com.inotter.travelcompanion.ui.theme.QuestSelectableCard
+import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
+import com.inotter.travelcompanion.ui.theme.QuestTypography
+import com.meta.spatial.uiset.theme.LocalColorScheme
 
 /**
  * Settings screen for playback preferences, permission management, and viewing mode.
@@ -92,31 +101,52 @@ fun SettingsScreen(
     )
   }
 
-  Scaffold(
-      topBar = {
-        TopAppBar(
-            title = { Text("Settings") },
-            navigationIcon = {
-              IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-              }
-            }
-        )
-      },
+  Surface(
       modifier = modifier
-  ) { padding ->
+          .fillMaxSize()
+          .background(brush = LocalColorScheme.current.panel),
+      color = androidx.compose.ui.graphics.Color.Transparent,
+  ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding)
-            .padding(16.dp)
+            .padding(QuestDimensions.ContentPadding.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(QuestDimensions.SectionSpacing.dp)
     ) {
+      // Quest-styled header
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          QuestIconButton(onClick = onBack) {
+            Icon(
+                Icons.Default.ArrowBack,
+                contentDescription = "Back",
+                tint = QuestThemeExtras.colors.primaryText,
+                modifier = Modifier.size(24.dp)
+            )
+          }
+          Text(
+              text = "Settings",
+              style = QuestTypography.headlineMedium,
+              color = QuestThemeExtras.colors.primaryText,
+          )
+        }
+      }
+
+      QuestDivider()
+
       // Viewing Mode Section
       Text(
           text = "Viewing Mode",
-          style = MaterialTheme.typography.titleLarge,
+          style = QuestTypography.titleLarge,
+          color = QuestThemeExtras.colors.primaryText,
       )
 
       ViewingModeCard(
@@ -132,7 +162,8 @@ fun SettingsScreen(
       // Permissions Section
       Text(
           text = "Permissions",
-          style = MaterialTheme.typography.titleLarge,
+          style = QuestTypography.titleLarge,
+          color = QuestThemeExtras.colors.primaryText,
       )
 
       PermissionCard(
@@ -148,28 +179,34 @@ fun SettingsScreen(
       // Playback Settings Section
       Text(
           text = "Playback",
-          style = MaterialTheme.typography.titleLarge,
+          style = QuestTypography.titleLarge,
+          color = QuestThemeExtras.colors.primaryText,
       )
 
       settings?.let { currentSettings ->
-        // Skip Interval
-        Card(modifier = Modifier.fillMaxWidth()) {
-          Column(modifier = Modifier.padding(16.dp)) {
+        // Skip Interval - Quest styled
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = QuestThemeExtras.colors.secondary,
+            shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
+        ) {
+          Column(modifier = Modifier.padding(QuestDimensions.ContentPadding.dp)) {
             Text(
                 text = "Skip Interval",
-                style = MaterialTheme.typography.titleMedium,
+                style = QuestTypography.titleMedium,
+                color = QuestThemeExtras.colors.primaryText,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
                 text = "Seconds to skip forward/backward",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = QuestTypography.bodySmall,
+                color = QuestThemeExtras.colors.secondaryText,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
               val skipIntervals = listOf(5, 10, 15, 30)
@@ -177,38 +214,54 @@ fun SettingsScreen(
                 FilterChip(
                     selected = currentSettings.skipIntervalMs == seconds * 1000,
                     onClick = { viewModel.updateSkipInterval(seconds * 1000) },
-                    label = { Text("${seconds}s") }
+                    label = {
+                      Text(
+                          "${seconds}s",
+                          style = QuestTypography.labelMedium
+                      )
+                    },
+                    modifier = Modifier.heightIn(min = QuestDimensions.SmallButtonHeight.dp)
                 )
               }
             }
           }
         }
 
-        // Resume Enabled
-        Card(modifier = Modifier.fillMaxWidth()) {
+        // Resume Enabled - Quest styled
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = QuestThemeExtras.colors.secondary,
+            shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
+        ) {
           Row(
               modifier = Modifier
                   .fillMaxWidth()
-                  .padding(16.dp),
+                  .padding(QuestDimensions.ContentPadding.dp),
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically
           ) {
             Column(modifier = Modifier.weight(1f)) {
               Text(
                   text = "Resume Playback",
-                  style = MaterialTheme.typography.titleMedium
+                  style = QuestTypography.titleMedium,
+                  color = QuestThemeExtras.colors.primaryText,
               )
               Text(
                   text = "Ask to resume from last position",
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  style = QuestTypography.bodySmall,
+                  color = QuestThemeExtras.colors.secondaryText,
                   modifier = Modifier.padding(top = 4.dp)
               )
             }
-            Switch(
-                checked = currentSettings.resumeEnabled,
-                onCheckedChange = { viewModel.updateResumeEnabled(it) }
-            )
+            Box(
+                modifier = Modifier.heightIn(min = QuestDimensions.MinHitTarget.dp),
+                contentAlignment = Alignment.Center
+            ) {
+              Switch(
+                  checked = currentSettings.resumeEnabled,
+                  onCheckedChange = { viewModel.updateResumeEnabled(it) }
+              )
+            }
           }
         }
       } ?: run {
@@ -217,32 +270,48 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-          CircularProgressIndicator()
+          CircularProgressIndicator(
+              color = LocalColorScheme.current.primaryButton,
+              strokeWidth = 6.dp,
+              modifier = Modifier.size(64.dp)
+          )
         }
       }
     }
   }
 }
 
+/**
+ * Quest-styled permission status card.
+ */
 @Composable
 private fun PermissionCard(
     permissionStatus: PermissionStatus,
     onManagePermissions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-  Card(
+  val backgroundColor = when (permissionStatus) {
+    PermissionStatus.GRANTED -> QuestColors.success.copy(alpha = 0.15f)
+    PermissionStatus.PARTIAL -> QuestColors.warning.copy(alpha = 0.15f)
+    PermissionStatus.DENIED -> QuestColors.error.copy(alpha = 0.15f)
+  }
+
+  val statusColor = when (permissionStatus) {
+    PermissionStatus.GRANTED -> QuestColors.success
+    PermissionStatus.PARTIAL -> QuestColors.warning
+    PermissionStatus.DENIED -> QuestColors.error
+  }
+
+  Surface(
       modifier = modifier.fillMaxWidth(),
-      colors = CardDefaults.cardColors(
-          containerColor = when (permissionStatus) {
-            PermissionStatus.GRANTED -> MaterialTheme.colorScheme.primaryContainer
-            PermissionStatus.PARTIAL -> MaterialTheme.colorScheme.tertiaryContainer
-            PermissionStatus.DENIED -> MaterialTheme.colorScheme.errorContainer
-          }
-      )
+      color = backgroundColor,
+      shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
   ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(QuestDimensions.ContentPadding.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
       Row(
           modifier = Modifier.fillMaxWidth(),
@@ -252,15 +321,17 @@ private fun PermissionCard(
         Column(modifier = Modifier.weight(1f)) {
           Text(
               text = "Video Access Permission",
-              style = MaterialTheme.typography.titleMedium,
+              style = QuestTypography.titleMedium,
+              color = QuestThemeExtras.colors.primaryText,
           )
           Text(
               text = when (permissionStatus) {
-                PermissionStatus.GRANTED -> "✅ Full access to all videos on device"
-                PermissionStatus.PARTIAL -> "⚠️ Access to selected videos only"
-                PermissionStatus.DENIED -> "❌ Not granted - auto-scan disabled"
+                PermissionStatus.GRANTED -> "Full access to all videos on device"
+                PermissionStatus.PARTIAL -> "Access to selected videos only"
+                PermissionStatus.DENIED -> "Not granted - auto-scan disabled"
               },
-              style = MaterialTheme.typography.bodyMedium,
+              style = QuestTypography.bodyMedium,
+              color = statusColor,
               modifier = Modifier.padding(top = 4.dp),
           )
         }
@@ -273,23 +344,26 @@ private fun PermissionCard(
               PermissionStatus.DENIED -> "Grant video permission to enable automatic library scanning."
               else -> ""
             },
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = QuestTypography.bodySmall,
+            color = QuestThemeExtras.colors.secondaryText,
         )
       }
 
-      OutlinedButton(
-          onClick = onManagePermissions,
-          modifier = Modifier.align(Alignment.End),
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.End,
       ) {
-        Text("Manage in Settings")
+        QuestSecondaryButton(
+            text = "Manage in Settings",
+            onClick = onManagePermissions,
+        )
       }
     }
   }
 }
 
 /**
- * Card for selecting viewing mode preference.
+ * Quest-styled viewing mode selection card.
  */
 @Composable
 private fun ViewingModeCard(
@@ -297,43 +371,40 @@ private fun ViewingModeCard(
     onModeSelected: (ViewingMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-  Card(modifier = modifier.fillMaxWidth()) {
+  Column(
+      modifier = modifier.fillMaxWidth(),
+      verticalArrangement = Arrangement.spacedBy(QuestDimensions.ItemSpacing.dp)
+  ) {
+    Text(
+        text = "Choose how you want to watch videos",
+        style = QuestTypography.bodyMedium,
+        color = QuestThemeExtras.colors.secondaryText,
+    )
+
     Column(
-        modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-      Text(
-          text = "Choose how you want to watch videos",
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      ViewingModeOption(
+          emoji = "📱",
+          title = "2D Panel Mode",
+          description = "Watch in a floating panel. Great for multitasking.",
+          isSelected = currentMode == ViewingMode.PANEL_2D,
+          onClick = { onModeSelected(ViewingMode.PANEL_2D) }
       )
 
-      Column(
-          modifier = Modifier.selectableGroup(),
-          verticalArrangement = Arrangement.spacedBy(8.dp)
-      ) {
-        ViewingModeOption(
-            emoji = "📱",
-            title = "2D Panel Mode",
-            description = "Watch in a floating panel. Great for multitasking.",
-            isSelected = currentMode == ViewingMode.PANEL_2D,
-            onClick = { onModeSelected(ViewingMode.PANEL_2D) }
-        )
-
-        ViewingModeOption(
-            emoji = "🥽",
-            title = "Immersive VR Mode",
-            description = "Full immersive experience. Feel like you're there.",
-            isSelected = currentMode == ViewingMode.IMMERSIVE,
-            onClick = { onModeSelected(ViewingMode.IMMERSIVE) }
-        )
-      }
+      ViewingModeOption(
+          emoji = "🥽",
+          title = "Immersive VR Mode",
+          description = "Full immersive experience. Feel like you're there.",
+          isSelected = currentMode == ViewingMode.IMMERSIVE,
+          onClick = { onModeSelected(ViewingMode.IMMERSIVE) }
+      )
     }
   }
 }
 
 /**
- * A single viewing mode option row.
+ * Quest-styled viewing mode option with hover support.
  */
 @Composable
 private fun ViewingModeOption(
@@ -343,59 +414,52 @@ private fun ViewingModeOption(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-  Surface(
-      modifier = Modifier
-          .fillMaxWidth()
-          .selectable(
-              selected = isSelected,
-              onClick = onClick,
-              role = Role.RadioButton
-          ),
-      shape = MaterialTheme.shapes.medium,
-      color = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer
-      } else {
-        MaterialTheme.colorScheme.surfaceVariant
-      }
+  QuestSelectableCard(
+      selected = isSelected,
+      onClick = onClick,
   ) {
-    Row(
+    // Emoji icon in styled container
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .size(48.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                if (isSelected) LocalColorScheme.current.primaryButton.copy(alpha = 0.2f)
+                else QuestThemeExtras.colors.secondary
+            ),
+        contentAlignment = Alignment.Center
     ) {
       Text(
           text = emoji,
-          style = MaterialTheme.typography.titleLarge,
-      )
-
-      Column(modifier = Modifier.weight(1f)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = if (isSelected) {
-              MaterialTheme.colorScheme.onPrimaryContainer
-            } else {
-              MaterialTheme.colorScheme.onSurfaceVariant
-            }
-        )
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (isSelected) {
-              MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-            } else {
-              MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-            }
-        )
-      }
-
-      RadioButton(
-          selected = isSelected,
-          onClick = null,
+          style = QuestTypography.titleLarge,
       )
     }
+
+    Column(modifier = Modifier.weight(1f)) {
+      Text(
+          text = title,
+          style = QuestTypography.titleSmall,
+          color = if (isSelected) {
+            QuestThemeExtras.colors.primaryText
+          } else {
+            QuestThemeExtras.colors.secondaryText
+          }
+      )
+      Text(
+          text = description,
+          style = QuestTypography.bodySmall,
+          color = if (isSelected) {
+            QuestThemeExtras.colors.primaryText.copy(alpha = 0.8f)
+          } else {
+            QuestThemeExtras.colors.secondaryText.copy(alpha = 0.8f)
+          }
+      )
+    }
+
+    RadioButton(
+        selected = isSelected,
+        onClick = null,
+    )
   }
 }
 

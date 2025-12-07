@@ -2,20 +2,36 @@ package com.inotter.travelcompanion.ui.library
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.LibraryFolder
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionManagerImpl
 import com.inotter.travelcompanion.data.managers.PermissionManager.PermissionStatus
+import com.inotter.travelcompanion.ui.theme.QuestCard
+import com.inotter.travelcompanion.ui.theme.QuestColors
+import com.inotter.travelcompanion.ui.theme.QuestDimensions
+import com.inotter.travelcompanion.ui.theme.QuestDivider
+import com.inotter.travelcompanion.ui.theme.QuestPrimaryButton
+import com.inotter.travelcompanion.ui.theme.QuestSecondaryButton
+import com.inotter.travelcompanion.ui.theme.QuestTextButton
+import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
+import com.inotter.travelcompanion.ui.theme.QuestTypography
+import com.meta.spatial.uiset.theme.LocalColorScheme
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,32 +63,37 @@ fun ManageSourcesScreen(
   }
 
   Surface(
-      modifier = modifier.fillMaxSize(),
-      color = MaterialTheme.colorScheme.background,
+      modifier = modifier
+          .fillMaxSize()
+          .background(brush = LocalColorScheme.current.panel),
+      color = androidx.compose.ui.graphics.Color.Transparent,
   ) {
     Column(modifier = Modifier.fillMaxSize()) {
-      // Header
+      // Quest-styled header
       Row(
-          modifier = Modifier.fillMaxWidth().padding(16.dp),
+          modifier = Modifier
+              .fillMaxWidth()
+              .padding(QuestDimensions.ContentPadding.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
             text = "Manage Library Sources",
-            style = MaterialTheme.typography.headlineMedium,
+            style = QuestTypography.headlineMedium,
+            color = QuestThemeExtras.colors.primaryText,
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          Button(onClick = onAddFolder) { Text("Add Folder") }
-          OutlinedButton(onClick = onBack) { Text("Back") }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+          QuestPrimaryButton(text = "Add Folder", onClick = onAddFolder)
+          QuestSecondaryButton(text = "Back", onClick = onBack)
         }
       }
 
-      HorizontalDivider()
+      QuestDivider()
 
       LazyColumn(
-          contentPadding = PaddingValues(16.dp),
-          verticalArrangement = Arrangement.spacedBy(12.dp),
+          contentPadding = PaddingValues(QuestDimensions.ContentPadding.dp),
+          verticalArrangement = Arrangement.spacedBy(QuestDimensions.ItemSpacing.dp),
       ) {
         // Auto-scan section
         item {
@@ -96,7 +117,8 @@ fun ManageSourcesScreen(
           item {
             Text(
                 text = "Manual Folders",
-                style = MaterialTheme.typography.titleMedium,
+                style = QuestTypography.titleMedium,
+                color = QuestThemeExtras.colors.primaryText,
                 modifier = Modifier.padding(top = 8.dp),
             )
           }
@@ -114,25 +136,27 @@ fun ManageSourcesScreen(
         // Empty state for folders only
         if (folders.isEmpty()) {
           item {
-            Card(
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
+                color = QuestThemeExtras.colors.secondary,
+                shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
             ) {
               Column(
-                  modifier = Modifier.fillMaxWidth().padding(24.dp),
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .padding(QuestDimensions.SectionSpacing.dp),
                   horizontalAlignment = Alignment.CenterHorizontally,
               ) {
                 Text(
                     text = "No manual folders configured",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = QuestTypography.bodyMedium,
+                    color = QuestThemeExtras.colors.secondaryText,
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(onClick = onAddFolder) {
-                  Text("Add Folder")
-                }
+                Spacer(modifier = Modifier.height(12.dp))
+                QuestSecondaryButton(
+                    text = "Add Folder",
+                    onClick = onAddFolder,
+                )
               }
             }
           }
@@ -142,6 +166,9 @@ fun ManageSourcesScreen(
   }
 }
 
+/**
+ * Quest-styled auto-scan card with proper hit targets.
+ */
 @Composable
 private fun AutoScanCard(
     isEnabled: Boolean,
@@ -151,18 +178,22 @@ private fun AutoScanCard(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-  Card(
+  val backgroundColor = if (isEnabled) {
+    LocalColorScheme.current.primaryButton.copy(alpha = 0.15f)
+  } else {
+    QuestThemeExtras.colors.secondary
+  }
+
+  Surface(
       modifier = modifier.fillMaxWidth(),
-      colors = CardDefaults.cardColors(
-          containerColor = if (isEnabled)
-              MaterialTheme.colorScheme.primaryContainer
-          else
-              MaterialTheme.colorScheme.surfaceVariant,
-      ),
+      color = backgroundColor,
+      shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
   ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(QuestDimensions.ContentPadding.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
       Row(
           modifier = Modifier.fillMaxWidth(),
@@ -172,7 +203,8 @@ private fun AutoScanCard(
         Column(modifier = Modifier.weight(1f)) {
           Text(
               text = "Auto-Scan Device Videos",
-              style = MaterialTheme.typography.titleMedium,
+              style = QuestTypography.titleMedium,
+              color = QuestThemeExtras.colors.primaryText,
           )
           Text(
               text = when (permissionStatus) {
@@ -180,21 +212,26 @@ private fun AutoScanCard(
                 PermissionStatus.PARTIAL -> "Access to selected videos only"
                 PermissionStatus.DENIED -> "Permission required"
               },
-              style = MaterialTheme.typography.bodySmall,
-              color = if (isEnabled)
-                  MaterialTheme.colorScheme.onPrimaryContainer
-              else
-                  MaterialTheme.colorScheme.onSurfaceVariant,
+              style = QuestTypography.bodySmall,
+              color = QuestThemeExtras.colors.secondaryText,
           )
         }
-        Switch(
-            checked = isEnabled,
-            onCheckedChange = onToggle,
-        )
+        // Switch with larger touch target
+        Box(
+            modifier = Modifier
+                .heightIn(min = QuestDimensions.MinHitTarget.dp)
+                .padding(start = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+          Switch(
+              checked = isEnabled,
+              onCheckedChange = onToggle,
+          )
+        }
       }
 
       if (isEnabled) {
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+        QuestDivider()
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -206,18 +243,22 @@ private fun AutoScanCard(
                   "Last scan: ${formatTimestamp(lastScanTime)}"
               else
                   "Not scanned yet",
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onPrimaryContainer,
+              style = QuestTypography.bodySmall,
+              color = QuestThemeExtras.colors.secondaryText,
           )
-          TextButton(onClick = onRefresh) {
-            Text("Refresh Now")
-          }
+          QuestTextButton(
+              text = "Refresh Now",
+              onClick = onRefresh,
+          )
         }
       }
     }
   }
 }
 
+/**
+ * Quest-styled folder card with hover support.
+ */
 @Composable
 private fun FolderCard(
     folder: LibraryFolder,
@@ -225,55 +266,68 @@ private fun FolderCard(
     onRescan: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-  Card(
+  Surface(
       modifier = modifier.fillMaxWidth(),
-      elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+      color = QuestThemeExtras.colors.secondary,
+      shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
   ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(QuestDimensions.ContentPadding.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      // Folder name
-      Text(
-          text = folder.displayName,
-          style = MaterialTheme.typography.titleMedium,
-      )
+      // Folder icon and name
+      Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(12.dp)
+      ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(LocalColorScheme.current.primaryButton.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
+        ) {
+          Text(text = "📁", style = QuestTypography.titleMedium)
+        }
+        Text(
+            text = folder.displayName,
+            style = QuestTypography.titleMedium,
+            color = QuestThemeExtras.colors.primaryText,
+        )
+      }
 
       // Folder details
       Text(
           text = "Added: ${formatTimestamp(folder.addedAt)}",
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          style = QuestTypography.bodySmall,
+          color = QuestThemeExtras.colors.secondaryText,
       )
 
       if (folder.lastScanTime != null) {
         Text(
             text = "Last scanned: ${formatTimestamp(folder.lastScanTime)}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = QuestTypography.bodySmall,
+            color = QuestThemeExtras.colors.secondaryText,
         )
       }
 
       Text(
           text = if (folder.includeSubfolders) "Includes subfolders" else "Root folder only",
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          style = QuestTypography.bodySmall,
+          color = QuestThemeExtras.colors.secondaryText,
       )
 
-      // Actions
+      Spacer(modifier = Modifier.height(4.dp))
+
+      // Actions with proper hit targets
       Row(
           modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
       ) {
-        OutlinedButton(onClick = onRescan) { Text("Rescan") }
-        OutlinedButton(
-            onClick = onRemove,
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.error,
-            ),
-        ) {
-          Text("Remove")
-        }
+        QuestSecondaryButton(text = "Rescan", onClick = onRescan)
+        QuestSecondaryButton(text = "Remove", onClick = onRemove)
       }
     }
   }

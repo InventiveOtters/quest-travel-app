@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +13,7 @@ import com.inotter.travelcompanion.spatial.data.EnvironmentType
 import com.inotter.travelcompanion.spatial.ui.ControlsPanelCallback
 import com.inotter.travelcompanion.spatial.ui.ControlsPanelContent
 import com.inotter.travelcompanion.spatial.ui.PlaybackState
+import com.inotter.travelcompanion.ui.theme.QuestTheme
 
 /**
  * Separate activity for the Controls Panel.
@@ -85,14 +85,14 @@ class ControlsPanelActivity : ComponentActivity() {
         Log.d(TAG, "ControlsPanelActivity created")
         
         setContent {
-            MaterialTheme {
+            QuestTheme {
                 // Build local playback state
                 val playbackState = PlaybackState(
                     showSettings = showSettings,
                     lightingIntensity = lightingIntensity,
                     currentEnvironment = currentEnvironment
                 )
-                
+
                 // Use the shared ControlsPanelContent composable
                 ControlsPanelContent(
                     playbackState = playbackState,
