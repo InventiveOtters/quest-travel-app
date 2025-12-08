@@ -202,6 +202,70 @@ class SyncViewModel(
     }
 
     /**
+     * Join a session by PIN code.
+     * Starts discovery, waits for the service to be found, then joins.
+     */
+    fun joinSessionByPin(pinCode: String) {
+        _isLoading.value = true
+        _errorMessage.value = null
+
+        scope.launch {
+            try {
+                val manager = connectionManager
+                if (manager == null) {
+                    _errorMessage.value = "Sync connection manager not available"
+                    _isLoading.value = false
+                    return@launch
+                }
+
+                Log.i(TAG, "Starting discovery for PIN: $pinCode")
+                manager.startDiscovery(pinCode)
+
+                // Wait for service discovery with timeout
+                var attempts = 0
+                val maxAttempts = 10 // 10 attempts * 500ms = 5 seconds max
+                var matchingService: ResolvedService? = null
+
+                while (attempts < maxAttempts && matchingService == null) {
+                    kotlinx.coroutines.delay(500)
+                    val services = manager.getDiscoveredServices(pinCode)
+                    Log.d(TAG, "Discovery attempt $attempts: found ${services.size} services")
+                    matchingService = services.find { it.pinCode == pinCode }
+                    attempts++
+
+                    if (matchingService != null) {
+                        Log.i(TAG, "Found matching service after ${attempts * 500}ms: $matchingService")
+                        break
+                    }
+                }
+
+                if (matchingService == null) {
+                    _errorMessage.value = "No session found with PIN: $pinCode"
+                    _isLoading.value = false
+                    manager.stopDiscovery()
+                    return@launch
+                }
+
+                // Join the session
+                Log.i(TAG, "Joining session: $matchingService")
+                val success = manager.connectToMaster(matchingService)
+
+                if (success) {
+                    _syncMode.value = SyncMode.CLIENT
+                    Log.i(TAG, "Successfully joined session")
+                } else {
+                    _errorMessage.value = "Failed to join session"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error joining session by PIN", e)
+                _errorMessage.value = "Error: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
      * Leave the current session (client mode).
      */
     fun leaveSession() {

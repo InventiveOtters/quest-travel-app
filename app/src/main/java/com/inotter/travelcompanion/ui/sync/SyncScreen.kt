@@ -160,15 +160,7 @@ fun SyncScreen(
 	                    }
 	                },
 	                onJoinSession = { pinCodeJoin ->
-	                    syncViewModel.startDiscovery(pinCodeJoin)
-	                    scope.launch {
-	                        delay(2000)
-	                        val services = syncViewModel.discoveredServices.value
-	                        val matchingService = services.find { it.pinCode == pinCodeJoin }
-	                        if (matchingService != null) {
-	                            syncViewModel.joinSession(matchingService)
-	                        }
-	                    }
+	                    syncViewModel.joinSessionByPin(pinCodeJoin)
 	                }
 	            )
         }
