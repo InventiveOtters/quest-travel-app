@@ -21,12 +21,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inotter.travelcompanion.R
 import com.inotter.travelcompanion.spatial.data.EnvironmentType
+import com.inotter.travelcompanion.ui.theme.QuestColors
 import com.inotter.travelcompanion.ui.theme.QuestDimensions
 import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
 import com.inotter.travelcompanion.ui.theme.QuestTypography
@@ -58,7 +67,12 @@ data class PlaybackState(
     val videoTitle: String = "",
     val lightingIntensity: Float = 0.5f,
     val currentEnvironment: EnvironmentType = EnvironmentType.COLLAB_ROOM,
-    val showSettings: Boolean = false  // Toggle for showing settings panel
+    val showSettings: Boolean = false,  // Toggle for showing settings panel
+    // Sync-related fields
+    val isInSyncMode: Boolean = false,  // Whether sync is active
+    val isSyncMaster: Boolean = false,  // Whether this device is the master
+    val syncPinCode: String? = null,    // PIN code for the session
+    val connectedDeviceCount: Int = 0   // Number of connected devices
 )
 
 /**
@@ -75,6 +89,10 @@ interface ControlsPanelCallback {
     fun onLightingChanged(intensity: Float)
     fun onEnvironmentChanged(environment: EnvironmentType)
     fun onToggleSettings()
+    // Sync-related callbacks
+    fun onCreateSyncSession()
+    fun onJoinSyncSession(pinCode: String)
+    fun onLeaveSyncSession()
 }
 
 /**
@@ -122,17 +140,32 @@ fun ControlsPanelContent(
                 )
             }
             
+            // Sync Section (if in sync mode, show it first)
+            if (playbackState.isInSyncMode) {
+                SyncStatusSection(
+                    playbackState = playbackState,
+                    callback = callback
+                )
+            }
+
             // Lighting Slider Section
             LightingSliderSection(
                 lightingIntensity = playbackState.lightingIntensity,
                 onLightingChanged = callback::onLightingChanged
             )
-            
+
             // Environment Selector Section
             EnvironmentSelectorSection(
                 currentEnvironment = playbackState.currentEnvironment,
                 onEnvironmentChanged = callback::onEnvironmentChanged
             )
+
+            // Sync Controls Section (if not in sync mode)
+            if (!playbackState.isInSyncMode) {
+                SyncControlsSection(
+                    callback = callback
+                )
+            }
         }
     }
 }
@@ -298,4 +331,217 @@ private fun EnvironmentChip(
             )
         }
     }
+}
+
+/**
+ * Sync status section showing connection info.
+ */
+@Composable
+private fun SyncStatusSection(
+    playbackState: PlaybackState,
+    callback: ControlsPanelCallback
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Sync Session",
+            style = QuestTypography.titleMedium,
+            color = QuestThemeExtras.colors.primaryText
+        )
+
+        // Status card
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            color = QuestThemeExtras.colors.secondary.copy(alpha = 0.3f)
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Role
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (playbackState.isSyncMaster) "Role: Master" else "Role: Client",
+                        style = QuestTypography.bodyMedium,
+                        color = QuestThemeExtras.colors.primaryText
+                    )
+
+                    if (playbackState.isSyncMaster) {
+                        Text(
+                            text = "${playbackState.connectedDeviceCount} connected",
+                            style = QuestTypography.bodySmall,
+                            color = QuestThemeExtras.colors.secondaryText
+                        )
+                    }
+                }
+
+                // PIN code (master only)
+                if (playbackState.isSyncMaster && playbackState.syncPinCode != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "PIN Code:",
+                            style = QuestTypography.bodyMedium,
+                            color = QuestThemeExtras.colors.primaryText
+                        )
+                        Text(
+                            text = playbackState.syncPinCode,
+                            style = QuestTypography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 4.sp
+                            ),
+                            color = LocalColorScheme.current.primaryButton
+                        )
+                    }
+                }
+
+                // Leave button
+                Button(
+                    onClick = { callback.onLeaveSyncSession() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = QuestColors.error
+                    )
+                ) {
+                    Text("Leave Session")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Sync controls section for creating/joining sessions.
+ */
+@Composable
+private fun SyncControlsSection(
+    callback: ControlsPanelCallback
+) {
+    var showJoinDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Multi-Device Sync",
+            style = QuestTypography.titleMedium,
+            color = QuestThemeExtras.colors.primaryText
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Create Session button
+            Button(
+                onClick = { callback.onCreateSyncSession() },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LocalColorScheme.current.primaryButton
+                )
+            ) {
+                Text("Create Session")
+            }
+
+            // Join Session button
+            Button(
+                onClick = { showJoinDialog = true },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = QuestThemeExtras.colors.secondary
+                )
+            ) {
+                Text("Join Session")
+            }
+        }
+    }
+
+    // Join dialog
+    if (showJoinDialog) {
+        JoinSessionDialog(
+            onDismiss = { showJoinDialog = false },
+            onJoin = { pinCode ->
+                callback.onJoinSyncSession(pinCode)
+                showJoinDialog = false
+            }
+        )
+    }
+}
+
+/**
+ * Dialog for entering PIN code to join a session.
+ */
+@Composable
+private fun JoinSessionDialog(
+    onDismiss: () -> Unit,
+    onJoin: (String) -> Unit
+) {
+    var pinCode by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Join Sync Session",
+                style = QuestTypography.titleLarge,
+                color = QuestThemeExtras.colors.primaryText
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Enter the 6-digit PIN code from the master device:",
+                    style = QuestTypography.bodyMedium,
+                    color = QuestThemeExtras.colors.secondaryText
+                )
+
+                OutlinedTextField(
+                    value = pinCode,
+                    onValueChange = { if (it.length <= 6 && it.all { c -> c.isDigit() }) pinCode = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("000000") },
+                    singleLine = true,
+                    textStyle = QuestTypography.headlineMedium.copy(
+                        letterSpacing = 4.sp,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { if (pinCode.length == 6) onJoin(pinCode) },
+                enabled = pinCode.length == 6,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LocalColorScheme.current.primaryButton
+                )
+            ) {
+                Text("Join")
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = QuestThemeExtras.colors.secondary
+                )
+            ) {
+                Text("Cancel")
+            }
+        },
+        containerColor = QuestColors.surfaceDark,
+        shape = RoundedCornerShape(12.dp)
+    )
 }

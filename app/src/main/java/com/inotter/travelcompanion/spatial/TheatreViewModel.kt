@@ -30,7 +30,8 @@ import kotlinx.coroutines.launch
  */
 class TheatreViewModel(
     private val exoPlayer: ExoPlayer,
-    private val systemManager: SystemManager
+    private val systemManager: SystemManager,
+    private val syncViewModel: com.inotter.travelcompanion.spatial.sync.SyncViewModel? = null
 ) : ControlsPanelCallback {
     
     companion object {
@@ -50,13 +51,17 @@ class TheatreViewModel(
     
     private val _playbackState = MutableStateFlow(PlaybackState())
     val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
-    
+
     // Panel entities from GLXF (like Object3DSample pattern)
     private var libraryPanelEntity: Entity? = null
     private var controlsPanelEntity: Entity? = null
-    
+
     // Scene lighting manager for environment and lighting control
     private var sceneLightingManager: SceneLightingManager? = null
+
+    // Current video information for sync
+    private var currentVideoUri: String? = null
+    private var currentVideoId: String? = null
     
     // Coroutine scope for progress updates
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -82,6 +87,25 @@ class TheatreViewModel(
         exoPlayer.addListener(playerListener)
         // Register with state holder for panel communication
         TheatreStateHolder.registerCallback(this)
+
+        // Observe sync state and update playback state
+        syncViewModel?.let { sync ->
+            scope.launch {
+                sync.syncMode.collect { mode ->
+                    updateSyncState()
+                }
+            }
+            scope.launch {
+                sync.currentSession.collect { session ->
+                    updateSyncState()
+                }
+            }
+            scope.launch {
+                sync.connectedDevices.collect { devices ->
+                    updateSyncState()
+                }
+            }
+        }
     }
     
     /**
@@ -165,21 +189,25 @@ class TheatreViewModel(
      * Starts playback of a video and transitions to theatre mode.
      * The library panel (VRVideoLibraryPanel) acts as the video surface.
      */
-    fun playVideo(videoUri: String, videoTitle: String = "") {
+    fun playVideo(videoUri: String, videoTitle: String = "", videoId: String? = null) {
         Log.d(TAG, "Playing video: $videoUri")
-        
+
+        // Store current video info for sync
+        currentVideoUri = videoUri
+        currentVideoId = videoId ?: videoUri.hashCode().toString()
+
         // Update state with title
         _playbackState.value = _playbackState.value.copy(videoTitle = videoTitle)
-        
+
         // Show controls panel
         controlsPanelEntity?.setComponent(Visible(true))
-        
+
         // Play video (ExoPlayer is connected to library_panel surface via VideoSurfacePanelRegistration)
         val mediaItem = androidx.media3.common.MediaItem.fromUri(videoUri)
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
-        
+
         _currentState.value = TheatreState.PLAYBACK
     }
     
@@ -201,20 +229,48 @@ class TheatreViewModel(
     }
     
     // ControlsPanelCallback implementation
-    
+
     override fun onPlayPause() {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.pause()
+        // If in sync master mode, broadcast command
+        if (syncViewModel?.isMaster() == true) {
+            if (exoPlayer.isPlaying) {
+                syncViewModel.pause()
+                exoPlayer.pause()
+            } else {
+                val position = exoPlayer.currentPosition
+                syncViewModel.play(position)
+                exoPlayer.play()
+            }
+        } else if (syncViewModel?.isClient() == true) {
+            // Clients cannot control playback
+            Log.w(TAG, "Client cannot control playback")
         } else {
-            exoPlayer.play()
+            // Normal local playback
+            if (exoPlayer.isPlaying) {
+                exoPlayer.pause()
+            } else {
+                exoPlayer.play()
+            }
         }
         updatePlaybackState()
     }
-    
+
     override fun onSeek(position: Float) {
         val duration = exoPlayer.duration
         if (duration > 0) {
-            exoPlayer.seekTo((position * duration).toLong())
+            val positionMs = (position * duration).toLong()
+
+            // If in sync master mode, broadcast command
+            if (syncViewModel?.isMaster() == true) {
+                syncViewModel.seekTo(positionMs)
+                exoPlayer.seekTo(positionMs)
+            } else if (syncViewModel?.isClient() == true) {
+                // Clients cannot control playback
+                Log.w(TAG, "Client cannot seek")
+            } else {
+                // Normal local playback
+                exoPlayer.seekTo(positionMs)
+            }
         }
         updatePlaybackState()
     }
@@ -268,6 +324,54 @@ class TheatreViewModel(
         TheatreStateHolder.updatePlaybackState(_playbackState.value)
         Log.d(TAG, "Settings toggled: ${!currentShowSettings}")
     }
+
+    override fun onCreateSyncSession() {
+        Log.d(TAG, "Creating sync session")
+
+        // Check if we have a video loaded
+        if (currentVideoUri == null) {
+            Log.w(TAG, "Cannot create sync session: no video loaded")
+            return
+        }
+
+        // Convert URI to file path for sync
+        val videoPath = currentVideoUri!!
+        val movieId = currentVideoId ?: "unknown"
+
+        Log.i(TAG, "Creating sync session for video: $videoPath (ID: $movieId)")
+        syncViewModel?.createSession(
+            videoPath = videoPath,
+            movieId = movieId,
+            deviceName = "Quest"
+        )
+    }
+
+    override fun onJoinSyncSession(pinCode: String) {
+        Log.d(TAG, "Joining sync session with PIN: $pinCode")
+        syncViewModel?.startDiscovery(pinCode)
+
+        // Wait for discovery and auto-join the first matching service
+        scope.launch {
+            kotlinx.coroutines.delay(2000)
+            val services = syncViewModel?.discoveredServices?.value ?: emptyList()
+            val matchingService = services.find { it.pinCode == pinCode }
+
+            if (matchingService != null) {
+                syncViewModel?.joinSession(matchingService)
+            } else {
+                Log.w(TAG, "No matching service found for PIN: $pinCode")
+            }
+        }
+    }
+
+    override fun onLeaveSyncSession() {
+        Log.d(TAG, "Leaving sync session")
+        if (syncViewModel?.isMaster() == true) {
+            syncViewModel.closeSession()
+        } else {
+            syncViewModel?.leaveSession()
+        }
+    }
     
     // Progress updates
     
@@ -294,7 +398,7 @@ class TheatreViewModel(
         } else {
             0f
         }
-        
+
         _playbackState.value = _playbackState.value.copy(
             isPlaying = exoPlayer.isPlaying,
             isMuted = exoPlayer.volume == 0f,
@@ -302,7 +406,24 @@ class TheatreViewModel(
             duration = duration,
             currentPosition = currentPosition
         )
-        
+
+        // Update shared state holder for panel activities
+        TheatreStateHolder.updatePlaybackState(_playbackState.value)
+    }
+
+    private fun updateSyncState() {
+        val isInSync = syncViewModel?.isInSyncMode() ?: false
+        val isMaster = syncViewModel?.isMaster() ?: false
+        val pinCode = syncViewModel?.currentSession?.value?.pinCode
+        val deviceCount = syncViewModel?.connectedDevices?.value?.size ?: 0
+
+        _playbackState.value = _playbackState.value.copy(
+            isInSyncMode = isInSync,
+            isSyncMaster = isMaster,
+            syncPinCode = pinCode,
+            connectedDeviceCount = deviceCount
+        )
+
         // Update shared state holder for panel activities
         TheatreStateHolder.updatePlaybackState(_playbackState.value)
     }
@@ -322,11 +443,14 @@ class TheatreViewModel(
     
     fun destroy() {
         Log.d(TAG, "Destroying TheatreViewModel")
-        
+
+        // Clean up sync session
+        syncViewModel?.onCleared()
+
         scope.cancel()
         exoPlayer.removeListener(playerListener)
         TheatreStateHolder.unregisterCallback()
-        
+
         // Entities are owned by GLXF, just clear references
         libraryPanelEntity = null
         controlsPanelEntity = null

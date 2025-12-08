@@ -176,6 +176,11 @@ class PlaybackCore(context: Context) {
   fun pause() { player.playWhenReady = false }
 
   /**
+   * Stop playback and reset player. No allocations in this hot path.
+   */
+  fun stop() { player.stop() }
+
+  /**
    * Seek to a specific position. No allocations in this hot path.
    *
    * @param positionMs Target position in milliseconds
@@ -195,6 +200,13 @@ class PlaybackCore(context: Context) {
    * @return Duration in milliseconds, or 0 if unknown
    */
   fun getDuration(): Long = player.duration.coerceAtLeast(0L)
+
+  /**
+   * Check if playback is currently active. No allocations in this hot path.
+   *
+   * @return true if playing, false otherwise
+   */
+  fun isPlaying(): Boolean = player.isPlaying
 
   /**
    * Get available subtitle tracks.

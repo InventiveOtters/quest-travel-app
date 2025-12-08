@@ -154,6 +154,12 @@ dependencies {
   // Using 1.0.0-2.1 for javax.servlet compatibility with Jetty 9.4.x
   implementation("me.desair.tus:tus-java-server:1.0.0-2.1")
 
+  // OkHttp (WebSocket for sync commands)
+  implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+  // Gson (JSON serialization for sync protocol)
+  implementation("com.google.code.gson:gson:2.10.1")
+
   // Hilt
   implementation(libs.hilt.android)
   ksp(libs.hilt.compiler)

@@ -1,0 +1,298 @@
+package com.inotter.travelcompanion.spatial.sync
+
+import android.content.Context
+import android.util.Log
+import com.inotter.travelcompanion.playback.PlaybackCore
+import com.inotter.travelcompanion.sync.discovery.ConnectionManager
+import com.inotter.travelcompanion.sync.discovery.ConnectionState
+import com.inotter.travelcompanion.sync.discovery.ResolvedService
+import com.inotter.travelcompanion.sync.models.DeviceInfo
+import com.inotter.travelcompanion.sync.models.SyncSession
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+/**
+ * ViewModel for managing sync session state and UI.
+ * 
+ * Coordinates between ConnectionManager and UI components.
+ * Provides simplified state for UI consumption.
+ */
+class SyncViewModel(
+    private val context: Context,
+    private val playbackCore: PlaybackCore
+) {
+    companion object {
+        private const val TAG = "SyncViewModel"
+    }
+    
+    private val scope = CoroutineScope(Dispatchers.Main + Job())
+    
+    // Connection manager
+    private var connectionManager: ConnectionManager? = null
+    
+    // UI State
+    enum class SyncMode {
+        IDLE,           // Not in sync mode
+        MASTER,         // Hosting a session
+        CLIENT          // Connected to a session
+    }
+    
+    private val _syncMode = MutableStateFlow(SyncMode.IDLE)
+    val syncMode: StateFlow<SyncMode> = _syncMode.asStateFlow()
+    
+    private val _currentSession = MutableStateFlow<SyncSession?>(null)
+    val currentSession: StateFlow<SyncSession?> = _currentSession.asStateFlow()
+    
+    private val _connectedDevices = MutableStateFlow<List<DeviceInfo>>(emptyList())
+    val connectedDevices: StateFlow<List<DeviceInfo>> = _connectedDevices.asStateFlow()
+    
+    private val _discoveredServices = MutableStateFlow<List<ResolvedService>>(emptyList())
+    val discoveredServices: StateFlow<List<ResolvedService>> = _discoveredServices.asStateFlow()
+    
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+    
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    
+    init {
+        // Initialize connection manager
+        connectionManager = ConnectionManager(
+            context = context,
+            playbackCore = playbackCore
+        )
+        
+        // Observe connection state
+        scope.launch {
+            connectionManager?.connectionState?.collect { state ->
+                handleConnectionStateChange(state)
+            }
+        }
+        
+        // Observe session
+        scope.launch {
+            connectionManager?.currentSession?.collect { session ->
+                _currentSession.value = session
+            }
+        }
+        
+        // Observe connected devices
+        scope.launch {
+            connectionManager?.connectedDevices?.collect { devices ->
+                _connectedDevices.value = devices
+            }
+        }
+    }
+    
+    /**
+     * Create a new sync session as master.
+     */
+    fun createSession(videoPath: String, movieId: String, deviceName: String = "Quest") {
+        _isLoading.value = true
+        _errorMessage.value = null
+        
+        scope.launch {
+            try {
+                val session = connectionManager?.createSession(
+                    videoPath = videoPath,
+                    movieId = movieId,
+                    deviceName = deviceName
+                )
+                
+                if (session != null) {
+                    _syncMode.value = SyncMode.MASTER
+                    Log.i(TAG, "Session created with PIN: ${session.pinCode}")
+                } else {
+                    _errorMessage.value = "Failed to create session"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error creating session", e)
+                _errorMessage.value = "Error: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    /**
+     * Start discovering available sessions.
+     */
+    fun startDiscovery(pinCode: String? = null) {
+        _isLoading.value = true
+        _errorMessage.value = null
+        
+        connectionManager?.startDiscovery(pinCode)
+        
+        // Update discovered services periodically
+        scope.launch {
+            kotlinx.coroutines.delay(2000) // Wait for discovery
+            val services = connectionManager?.getDiscoveredServices(pinCode) ?: emptyList()
+            _discoveredServices.value = services
+            _isLoading.value = false
+            
+            if (services.isEmpty()) {
+                _errorMessage.value = "No sessions found"
+            }
+        }
+    }
+    
+    /**
+     * Stop discovering sessions.
+     */
+    fun stopDiscovery() {
+        connectionManager?.stopDiscovery()
+        _discoveredServices.value = emptyList()
+    }
+
+    /**
+     * Join a discovered session.
+     */
+    fun joinSession(service: ResolvedService) {
+        _isLoading.value = true
+        _errorMessage.value = null
+
+        scope.launch {
+            try {
+                val success = connectionManager?.connectToMaster(service) ?: false
+
+                if (success) {
+                    _syncMode.value = SyncMode.CLIENT
+                    Log.i(TAG, "Joined session")
+                } else {
+                    _errorMessage.value = "Failed to join session"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error joining session", e)
+                _errorMessage.value = "Error: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Leave the current session (client mode).
+     */
+    fun leaveSession() {
+        connectionManager?.leaveSession()
+        _syncMode.value = SyncMode.IDLE
+        _errorMessage.value = null
+    }
+
+    /**
+     * Close the current session (master mode).
+     */
+    fun closeSession() {
+        connectionManager?.closeSession()
+        _syncMode.value = SyncMode.IDLE
+        _errorMessage.value = null
+    }
+
+    /**
+     * Broadcast play command (master only).
+     */
+    fun play(position: Long) {
+        if (_syncMode.value != SyncMode.MASTER) {
+            Log.w(TAG, "Cannot play: not in master mode")
+            return
+        }
+
+        connectionManager?.getMasterCoordinator()?.broadcastPlay(position)
+    }
+
+    /**
+     * Broadcast pause command (master only).
+     */
+    fun pause() {
+        if (_syncMode.value != SyncMode.MASTER) {
+            Log.w(TAG, "Cannot pause: not in master mode")
+            return
+        }
+
+        connectionManager?.getMasterCoordinator()?.broadcastPause()
+    }
+
+    /**
+     * Broadcast seek command (master only).
+     */
+    fun seekTo(position: Long) {
+        if (_syncMode.value != SyncMode.MASTER) {
+            Log.w(TAG, "Cannot seek: not in master mode")
+            return
+        }
+
+        connectionManager?.getMasterCoordinator()?.broadcastSeek(position)
+    }
+
+    /**
+     * Check if in master mode.
+     */
+    fun isMaster(): Boolean = _syncMode.value == SyncMode.MASTER
+
+    /**
+     * Check if in client mode.
+     */
+    fun isClient(): Boolean = _syncMode.value == SyncMode.CLIENT
+
+    /**
+     * Check if in any sync mode.
+     */
+    fun isInSyncMode(): Boolean = _syncMode.value != SyncMode.IDLE
+
+    /**
+     * Clear error message.
+     */
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+    /**
+     * Handle connection state changes.
+     */
+    private fun handleConnectionStateChange(state: ConnectionState) {
+        when (state) {
+            is ConnectionState.Idle -> {
+                _syncMode.value = SyncMode.IDLE
+                _isLoading.value = false
+            }
+            is ConnectionState.CreatingSession -> {
+                _isLoading.value = true
+            }
+            is ConnectionState.MasterSession -> {
+                _syncMode.value = SyncMode.MASTER
+                _isLoading.value = false
+            }
+            is ConnectionState.DiscoveringServices -> {
+                _isLoading.value = true
+            }
+            is ConnectionState.JoiningSession -> {
+                _isLoading.value = true
+            }
+            is ConnectionState.ClientSession -> {
+                _syncMode.value = SyncMode.CLIENT
+                _isLoading.value = false
+            }
+            is ConnectionState.Error -> {
+                _errorMessage.value = state.message
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Cleanup resources.
+     */
+    fun onCleared() {
+        if (_syncMode.value == SyncMode.MASTER) {
+            closeSession()
+        } else if (_syncMode.value == SyncMode.CLIENT) {
+            leaveSession()
+        }
+    }
+}
+

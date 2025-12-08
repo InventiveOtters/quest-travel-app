@@ -4,15 +4,16 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.inotter.travelcompanion.spatial.PanelBroadcastManager
+import com.inotter.travelcompanion.spatial.TheatreStateHolder
 import com.inotter.travelcompanion.spatial.data.EnvironmentType
 import com.inotter.travelcompanion.spatial.ui.ControlsPanelCallback
 import com.inotter.travelcompanion.spatial.ui.ControlsPanelContent
-import com.inotter.travelcompanion.spatial.ui.PlaybackState
 import com.inotter.travelcompanion.ui.theme.QuestTheme
 
 /**
@@ -78,16 +79,31 @@ class ControlsPanelActivity : ComponentActivity() {
             // Also notify ImmersiveActivity
             PanelBroadcastManager.sendToggleSettings(this@ControlsPanelActivity)
         }
+        override fun onCreateSyncSession() {
+            Log.d(TAG, "onCreateSyncSession pressed - sending broadcast")
+            PanelBroadcastManager.sendCreateSyncSession(this@ControlsPanelActivity)
+        }
+        override fun onJoinSyncSession(pinCode: String) {
+            Log.d(TAG, "onJoinSyncSession pressed with PIN: $pinCode - sending broadcast")
+            PanelBroadcastManager.sendJoinSyncSession(this@ControlsPanelActivity, pinCode)
+        }
+        override fun onLeaveSyncSession() {
+            Log.d(TAG, "onLeaveSyncSession pressed - sending broadcast")
+            PanelBroadcastManager.sendLeaveSyncSession(this@ControlsPanelActivity)
+        }
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "ControlsPanelActivity created")
-        
+
         setContent {
             QuestTheme {
-                // Build local playback state
-                val playbackState = PlaybackState(
+                // Observe shared playback state from TheatreStateHolder
+                val sharedState by TheatreStateHolder.playbackState.collectAsState()
+
+                // Merge shared state with local state
+                val playbackState = sharedState.copy(
                     showSettings = showSettings,
                     lightingIntensity = lightingIntensity,
                     currentEnvironment = currentEnvironment

@@ -75,6 +75,12 @@ class ImmersiveActivity : AppSystemActivity() {
     // ExoPlayer instance for video playback
     private lateinit var exoPlayer: ExoPlayer
 
+    // PlaybackCore for sync functionality
+    private lateinit var playbackCore: com.inotter.travelcompanion.playback.PlaybackCore
+
+    // Sync ViewModel for multi-device synchronization
+    private lateinit var syncViewModel: com.inotter.travelcompanion.spatial.sync.SyncViewModel
+
     // Theatre ViewModel manages the spatial experience
     private lateinit var theatreViewModel: TheatreViewModel
 
@@ -126,6 +132,18 @@ class ImmersiveActivity : AppSystemActivity() {
                 Log.d(TAG, "Broadcast received: onToggleSettings")
                 theatreViewModel.onToggleSettings()
             }
+            override fun onCreateSyncSession() {
+                Log.d(TAG, "Broadcast received: onCreateSyncSession")
+                theatreViewModel.onCreateSyncSession()
+            }
+            override fun onJoinSyncSession(pinCode: String) {
+                Log.d(TAG, "Broadcast received: onJoinSyncSession $pinCode")
+                theatreViewModel.onJoinSyncSession(pinCode)
+            }
+            override fun onLeaveSyncSession() {
+                Log.d(TAG, "Broadcast received: onLeaveSyncSession")
+                theatreViewModel.onLeaveSyncSession()
+            }
         }
     )
 
@@ -174,16 +192,25 @@ class ImmersiveActivity : AppSystemActivity() {
         // Create ExoPlayer instance
         exoPlayer = ExoPlayer.Builder(this).build()
 
-        // Create theatre ViewModel
-        theatreViewModel = TheatreViewModel(exoPlayer, systemManager)
-        
+        // Create PlaybackCore for sync functionality
+        playbackCore = com.inotter.travelcompanion.playback.PlaybackCore(this)
+
+        // Create SyncViewModel for multi-device synchronization
+        syncViewModel = com.inotter.travelcompanion.spatial.sync.SyncViewModel(
+            context = this,
+            playbackCore = playbackCore
+        )
+
+        // Create theatre ViewModel with sync support
+        theatreViewModel = TheatreViewModel(exoPlayer, systemManager, syncViewModel)
+
         // Register broadcast receiver for panel commands
         registerReceiver(
             panelCommandReceiver,
             panelCommandReceiver.getIntentFilter(),
             RECEIVER_EXPORTED
         )
-        Log.d(TAG, "Panel command receiver registered")
+        Log.d(TAG, "Panel command receiver registered with sync support")
     }
 
     override fun onSceneReady() {
@@ -392,6 +419,7 @@ class ImmersiveActivity : AppSystemActivity() {
             Log.w(TAG, "Error unregistering receiver: ${e.message}")
         }
         theatreViewModel.destroy()
+        playbackCore.release()
         exoPlayer.release()
         super.onSpatialShutdown()
     }
