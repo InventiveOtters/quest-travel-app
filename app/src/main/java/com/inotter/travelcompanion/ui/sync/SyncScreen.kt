@@ -76,11 +76,10 @@ fun SyncScreen(
 	        }
 	    }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            syncViewModel.onCleared()
-        }
-    }
+    // Note: We don't call syncViewModel.onCleared() in DisposableEffect here because:
+    // 1. When client joins, this screen navigates to player screen and gets disposed
+    // 2. Calling onCleared() would leave the session prematurely
+    // 3. The ViewModel should manage its own lifecycle independently of screen composition
 
     Surface(
         modifier = modifier

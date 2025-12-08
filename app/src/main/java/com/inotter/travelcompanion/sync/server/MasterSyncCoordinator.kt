@@ -69,6 +69,9 @@ class MasterSyncCoordinator(
     private val clientStates = mutableMapOf<String, SyncResponse>()
     private val _readyClients = MutableStateFlow<Set<String>>(emptySet())
     val readyClients: StateFlow<Set<String>> = _readyClients.asStateFlow()
+
+    // Auto-play state
+    private var hasAutoPlayed = false
     
     /**
      * Start a sync session.
@@ -160,6 +163,7 @@ class MasterSyncCoordinator(
             _currentSession.value = null
             clientStates.clear()
             _readyClients.value = emptySet()
+            hasAutoPlayed = false
 
             Log.i(TAG, "Session stopped")
         } catch (e: Exception) {
@@ -277,8 +281,20 @@ class MasterSyncCoordinator(
         clientStates[clientId] = response
 
         // Update ready clients
+        val wasReady = _readyClients.value.contains(clientId)
         if (response.isReady) {
             _readyClients.value = _readyClients.value + clientId
+
+            // Auto-play when first client becomes ready
+            if (!hasAutoPlayed && !wasReady) {
+                hasAutoPlayed = true
+                Log.i(TAG, "First client ready, auto-starting playback")
+                scope.launch {
+                    // Give client a moment to fully initialize
+                    delay(500)
+                    broadcastPlay(position = 0L)
+                }
+            }
         } else {
             _readyClients.value = _readyClients.value - clientId
         }
@@ -307,5 +323,12 @@ class MasterSyncCoordinator(
         val session = _currentSession.value ?: return null
         return "ws://$serverIp:${session.wsPort}/sync"
     }
+
+    /**
+     * Get the sync server instance for observing connected clients.
+     *
+     * @return SyncCommandServer instance or null if no session
+     */
+    fun getSyncServer(): SyncCommandServer? = syncServer
 }
 

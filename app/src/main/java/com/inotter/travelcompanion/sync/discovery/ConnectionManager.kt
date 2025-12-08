@@ -141,14 +141,14 @@ class ConnectionManager(
             }
             
             masterCoordinator = coordinator
-            
+
             // Create device info
             val masterDevice = DeviceInfo.createForCurrentDevice(
                 deviceId = deviceId,
                 deviceName = deviceName,
                 ipAddress = ipAddress
             )
-            
+
             // Create session
             val session = SyncSession.create(
                 masterDevice = masterDevice,
@@ -157,9 +157,28 @@ class ConnectionManager(
                 httpPort = sessionInfo.httpPort,
                 wsPort = sessionInfo.wsPort
             ).copy(pinCode = pinCode)
-            
+
             _currentSession.value = session
-            
+
+            // Observe connected clients from sync server
+            coordinator.getSyncServer()?.let { syncServer ->
+                scope.launch {
+                    syncServer.connectedClientIds.collect { clientIds ->
+                        // Map client IDs to DeviceInfo objects
+                        val devices = clientIds.map { clientId ->
+                            DeviceInfo(
+                                deviceId = clientId,
+                                deviceName = "Client-${clientId.take(8)}",
+                                ipAddress = "unknown", // We don't track client IPs currently
+                                connectedAt = System.currentTimeMillis()
+                            )
+                        }
+                        _connectedDevices.value = devices
+                        Log.d(TAG, "Connected devices updated: ${devices.size} clients")
+                    }
+                }
+            }
+
             // Start advertising
             val advertiser = ServiceAdvertiser(context)
             advertiser.advertiseService(
@@ -169,7 +188,7 @@ class ConnectionManager(
                 deviceName = deviceName
             )
             serviceAdvertiser = advertiser
-            
+
             _connectionState.value = ConnectionState.MasterSession(session)
             Log.i(TAG, "Session created successfully: $session")
             
