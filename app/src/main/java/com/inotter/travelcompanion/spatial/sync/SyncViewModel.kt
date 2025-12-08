@@ -284,6 +284,25 @@ class SyncViewModel(
     }
 
     /**
+     * Broadcast start command for initial playback (master only).
+     * This should be called when the host first starts playback.
+     * Also controls the local PlaybackCore.
+     */
+    fun start(position: Long = 0L) {
+        if (_syncMode.value != SyncMode.MASTER) {
+            Log.w(TAG, "Cannot start: not in master mode")
+            return
+        }
+
+        // Control local playback
+        playbackCore.seekTo(position)
+        playbackCore.play()
+
+        // Broadcast start command to clients
+        connectionManager?.getMasterCoordinator()?.broadcastStart(position)
+    }
+
+    /**
      * Broadcast play command (master only).
      * Also controls the local PlaybackCore.
      */

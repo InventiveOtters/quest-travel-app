@@ -47,6 +47,10 @@ fun SyncClientPlayerScreen(
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
 
+    // Track if playback has ever started (to distinguish initial wait from pause)
+    // This is set to true when we receive the first "start" command from the host
+    var hasPlaybackStarted by remember { mutableStateOf(false) }
+
     // Track seeking state
     var isSeeking by remember { mutableStateOf(false) }
     var seekPosition by remember { mutableStateOf(0f) }
@@ -55,7 +59,15 @@ fun SyncClientPlayerScreen(
     LaunchedEffect(Unit) {
         while (true) {
             val playbackCore = syncViewModel.getPlaybackCore()
-            isPlaying = playbackCore.isPlaying()
+            val currentlyPlaying = playbackCore.isPlaying()
+            isPlaying = currentlyPlaying
+
+            // Mark that playback has started once we detect playing state for the first time
+            // This handles the "start" command from the host
+            if (currentlyPlaying && !hasPlaybackStarted) {
+                hasPlaybackStarted = true
+            }
+
             currentPosition = playbackCore.getCurrentPosition()
             val dur = playbackCore.getDuration()
             if (dur > 0) {
@@ -298,8 +310,9 @@ fun SyncClientPlayerScreen(
                 }
             }
 
-            // Waiting for host message - shown when connected but not playing
-            if (!isPlaying) {
+            // Waiting for host message - shown ONLY when connected but playback has never started
+            // This prevents the loading indicator from appearing when the host pauses the movie
+            if (!isPlaying && !hasPlaybackStarted) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

@@ -157,12 +157,48 @@ class ClientSyncCoordinator(
         Log.d(TAG, "Received command: ${command.action}")
 
         when (command.action) {
+            SyncCommand.ACTION_START -> handleStartCommand(command)
             SyncCommand.ACTION_PLAY -> handlePlayCommand(command)
             SyncCommand.ACTION_PAUSE -> handlePauseCommand(command)
             SyncCommand.ACTION_SEEK -> handleSeekCommand(command)
             SyncCommand.ACTION_LOAD -> handleLoadCommand(command)
             SyncCommand.ACTION_SYNC_CHECK -> handleSyncCheckCommand(command)
             else -> Log.w(TAG, "Unknown command: ${command.action}")
+        }
+    }
+
+    /**
+     * Handle start command for initial playback with predictive sync.
+     * This is sent when the host first starts watching together.
+     */
+    private fun handleStartCommand(command: SyncCommand) {
+        val targetStartTime = command.targetStartTime
+        val videoPosition = command.videoPosition
+
+        if (targetStartTime == null || videoPosition == null) {
+            Log.w(TAG, "Invalid start command: missing targetStartTime or videoPosition")
+            return
+        }
+
+        // Update last known master position
+        lastMasterPosition = videoPosition
+        lastMasterTimestamp = command.timestamp
+
+        scope.launch {
+            // Calculate delay until target start time
+            val currentTime = System.currentTimeMillis()
+            val delayMs = targetStartTime - currentTime
+
+            if (delayMs > 0) {
+                Log.d(TAG, "Waiting ${delayMs}ms before starting initial playback")
+                delay(delayMs)
+            }
+
+            // Seek to position and start playback
+            playbackCore.seekTo(videoPosition)
+            playbackCore.play()
+
+            Log.i(TAG, "Started initial playback at position $videoPosition")
         }
     }
 

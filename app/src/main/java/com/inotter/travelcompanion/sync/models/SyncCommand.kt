@@ -5,23 +5,24 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * Sync command sent from master to clients or from clients to master.
- * 
+ *
  * Commands are sent over WebSocket and serialized as JSON.
- * 
+ *
  * Actions:
  * - `load`: Load a specific movie
- * - `play`: Start playback at timestamp (with future target time for sync)
+ * - `start`: Initial playback start (first time only, from "Start watching together")
+ * - `play`: Resume playback at timestamp (with future target time for sync)
  * - `pause`: Pause playback
  * - `seek`: Jump to specific timestamp
  * - `sync_check`: Request sync status from clients
- * 
+ *
  * Example JSON:
  * ```json
  * {
- *   "action": "play",
+ *   "action": "start",
  *   "timestamp": 1234567890,
  *   "targetStartTime": 1234568390,
- *   "videoPosition": 60000,
+ *   "videoPosition": 0,
  *   "movieId": "movie1",
  *   "senderId": "quest-device-1"
  * }
@@ -29,7 +30,7 @@ import com.google.gson.annotations.SerializedName
  */
 data class SyncCommand(
     /**
-     * Action to perform: play, pause, seek, load, sync_check
+     * Action to perform: start, play, pause, seek, load, sync_check
      */
     @SerializedName("action")
     val action: String,
@@ -83,6 +84,7 @@ data class SyncCommand(
     companion object {
         // Action types
         const val ACTION_LOAD = "load"
+        const val ACTION_START = "start"
         const val ACTION_PLAY = "play"
         const val ACTION_PAUSE = "pause"
         const val ACTION_SEEK = "seek"

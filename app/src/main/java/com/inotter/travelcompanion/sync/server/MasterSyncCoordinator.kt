@@ -177,6 +177,36 @@ class MasterSyncCoordinator(
     }
 
     /**
+     * Broadcast start command for initial playback (first time only).
+     * This is sent automatically when the master player screen loads.
+     *
+     * @param position Video position in milliseconds (typically 0)
+     * @param predictiveDelayMs Delay before starting playback (default: 500ms)
+     */
+    fun broadcastStart(position: Long = 0L, predictiveDelayMs: Long = PREDICTIVE_SYNC_DELAY_MS) {
+        val session = _currentSession.value
+        if (session == null) {
+            Log.w(TAG, "Cannot broadcast start: no active session")
+            return
+        }
+
+        val targetStartTime = System.currentTimeMillis() + predictiveDelayMs
+        val command = SyncCommand(
+            action = SyncCommand.ACTION_START,
+            timestamp = System.currentTimeMillis(),
+            targetStartTime = targetStartTime,
+            videoPosition = position,
+            senderId = deviceId
+        )
+
+        // Launch on IO dispatcher to avoid NetworkOnMainThreadException
+        scope.launch {
+            syncServer?.broadcastCommand(command)
+            Log.i(TAG, "Broadcast start: position=$position, startTime=$targetStartTime")
+        }
+    }
+
+    /**
      * Broadcast play command with predictive sync.
      *
      * @param position Video position in milliseconds

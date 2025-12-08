@@ -41,21 +41,26 @@ fun SyncMasterPlayerScreen(
     val connectedDevices by syncViewModel.connectedDevices.collectAsState()
 
     var showControls by remember { mutableStateOf(true) }
-    
+
     // Track playback state
     var isPlaying by remember { mutableStateOf(false) }
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
-    
+
+    // Track if this is the first time starting playback
+    var hasStartedPlayback by remember { mutableStateOf(false) }
+
     // Track seeking state
     var isSeeking by remember { mutableStateOf(false) }
     var seekPosition by remember { mutableStateOf(0f) }
 
-    // Load video when screen is first displayed
+    // Load video when screen is first displayed and auto-start playback
     LaunchedEffect(video.id) {
         val playbackCore = syncViewModel.getPlaybackCore()
         playbackCore.prepare(android.net.Uri.parse(video.fileUri), startPositionMs = 0L)
-        // Don't auto-play - wait for user to press play
+        // Auto-start playback and broadcast to clients
+        hasStartedPlayback = true
+        syncViewModel.start(position = 0L)
     }
 
     // Check playback state periodically
@@ -282,7 +287,14 @@ fun SyncMasterPlayerScreen(
                                 if (isPlaying) {
                                     syncViewModel.pause()
                                 } else {
-                                    syncViewModel.play(currentPosition)
+                                    // First time: send "start" command
+                                    // Subsequent times: send "play" command
+                                    if (!hasStartedPlayback) {
+                                        hasStartedPlayback = true
+                                        syncViewModel.start(currentPosition)
+                                    } else {
+                                        syncViewModel.play(currentPosition)
+                                    }
                                 }
                             },
                             modifier = Modifier.size(64.dp),
