@@ -271,6 +271,11 @@ class SyncViewModel(
     fun isInSyncMode(): Boolean = _syncMode.value != SyncMode.IDLE
 
     /**
+     * Get the underlying PlaybackCore for direct access (e.g., for sync client player).
+     */
+    fun getPlaybackCore(): PlaybackCore = playbackCore
+
+    /**
      * Clear error message.
      */
     fun clearError() {

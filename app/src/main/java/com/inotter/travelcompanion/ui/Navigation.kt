@@ -25,6 +25,8 @@ import com.inotter.travelcompanion.ui.transfer.IncompleteUploadsViewModel
 import com.inotter.travelcompanion.ui.transfer.TransferViewModel
 import com.inotter.travelcompanion.ui.transfer.WiFiTransferScreen
 import com.inotter.travelcompanion.ui.sync.SyncScreen
+import com.inotter.travelcompanion.ui.sync.SyncClientPlayerScreen
+import com.inotter.travelcompanion.ui.sync.rememberSyncViewModel
 
 /**
  * Navigation host for VR UI.
@@ -46,6 +48,10 @@ fun VRNavigationHost(
   val transferViewModel: TransferViewModel = viewModel()
   val onboardingViewModel: OnboardingViewModel = viewModel()
   val incompleteUploadsViewModel: IncompleteUploadsViewModel = viewModel()
+
+  // Create a shared SyncViewModel instance for sync-related screens
+  val context = androidx.compose.ui.platform.LocalContext.current
+  val syncViewModel = rememberSyncViewModel(context)
 
   // Observe incomplete uploads state
   val showIncompleteUploadsDialog by incompleteUploadsViewModel.showDialog.collectAsState()
@@ -137,16 +143,43 @@ fun VRNavigationHost(
 
 	    	    composable("sync") {
 	    	      SyncScreen(
+	    	          syncViewModel = syncViewModel,
 	    	          onBack = { navController.popBackStack() },
 	    	          currentVideo = playerViewModel.getCurrentVideo(),
+	    	          onJoinedSession = {
+	    	              // Navigate to sync client player when joined as client
+	    	              navController.navigate("syncClientPlayer") {
+	    	                  popUpTo("sync") { inclusive = true }
+	    	              }
+	    	          }
 	    	      )
 	    	    }
 
 	    	    composable("syncAuto") {
 	    	      SyncScreen(
+	    	          syncViewModel = syncViewModel,
 	    	          onBack = { navController.popBackStack() },
 	    	          currentVideo = playerViewModel.getCurrentVideo(),
 	    	          autoCreateOnEnter = true,
+	    	          onJoinedSession = {
+	    	              // Navigate to sync client player when joined as client
+	    	              navController.navigate("syncClientPlayer") {
+	    	                  popUpTo("syncAuto") { inclusive = true }
+	    	              }
+	    	          }
+	    	      )
+	    	    }
+
+	    	    composable("syncClientPlayer") {
+	    	      // Player screen for sync client (streaming from master)
+	    	      // Uses the shared SyncViewModel's PlaybackCore instance
+	    	      SyncClientPlayerScreen(
+	    	          syncViewModel = syncViewModel,
+	    	          onBack = {
+	    	              navController.navigate("library") {
+	    	                  popUpTo("library") { inclusive = false }
+	    	              }
+	    	          }
 	    	      )
 	    	    }
 

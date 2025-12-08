@@ -44,18 +44,25 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun SyncScreen(
+	    syncViewModel: SyncViewModel,
 	    onBack: () -> Unit,
 	    currentVideo: VideoItem? = null,
 		    autoCreateOnEnter: Boolean = false,
+	    onJoinedSession: () -> Unit = {},
 	    modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-
-	    val syncViewModel = rememberSyncViewModel(context)
     val currentSession by syncViewModel.currentSession.collectAsState()
     val connectedDevices by syncViewModel.connectedDevices.collectAsState()
+    val syncMode by syncViewModel.syncMode.collectAsState()
 
 	    val scope = rememberCoroutineScope()
+
+    // Navigate to player when successfully joined as client
+    LaunchedEffect(syncMode) {
+        if (syncMode == SyncViewModel.SyncMode.CLIENT) {
+            onJoinedSession()
+        }
+    }
 
 	    // Optionally auto-create a session for the current video when entering this screen
 	    val hasAutoHosted = remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -170,7 +177,7 @@ fun SyncScreen(
 }
 
 @Composable
-private fun rememberSyncViewModel(context: Context): SyncViewModel {
+fun rememberSyncViewModel(context: Context): SyncViewModel {
     return remember(context) {
         val playbackCore = PlaybackCore(context)
         SyncViewModel(context = context, playbackCore = playbackCore)
