@@ -132,7 +132,7 @@ class ConnectionManager(
             
             // Create master coordinator
             val coordinator = MasterSyncCoordinator(context, deviceId)
-            val sessionInfo = coordinator.startSession(videoFile, movieId)
+            val sessionInfo = coordinator.startSession(videoFile, "current")
             
             if (sessionInfo == null) {
                 Log.e(TAG, "Failed to start master session")
@@ -153,7 +153,7 @@ class ConnectionManager(
             val session = SyncSession.create(
                 masterDevice = masterDevice,
                 videoPath = videoPath,
-                movieId = movieId,
+                movieId = "current",
                 httpPort = sessionInfo.httpPort,
                 wsPort = sessionInfo.wsPort
             ).copy(pinCode = pinCode)
@@ -304,7 +304,7 @@ class ConnectionManager(
             val coordinator = ClientSyncCoordinator(playbackCore, deviceId)
 
             // Join session
-            val httpUrl = service.getHttpUrl("") // Movie ID will be sent via sync command
+            val httpUrl = service.getHttpUrl("current") // Use hardcoded movie ID
             val wsUrl = service.getWsUrl()
 
             if (!coordinator.joinSession(httpUrl, wsUrl)) {

@@ -12,6 +12,9 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -54,35 +57,47 @@ class SyncCommandServer {
     
     // Callback for receiving responses from clients
     private var responseListener: ((clientId: String, response: SyncResponse) -> Unit)? = null
-    
-    // Server WebSocket (for accepting connections)
-    // Note: OkHttp doesn't have a built-in WebSocket server, so we'll use a different approach
-    // We'll need to use a proper WebSocket server library or implement using Jetty WebSocket
-    // For now, this is a placeholder - we'll implement using Jetty WebSocket in the next iteration
+
+    // Jetty server for WebSocket connections
+    private var jettyServer: Server? = null
+    private var currentPort: Int = DEFAULT_PORT
     
     /**
      * Start the WebSocket server on the specified port.
-     * 
+     *
      * @param port Port to listen on (default: 8081)
      * @return true if server started successfully
      */
     fun start(port: Int = DEFAULT_PORT): Boolean {
         if (_isRunning.value) {
-            Log.w(TAG, "Server already running")
+            Log.w(TAG, "Server already running on port $currentPort")
             return true
         }
-        
+
         try {
-            // TODO: Implement WebSocket server using Jetty WebSocket
-            // For now, we'll use a simpler approach with OkHttp client connections
-            // The master will accept connections from clients who connect to it
-            
+            currentPort = port
+
+            // Create Jetty server
+            val server = Server(port)
+            val contextHandler = ServletContextHandler(ServletContextHandler.NO_SESSIONS)
+            contextHandler.contextPath = "/"
+
+            // Create and register WebSocket servlet
+            val wsServlet = SyncWebSocketServlet(this)
+            contextHandler.addServlet(ServletHolder(wsServlet), "/sync")
+
+            server.handler = contextHandler
+            server.start()
+
+            jettyServer = server
             _isRunning.value = true
+
             Log.i(TAG, "WebSocket sync server started on port $port")
             return true
-            
+
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start WebSocket server", e)
+            Log.e(TAG, "Failed to start WebSocket server on port $port", e)
+            jettyServer = null
             _isRunning.value = false
             return false
         }
@@ -95,7 +110,7 @@ class SyncCommandServer {
         if (!_isRunning.value) {
             return
         }
-        
+
         try {
             // Close all client connections
             connectedClients.values.forEach { webSocket ->
@@ -103,10 +118,14 @@ class SyncCommandServer {
             }
             connectedClients.clear()
             _connectedClientIds.value = emptyList()
-            
+
+            // Stop Jetty server
+            jettyServer?.stop()
+            jettyServer = null
+
             _isRunning.value = false
             Log.i(TAG, "WebSocket sync server stopped")
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping WebSocket server", e)
         }

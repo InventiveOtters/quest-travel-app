@@ -149,6 +149,8 @@ dependencies {
   // Using Jetty 9.4.x for Android compatibility (Jetty 11+ uses Java 9+ APIs not available on Android)
   implementation("org.eclipse.jetty:jetty-server:9.4.54.v20240208")
   implementation("org.eclipse.jetty:jetty-servlet:9.4.54.v20240208")
+  implementation("org.eclipse.jetty.websocket:websocket-server:9.4.54.v20240208")
+  implementation("org.eclipse.jetty.websocket:websocket-servlet:9.4.54.v20240208")
 
   // TUS Protocol Server (resumable uploads)
   // Using 1.0.0-2.1 for javax.servlet compatibility with Jetty 9.4.x
