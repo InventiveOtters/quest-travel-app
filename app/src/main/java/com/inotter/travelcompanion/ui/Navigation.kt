@@ -135,11 +135,20 @@ fun VRNavigationHost(
       )
     }
 
-	    composable("sync") {
-	      SyncScreen(
-	          onBack = { navController.popBackStack() },
-	      )
-	    }
+	    	    composable("sync") {
+	    	      SyncScreen(
+	    	          onBack = { navController.popBackStack() },
+	    	          currentVideo = playerViewModel.getCurrentVideo(),
+	    	      )
+	    	    }
+
+	    	    composable("syncAuto") {
+	    	      SyncScreen(
+	    	          onBack = { navController.popBackStack() },
+	    	          currentVideo = playerViewModel.getCurrentVideo(),
+	    	          autoCreateOnEnter = true,
+	    	      )
+	    	    }
 
     composable(
         route = "player/{videoId}",
@@ -151,7 +160,8 @@ fun VRNavigationHost(
       PlayerScreen(
           viewModel = playerViewModel,
           video = video,
-          onBack = { navController.popBackStack() },
+	          onBack = { navController.popBackStack() },
+	          onHostSession = { navController.navigate("syncAuto") },
       )
     }
   }

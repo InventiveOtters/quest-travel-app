@@ -59,7 +59,7 @@ data class PlaybackState(
     val lightingIntensity: Float = 0.5f,
     val currentEnvironment: EnvironmentType = EnvironmentType.COLLAB_ROOM,
     val showSettings: Boolean = false,  // Toggle for showing settings panel
-    // Sync-related fields
+    // Sync-related fields (no longer used in immersive controls panel; kept for compatibility)
     val isInSyncMode: Boolean = false,  // Whether sync is active
     val isSyncMaster: Boolean = false,  // Whether this device is the master
     val syncPinCode: String? = null,    // PIN code for the session
@@ -80,10 +80,6 @@ interface ControlsPanelCallback {
     fun onLightingChanged(intensity: Float)
     fun onEnvironmentChanged(environment: EnvironmentType)
     fun onToggleSettings()
-    // Sync-related callbacks
-    fun onCreateSyncSession()
-    fun onJoinSyncSession(pinCode: String)
-    fun onLeaveSyncSession()
 }
 
 /**
@@ -131,19 +127,6 @@ fun ControlsPanelContent(
                 )
             }
             
-            // Sync Section (if in sync mode, show it first)
-            if (playbackState.isInSyncMode) {
-                com.inotter.travelcompanion.ui.sync.SyncStatusSection(
-                    state = com.inotter.travelcompanion.ui.sync.SyncUiState(
-                        isInSyncMode = playbackState.isInSyncMode,
-                        isSyncMaster = playbackState.isSyncMaster,
-                        syncPinCode = playbackState.syncPinCode,
-                        connectedDeviceCount = playbackState.connectedDeviceCount,
-                    ),
-                    onLeaveSession = { callback.onLeaveSyncSession() },
-                )
-            }
-
             // Lighting Slider Section
             LightingSliderSection(
                 lightingIntensity = playbackState.lightingIntensity,
@@ -155,15 +138,6 @@ fun ControlsPanelContent(
                 currentEnvironment = playbackState.currentEnvironment,
                 onEnvironmentChanged = callback::onEnvironmentChanged
             )
-
-            // Sync Controls Section (if not in sync mode)
-            if (!playbackState.isInSyncMode) {
-                com.inotter.travelcompanion.ui.sync.SyncControlsSection(
-                    showCreateButton = true,
-                    onCreateSession = { callback.onCreateSyncSession() },
-                    onJoinSession = { pin -> callback.onJoinSyncSession(pin) },
-                )
-            }
         }
     }
 }

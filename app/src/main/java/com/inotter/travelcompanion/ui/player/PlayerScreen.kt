@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
@@ -45,6 +46,7 @@ fun PlayerScreen(
     viewModel: PlayerViewModel,
     video: VideoItem,
     onBack: () -> Unit,
+    onHostSession: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
   val isPlaying by viewModel.isPlaying.collectAsState()
@@ -260,6 +262,14 @@ fun PlayerScreen(
                     tint = Color.White
                 )
               }
+	            	      // Host multi-device sync session
+	            	      IconButton(onClick = { onHostSession() }) {
+	            	        Icon(
+	            	            imageVector = Icons.Default.Sync,
+	            	            contentDescription = "Host Sync Session",
+	            	            tint = Color.White
+	            	        )
+	            	      }
             }
 
             // Right side with volume button

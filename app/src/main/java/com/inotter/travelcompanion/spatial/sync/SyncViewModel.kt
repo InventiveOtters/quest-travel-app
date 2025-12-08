@@ -1,6 +1,7 @@
 package com.inotter.travelcompanion.spatial.sync
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.inotter.travelcompanion.playback.PlaybackCore
 import com.inotter.travelcompanion.sync.discovery.ConnectionManager
@@ -15,6 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 /**
  * ViewModel for managing sync session state and UI.
@@ -89,35 +93,57 @@ class SyncViewModel(
         }
     }
     
-    /**
-     * Create a new sync session as master.
-     */
-    fun createSession(videoPath: String, movieId: String, deviceName: String = "Quest") {
-        _isLoading.value = true
-        _errorMessage.value = null
-        
-        scope.launch {
-            try {
-                val session = connectionManager?.createSession(
-                    videoPath = videoPath,
-                    movieId = movieId,
-                    deviceName = deviceName
-                )
-                
-                if (session != null) {
-                    _syncMode.value = SyncMode.MASTER
-                    Log.i(TAG, "Session created with PIN: ${session.pinCode}")
-                } else {
-                    _errorMessage.value = "Failed to create session"
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error creating session", e)
-                _errorMessage.value = "Error: ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
+	    /**
+	     * Create a new sync session as master.
+	     *
+	     * @param videoUri URI string for the video (SAF or MediaStore content URI)
+	     */
+	    fun createSession(videoUri: String, movieId: String, deviceName: String = "Quest") {
+	        _isLoading.value = true
+	        _errorMessage.value = null
+	        
+	        scope.launch {
+	            try {
+	                val manager = connectionManager
+	                if (manager == null) {
+	                    _errorMessage.value = "Sync connection manager not available"
+	                    return@launch
+	                }
+
+	                // Ensure we are in a clean idle state before hosting.
+	                // This stops any ongoing discovery or previous sessions that
+	                // might leave ConnectionManager in a non-idle state.
+	                manager.stopDiscovery()
+	                manager.leaveSession()
+	                manager.closeSession()
+
+	                // Resolve a real file path for the HTTP server.
+	                val resolvedPath = resolveVideoPathForSync(videoUri, movieId)
+	                if (resolvedPath == null) {
+	                    _errorMessage.value = "Video file not accessible for sync"
+	                    return@launch
+	                }
+
+	                val session = manager.createSession(
+	                    videoPath = resolvedPath,
+	                    movieId = movieId,
+	                    deviceName = deviceName
+	                )
+	                
+	                if (session != null) {
+	                    _syncMode.value = SyncMode.MASTER
+	                    Log.i(TAG, "Session created with PIN: ${session.pinCode}")
+	                } else {
+	                    _errorMessage.value = "Failed to create session"
+	                }
+	            } catch (e: Exception) {
+	                Log.e(TAG, "Error creating session", e)
+	                _errorMessage.value = "Error: ${e.message}"
+	            } finally {
+	                _isLoading.value = false
+	            }
+	        }
+	    }
     
     /**
      * Start discovering available sessions.
@@ -288,11 +314,65 @@ class SyncViewModel(
      * Cleanup resources.
      */
     fun onCleared() {
+        // Always stop discovery to return ConnectionManager to idle state
+        stopDiscovery()
+
         if (_syncMode.value == SyncMode.MASTER) {
             closeSession()
         } else if (_syncMode.value == SyncMode.CLIENT) {
             leaveSession()
         }
     }
+    
+	    /**
+	     * Resolve a playable file path for sync from a URI string.
+	     *
+	     * For content:// URIs, this copies the content into the app's cache directory
+	     * so that the HTTP server can stream it from a regular File.
+	     */
+	    private suspend fun resolveVideoPathForSync(videoUri: String, movieId: String): String? {
+	        return withContext(Dispatchers.IO) {
+	            try {
+	                val uri = Uri.parse(videoUri)
+	                val scheme = uri.scheme?.lowercase()
+
+	                when (scheme) {
+	                    null, "file" -> uri.path
+	                    "content" -> copyContentUriToCache(uri, movieId)?.absolutePath
+	                    else -> {
+	                        Log.w(TAG, "Unsupported URI scheme for sync: $scheme")
+	                        null
+	                    }
+	                }
+	            } catch (e: Exception) {
+	                Log.e(TAG, "Failed to resolve video path for sync: $videoUri", e)
+	                null
+	            }
+	        }
+	    }
+
+	    /**
+	     * Copy a content:// URI into a temporary file under cacheDir for streaming.
+	     */
+	    private fun copyContentUriToCache(uri: Uri, movieId: String): File? {
+	        return try {
+	            val resolver = context.contentResolver
+	            val extension = "mp4" // Best-effort; servlet defaults to video/mp4 for unknown
+	            val outFile = File(context.cacheDir, "sync_${'$'}movieId.${'$'}extension")
+	
+	            resolver.openInputStream(uri)?.use { input ->
+	                FileOutputStream(outFile).use { output ->
+	                    input.copyTo(output)
+	                }
+	                outFile
+	            } ?: run {
+	                Log.e(TAG, "Failed to open input stream for URI: $uri")
+	                null
+	            }
+	        } catch (e: Exception) {
+	            Log.e(TAG, "Failed to cache content URI for sync: $uri", e)
+	            null
+	        }
+	    }
 }
 

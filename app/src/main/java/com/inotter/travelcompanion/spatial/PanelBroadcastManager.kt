@@ -29,15 +29,11 @@ object PanelBroadcastManager {
     const val ACTION_LIGHTING_CHANGED = "com.inotter.travelcompanion.ACTION_LIGHTING_CHANGED"
     const val ACTION_ENVIRONMENT_CHANGED = "com.inotter.travelcompanion.ACTION_ENVIRONMENT_CHANGED"
     const val ACTION_TOGGLE_SETTINGS = "com.inotter.travelcompanion.ACTION_TOGGLE_SETTINGS"
-    const val ACTION_CREATE_SYNC_SESSION = "com.inotter.travelcompanion.ACTION_CREATE_SYNC_SESSION"
-    const val ACTION_JOIN_SYNC_SESSION = "com.inotter.travelcompanion.ACTION_JOIN_SYNC_SESSION"
-    const val ACTION_LEAVE_SYNC_SESSION = "com.inotter.travelcompanion.ACTION_LEAVE_SYNC_SESSION"
 
     // Extra keys
     const val EXTRA_POSITION = "position"
     const val EXTRA_INTENSITY = "intensity"
     const val EXTRA_ENVIRONMENT = "environment"
-    const val EXTRA_PIN_CODE = "pin_code"
     
     /**
      * Interface for receiving panel commands in ImmersiveActivity.
@@ -53,9 +49,6 @@ object PanelBroadcastManager {
         fun onLightingChanged(intensity: Float)
         fun onEnvironmentChanged(environment: EnvironmentType)
         fun onToggleSettings()
-        fun onCreateSyncSession()
-        fun onJoinSyncSession(pinCode: String)
-        fun onLeaveSyncSession()
     }
     
     /**
@@ -94,12 +87,6 @@ object PanelBroadcastManager {
                     listener.onEnvironmentChanged(environment)
                 }
                 ACTION_TOGGLE_SETTINGS -> listener.onToggleSettings()
-                ACTION_CREATE_SYNC_SESSION -> listener.onCreateSyncSession()
-                ACTION_JOIN_SYNC_SESSION -> {
-                    val pinCode = intent.getStringExtra(EXTRA_PIN_CODE) ?: ""
-                    listener.onJoinSyncSession(pinCode)
-                }
-                ACTION_LEAVE_SYNC_SESSION -> listener.onLeaveSyncSession()
             }
         }
         
@@ -118,9 +105,6 @@ object PanelBroadcastManager {
                 addAction(ACTION_LIGHTING_CHANGED)
                 addAction(ACTION_ENVIRONMENT_CHANGED)
                 addAction(ACTION_TOGGLE_SETTINGS)
-                addAction(ACTION_CREATE_SYNC_SESSION)
-                addAction(ACTION_JOIN_SYNC_SESSION)
-                addAction(ACTION_LEAVE_SYNC_SESSION)
             }
         }
     }
@@ -184,23 +168,5 @@ object PanelBroadcastManager {
     fun sendToggleSettings(context: Context) {
         Log.d(TAG, "Sending toggle settings broadcast")
         context.sendBroadcast(Intent(ACTION_TOGGLE_SETTINGS).setPackage(context.packageName))
-    }
-
-    fun sendCreateSyncSession(context: Context) {
-        Log.d(TAG, "Sending create sync session broadcast")
-        context.sendBroadcast(Intent(ACTION_CREATE_SYNC_SESSION).setPackage(context.packageName))
-    }
-
-    fun sendJoinSyncSession(context: Context, pinCode: String) {
-        Log.d(TAG, "Sending join sync session broadcast: $pinCode")
-        context.sendBroadcast(Intent(ACTION_JOIN_SYNC_SESSION).apply {
-            setPackage(context.packageName)
-            putExtra(EXTRA_PIN_CODE, pinCode)
-        })
-    }
-
-    fun sendLeaveSyncSession(context: Context) {
-        Log.d(TAG, "Sending leave sync session broadcast")
-        context.sendBroadcast(Intent(ACTION_LEAVE_SYNC_SESSION).setPackage(context.packageName))
     }
 }

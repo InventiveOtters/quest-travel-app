@@ -79,18 +79,6 @@ class ControlsPanelActivity : ComponentActivity() {
             // Also notify ImmersiveActivity
             PanelBroadcastManager.sendToggleSettings(this@ControlsPanelActivity)
         }
-        override fun onCreateSyncSession() {
-            Log.d(TAG, "onCreateSyncSession pressed - sending broadcast")
-            PanelBroadcastManager.sendCreateSyncSession(this@ControlsPanelActivity)
-        }
-        override fun onJoinSyncSession(pinCode: String) {
-            Log.d(TAG, "onJoinSyncSession pressed with PIN: $pinCode - sending broadcast")
-            PanelBroadcastManager.sendJoinSyncSession(this@ControlsPanelActivity, pinCode)
-        }
-        override fun onLeaveSyncSession() {
-            Log.d(TAG, "onLeaveSyncSession pressed - sending broadcast")
-            PanelBroadcastManager.sendLeaveSyncSession(this@ControlsPanelActivity)
-        }
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {

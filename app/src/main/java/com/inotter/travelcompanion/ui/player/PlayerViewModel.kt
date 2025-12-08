@@ -44,9 +44,10 @@ class PlayerViewModel @Inject constructor(
   private val _volume = MutableStateFlow(0.5f)
   val volume: StateFlow<Float> = _volume.asStateFlow()
 
-  private var currentVideoId: Long? = null
-  private var progressUpdateJob: Job? = null
-  private var uiPositionUpdateJob: Job? = null
+	  private var currentVideoId: Long? = null
+	  private var currentVideo: VideoItem? = null
+	  private var progressUpdateJob: Job? = null
+	  private var uiPositionUpdateJob: Job? = null
 
   init {
     // Load saved volume from settings
@@ -66,27 +67,33 @@ class PlayerViewModel @Inject constructor(
     playbackCore.setSurface(surface)
   }
 
-  /**
-   * Get the underlying PlaybackCore for direct access if needed.
-   */
-  fun getPlaybackCore(): PlaybackCore = playbackCore
-
-  /**
-   * Prepare and load a video for playback.
-   *
-   * @param uri The URI of the video file
-   * @param videoId The database ID of the video
-   * @param video The video item metadata
-   * @param startPositionMs Optional starting position in milliseconds (for resume)
-   */
-  fun loadVideo(uri: Uri, videoId: Long, video: VideoItem, startPositionMs: Long = 0L) {
-    currentVideoId = videoId
-    viewModelScope.launch {
-      playbackCore.prepare(uri, startPositionMs)
-      play() // Auto-play when video is loaded
-      startProgressTracking()
-    }
-  }
+	  /**
+	   * Get the underlying PlaybackCore for direct access if needed.
+	   */
+	  fun getPlaybackCore(): PlaybackCore = playbackCore
+	
+	  /**
+	   * Get the currently loaded video, if any.
+	   */
+	  fun getCurrentVideo(): VideoItem? = currentVideo
+	
+	  /**
+	   * Prepare and load a video for playback.
+	   *
+	   * @param uri The URI of the video file
+	   * @param videoId The database ID of the video
+	   * @param video The video item metadata
+	   * @param startPositionMs Optional starting position in milliseconds (for resume)
+	   */
+	  fun loadVideo(uri: Uri, videoId: Long, video: VideoItem, startPositionMs: Long = 0L) {
+	    currentVideoId = videoId
+	    currentVideo = video
+	    viewModelScope.launch {
+	      playbackCore.prepare(uri, startPositionMs)
+	      play() // Auto-play when video is loaded
+	      startProgressTracking()
+	    }
+	  }
 
   /**
    * Start tracking playback progress and periodically save to database.

@@ -1,6 +1,7 @@
 package com.inotter.travelcompanion.ui.sync
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import com.inotter.travelcompanion.playback.PlaybackCore
 import com.inotter.travelcompanion.spatial.sync.SyncViewModel
 import com.inotter.travelcompanion.ui.theme.QuestDimensions
@@ -41,18 +44,30 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun SyncScreen(
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier,
+	    onBack: () -> Unit,
+	    currentVideo: VideoItem? = null,
+		    autoCreateOnEnter: Boolean = false,
+	    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
 
-    val syncViewModel = rememberSyncViewModel(context)
-
-    val syncMode by syncViewModel.syncMode.collectAsState()
+	    val syncViewModel = rememberSyncViewModel(context)
     val currentSession by syncViewModel.currentSession.collectAsState()
     val connectedDevices by syncViewModel.connectedDevices.collectAsState()
 
-    val scope = rememberCoroutineScope()
+	    val scope = rememberCoroutineScope()
+
+	    // Optionally auto-create a session for the current video when entering this screen
+	    val hasAutoHosted = remember { androidx.compose.runtime.mutableStateOf(false) }
+	    LaunchedEffect(currentVideo?.id, autoCreateOnEnter) {
+	        if (autoCreateOnEnter && currentVideo != null && !hasAutoHosted.value && !syncViewModel.isInSyncMode()) {
+	            hasAutoHosted.value = true
+	            syncViewModel.createSession(
+	                videoUri = currentVideo.fileUri,
+	                movieId = currentVideo.id.toString()
+	            )
+	        }
+	    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -95,54 +110,61 @@ fun SyncScreen(
                         color = QuestThemeExtras.colors.primaryText,
                     )
                 }
-            }
+	            }
 
-            QuestDivider()
+	            QuestDivider()
 
-            val isInSyncMode = syncViewModel.isInSyncMode()
-            val isMaster = syncViewModel.isMaster()
-            val pinCode = currentSession?.pinCode
-            val connectedCount = connectedDevices.size
+	            val isInSyncMode = syncViewModel.isInSyncMode()
+	            val isMaster = syncViewModel.isMaster()
+	            val pinCode = currentSession?.pinCode
+	            val connectedCount = connectedDevices.size
 
-            SyncStatusSection(
-                state = SyncUiState(
-                    isInSyncMode = isInSyncMode,
-                    isSyncMaster = isMaster,
-                    syncPinCode = pinCode,
-                    connectedDeviceCount = connectedCount,
-                ),
-                onLeaveSession = {
-                    if (syncViewModel.isMaster()) {
-                        syncViewModel.closeSession()
-                    } else {
-                        syncViewModel.leaveSession()
-                    }
-                }
-            )
+	            SyncStatusSection(
+	                state = SyncUiState(
+	                    isInSyncMode = isInSyncMode,
+	                    isSyncMaster = isMaster,
+	                    syncPinCode = pinCode,
+	                    connectedDeviceCount = connectedCount,
+	                ),
+	                onLeaveSession = {
+	                    if (syncViewModel.isMaster()) {
+	                        syncViewModel.closeSession()
+	                    } else {
+	                        syncViewModel.leaveSession()
+	                    }
+	                }
+	            )
 
-            Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
+	            Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
 
-            Text(
-                text = "Join a session hosted from your phone or another headset using the 6-digit PIN.",
-                style = QuestTypography.bodyMedium,
-                color = QuestThemeExtras.colors.secondaryText,
-            )
+	            Text(
+	                text = "Join a session hosted from your phone or another headset using the 6-digit PIN.",
+	                style = QuestTypography.bodyMedium,
+	                color = QuestThemeExtras.colors.secondaryText,
+	            )
 
-            SyncControlsSection(
-                showCreateButton = false,
-                onCreateSession = {},
-                onJoinSession = { pinCodeJoin ->
-                    syncViewModel.startDiscovery(pinCodeJoin)
-                    scope.launch {
-                        delay(2000)
-                        val services = syncViewModel.discoveredServices.value
-                        val matchingService = services.find { it.pinCode == pinCodeJoin }
-                        if (matchingService != null) {
-                            syncViewModel.joinSession(matchingService)
-                        }
-                    }
-                }
-            )
+	            SyncControlsSection(
+	                showCreateButton = currentVideo != null,
+	                onCreateSession = {
+	                    currentVideo?.let { video ->
+	                        syncViewModel.createSession(
+	                            videoUri = video.fileUri,
+	                            movieId = video.id.toString()
+	                        )
+	                    }
+	                },
+	                onJoinSession = { pinCodeJoin ->
+	                    syncViewModel.startDiscovery(pinCodeJoin)
+	                    scope.launch {
+	                        delay(2000)
+	                        val services = syncViewModel.discoveredServices.value
+	                        val matchingService = services.find { it.pinCode == pinCodeJoin }
+	                        if (matchingService != null) {
+	                            syncViewModel.joinSession(matchingService)
+	                        }
+	                    }
+	                }
+	            )
         }
     }
 }
