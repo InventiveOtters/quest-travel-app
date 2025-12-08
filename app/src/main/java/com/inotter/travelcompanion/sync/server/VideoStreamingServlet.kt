@@ -2,6 +2,7 @@ package com.inotter.travelcompanion.sync.server
 
 import android.util.Log
 import java.io.File
+import java.io.IOException
 import java.io.RandomAccessFile
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
@@ -86,6 +87,9 @@ class VideoStreamingServlet : HttpServlet() {
 
         try {
             streamVideo(req, resp, videoFile)
+        } catch (e: IOException) {
+            // Client disconnected during streaming - this is normal behavior
+            Log.d(TAG, "Client disconnected during streaming: $movieId (${e.message})")
         } catch (e: Exception) {
             Log.e(TAG, "Error streaming video: $movieId", e)
             if (!resp.isCommitted) {
@@ -156,6 +160,7 @@ class VideoStreamingServlet : HttpServlet() {
 
     /**
      * Stream a range of bytes from the file.
+     * Throws IOException if client disconnects during streaming.
      */
     private fun streamFileRange(videoFile: File, start: Long, length: Long, resp: HttpServletResponse) {
         RandomAccessFile(videoFile, "r").use { raf ->
@@ -163,6 +168,7 @@ class VideoStreamingServlet : HttpServlet() {
 
             val buffer = ByteArray(BUFFER_SIZE)
             var remaining = length
+            var totalWritten = 0L
 
             resp.outputStream.use { output ->
                 while (remaining > 0) {
@@ -171,10 +177,17 @@ class VideoStreamingServlet : HttpServlet() {
 
                     if (bytesRead == -1) break
 
-                    output.write(buffer, 0, bytesRead)
-                    remaining -= bytesRead
+                    try {
+                        output.write(buffer, 0, bytesRead)
+                        output.flush()
+                        totalWritten += bytesRead
+                        remaining -= bytesRead
+                    } catch (e: IOException) {
+                        // Client disconnected - log progress and rethrow
+                        Log.d(TAG, "Client disconnected after receiving $totalWritten/$length bytes")
+                        throw e
+                    }
                 }
-                output.flush()
             }
         }
     }

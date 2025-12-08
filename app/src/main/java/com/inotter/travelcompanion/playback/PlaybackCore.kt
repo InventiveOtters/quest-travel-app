@@ -13,11 +13,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.decoder.ffmpeg.FfmpegAudioRenderer
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.LoadControl
 import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.upstream.DefaultAllocator
 /**
  * Core playback engine using ExoPlayer.
  * Handles video decoding, subtitle tracks, and surface rendering.
@@ -71,6 +74,20 @@ class PlaybackCore(context: Context) {
       .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
       .build()
 
+  // Custom load control for network streaming
+  // Reduces buffer sizes to prevent massive range requests over network
+  private val loadControl: LoadControl = DefaultLoadControl.Builder()
+      .setAllocator(DefaultAllocator(true, 16 * 1024)) // 16KB allocation size
+      .setBufferDurationsMs(
+          /* minBufferMs= */ 15000,        // 15 seconds minimum buffer
+          /* maxBufferMs= */ 30000,        // 30 seconds maximum buffer (reduced from default 50s)
+          /* bufferForPlaybackMs= */ 2500, // 2.5 seconds to start playback
+          /* bufferForPlaybackAfterRebufferMs= */ 5000 // 5 seconds after rebuffer
+      )
+      .setTargetBufferBytes(DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES)
+      .setPrioritizeTimeOverSizeThresholds(true)
+      .build()
+
   // Custom renderers factory that adds FFmpeg audio decoder for full codec support
   // Includes: AC3, EAC3, DTS, DTS-HD, TrueHD, Vorbis, Opus, FLAC, ALAC, MP3, AAC, AMR
   // Using pre-built FFmpeg extension from Just Player project
@@ -97,6 +114,7 @@ class PlaybackCore(context: Context) {
 
   private val player: ExoPlayer = ExoPlayer.Builder(context, renderersFactory)
       .setTrackSelector(trackSelector)
+      .setLoadControl(loadControl)
       .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
       .build()
 
