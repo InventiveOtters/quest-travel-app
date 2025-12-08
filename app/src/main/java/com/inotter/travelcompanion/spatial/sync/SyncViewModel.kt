@@ -340,6 +340,11 @@ class SyncViewModel(
     fun getPlaybackCore(): PlaybackCore = playbackCore
 
     /**
+     * Get the ConnectionManager for direct access (e.g., for sending client commands).
+     */
+    fun getConnectionManager(): ConnectionManager? = connectionManager
+
+    /**
      * Clear error message.
      */
     fun clearError() {

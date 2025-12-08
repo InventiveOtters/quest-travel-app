@@ -199,6 +199,31 @@ class SyncCommandClient(
     }
 
     /**
+     * Send a command to master (for bidirectional sync).
+     * The master will rebroadcast this command to all other clients.
+     *
+     * @param command Command to send
+     * @return true if sent successfully
+     */
+    fun sendCommand(command: SyncCommand): Boolean {
+        val ws = webSocket
+        if (ws == null) {
+            Log.w(TAG, "Cannot send command: not connected")
+            return false
+        }
+
+        return try {
+            val json = command.toJson()
+            ws.send(json)
+            Log.d(TAG, "Sent command: action=${command.action}")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send command", e)
+            false
+        }
+    }
+
+    /**
      * Set listener for receiving commands from master.
      *
      * @param listener Callback invoked when a command is received

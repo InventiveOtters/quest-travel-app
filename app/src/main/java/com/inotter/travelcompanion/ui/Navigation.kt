@@ -26,6 +26,7 @@ import com.inotter.travelcompanion.ui.transfer.TransferViewModel
 import com.inotter.travelcompanion.ui.transfer.WiFiTransferScreen
 import com.inotter.travelcompanion.ui.sync.SyncScreen
 import com.inotter.travelcompanion.ui.sync.SyncClientPlayerScreen
+import com.inotter.travelcompanion.ui.sync.SyncMasterPlayerScreen
 import com.inotter.travelcompanion.ui.sync.rememberSyncViewModel
 
 /**
@@ -151,6 +152,12 @@ fun VRNavigationHost(
 	    	              navController.navigate("syncClientPlayer") {
 	    	                  popUpTo("sync") { inclusive = true }
 	    	              }
+	    	          },
+	    	          onCreatedSession = {
+	    	              // Navigate to sync master player when created as master
+	    	              navController.navigate("syncMasterPlayer") {
+	    	                  popUpTo("sync") { inclusive = true }
+	    	              }
 	    	          }
 	    	      )
 	    	    }
@@ -164,6 +171,12 @@ fun VRNavigationHost(
 	    	          onJoinedSession = {
 	    	              // Navigate to sync client player when joined as client
 	    	              navController.navigate("syncClientPlayer") {
+	    	                  popUpTo("syncAuto") { inclusive = true }
+	    	              }
+	    	          },
+	    	          onCreatedSession = {
+	    	              // Navigate to sync master player when created as master
+	    	              navController.navigate("syncMasterPlayer") {
 	    	                  popUpTo("syncAuto") { inclusive = true }
 	    	              }
 	    	          }
@@ -181,6 +194,23 @@ fun VRNavigationHost(
 	    	              }
 	    	          }
 	    	      )
+	    	    }
+
+	    	    composable("syncMasterPlayer") {
+	    	      // Player screen for sync master (hosting session)
+	    	      // Uses the shared SyncViewModel's PlaybackCore instance
+	    	      val video = playerViewModel.getCurrentVideo()
+	    	      if (video != null) {
+	    	          SyncMasterPlayerScreen(
+	    	              syncViewModel = syncViewModel,
+	    	              video = video,
+	    	              onBack = {
+	    	                  navController.navigate("library") {
+	    	                      popUpTo("library") { inclusive = false }
+	    	                  }
+	    	              }
+	    	          )
+	    	      }
 	    	    }
 
     composable(

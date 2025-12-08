@@ -294,5 +294,70 @@ class ClientSyncCoordinator(
         // Positive = ahead, negative = behind
         return currentPosition - expectedMasterPosition
     }
+
+    /**
+     * Send play command to master (for bidirectional sync).
+     * The master will rebroadcast this to all clients.
+     */
+    fun sendPlayCommand(position: Long) {
+        val client = syncClient
+        if (client == null || !client.isConnected()) {
+            Log.w(TAG, "Cannot send play command: not connected")
+            return
+        }
+
+        val command = SyncCommand(
+            action = SyncCommand.ACTION_PLAY,
+            timestamp = System.currentTimeMillis(),
+            videoPosition = position,
+            senderId = clientId
+        )
+
+        client.sendCommand(command)
+        Log.i(TAG, "Sent play command: position=$position")
+    }
+
+    /**
+     * Send pause command to master (for bidirectional sync).
+     * The master will rebroadcast this to all clients.
+     */
+    fun sendPauseCommand() {
+        val client = syncClient
+        if (client == null || !client.isConnected()) {
+            Log.w(TAG, "Cannot send pause command: not connected")
+            return
+        }
+
+        val command = SyncCommand(
+            action = SyncCommand.ACTION_PAUSE,
+            timestamp = System.currentTimeMillis(),
+            senderId = clientId
+        )
+
+        client.sendCommand(command)
+        Log.i(TAG, "Sent pause command")
+    }
+
+    /**
+     * Send seek command to master (for bidirectional sync).
+     * The master will rebroadcast this to all clients.
+     */
+    fun sendSeekCommand(position: Long) {
+        val client = syncClient
+        if (client == null || !client.isConnected()) {
+            Log.w(TAG, "Cannot send seek command: not connected")
+            return
+        }
+
+        val command = SyncCommand(
+            action = SyncCommand.ACTION_SEEK,
+            timestamp = System.currentTimeMillis(),
+            seekPosition = position,
+            senderId = clientId
+        )
+
+        client.sendCommand(command)
+        Log.i(TAG, "Sent seek command: position=$position")
+    }
 }
 

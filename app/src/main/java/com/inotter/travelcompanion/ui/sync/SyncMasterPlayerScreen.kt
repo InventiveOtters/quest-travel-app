@@ -20,20 +20,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import com.inotter.travelcompanion.spatial.sync.SyncViewModel
 import kotlinx.coroutines.delay
 
 /**
- * Player screen for sync client mode.
- * Displays the video being streamed from the master device.
- * Playback is controlled by sync commands from the master.
+ * Player screen for sync master mode.
+ * Displays the video being played locally and broadcasts playback commands to all connected clients.
  */
 @Composable
-fun SyncClientPlayerScreen(
+fun SyncMasterPlayerScreen(
     syncViewModel: SyncViewModel,
+    video: VideoItem,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -41,12 +41,12 @@ fun SyncClientPlayerScreen(
     val connectedDevices by syncViewModel.connectedDevices.collectAsState()
 
     var showControls by remember { mutableStateOf(true) }
-
+    
     // Track playback state
     var isPlaying by remember { mutableStateOf(false) }
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
-
+    
     // Track seeking state
     var isSeeking by remember { mutableStateOf(false) }
     var seekPosition by remember { mutableStateOf(0f) }
@@ -73,9 +73,9 @@ fun SyncClientPlayerScreen(
         }
     }
 
-    // Handler for back button - leave session and navigate back
+    // Handler for back button - close session and navigate back
     val handleBack: () -> Unit = {
-        syncViewModel.leaveSession()
+        syncViewModel.closeSession()
         onBack()
     }
     
@@ -95,7 +95,6 @@ fun SyncClientPlayerScreen(
                 }
         ) {
             // Video surface using AndroidView with SurfaceView
-            // The SyncViewModel's PlaybackCore renders video frames to this surface
             AndroidView(
                 factory = { context ->
                     SurfaceView(context).apply {
@@ -142,7 +141,7 @@ fun SyncClientPlayerScreen(
                     )
                 }
             }
-            
+
             // Sync status overlay at top right
             AnimatedVisibility(
                 visible = showControls,
@@ -161,17 +160,22 @@ fun SyncClientPlayerScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = "Synced Playback",
+                            text = "Hosting Session",
                             style = MaterialTheme.typography.titleSmall,
                             color = Color.White
                         )
                         currentSession?.let { session ->
                             Text(
-                                text = "Master: ${session.masterDevice.deviceName}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.8f)
+                                text = "PIN: ${session.pinCode}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White
                             )
                         }
+                        Text(
+                            text = "${connectedDevices.size} device(s) connected",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
                     }
                 }
             }
@@ -189,6 +193,14 @@ fun SyncClientPlayerScreen(
                         .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    // Video title
+                    Text(
+                        text = video.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+
                     // Seek bar with time labels
                     Column(
                         modifier = Modifier.fillMaxWidth()
@@ -203,9 +215,8 @@ fun SyncClientPlayerScreen(
                                 showControls = true
                             },
                             onValueChangeFinished = {
-                                // Get client coordinator and send seek command
-                                val connectionManager = syncViewModel.getConnectionManager()
-                                connectionManager?.getClientCoordinator()?.sendSeekCommand(seekPosition.toLong())
+                                // Broadcast seek command to all clients
+                                syncViewModel.seekTo(seekPosition.toLong())
                                 isSeeking = false
                             },
                             valueRange = 0f..duration.toFloat(),
@@ -247,8 +258,7 @@ fun SyncClientPlayerScreen(
                         // Skip backward
                         IconButton(onClick = {
                             val newPosition = (currentPosition - 10_000L).coerceAtLeast(0L)
-                            val connectionManager = syncViewModel.getConnectionManager()
-                            connectionManager?.getClientCoordinator()?.sendSeekCommand(newPosition)
+                            syncViewModel.seekTo(newPosition)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.FastRewind,
@@ -262,12 +272,10 @@ fun SyncClientPlayerScreen(
                         // Play/Pause
                         IconButton(
                             onClick = {
-                                val connectionManager = syncViewModel.getConnectionManager()
-                                val clientCoordinator = connectionManager?.getClientCoordinator()
                                 if (isPlaying) {
-                                    clientCoordinator?.sendPauseCommand()
+                                    syncViewModel.pause()
                                 } else {
-                                    clientCoordinator?.sendPlayCommand(currentPosition)
+                                    syncViewModel.play(currentPosition)
                                 }
                             },
                             modifier = Modifier.size(64.dp),
@@ -285,8 +293,7 @@ fun SyncClientPlayerScreen(
                         // Skip forward
                         IconButton(onClick = {
                             val newPosition = (currentPosition + 10_000L).coerceAtMost(duration)
-                            val connectionManager = syncViewModel.getConnectionManager()
-                            connectionManager?.getClientCoordinator()?.sendSeekCommand(newPosition)
+                            syncViewModel.seekTo(newPosition)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.FastForward,
@@ -294,38 +301,6 @@ fun SyncClientPlayerScreen(
                                 tint = Color.White
                             )
                         }
-                    }
-                }
-            }
-
-            // Waiting for host message - shown when connected but not playing
-            if (!isPlaying) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.7f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        androidx.compose.material3.CircularProgressIndicator(
-                            modifier = Modifier.size(64.dp),
-                            strokeWidth = 6.dp,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "Connected",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "Waiting for host to start the movie...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.8f),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
                     }
                 }
             }

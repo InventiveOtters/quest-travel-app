@@ -58,6 +58,9 @@ class SyncCommandServer {
     // Callback for receiving responses from clients
     private var responseListener: ((clientId: String, response: SyncResponse) -> Unit)? = null
 
+    // Callback for receiving commands from clients (for bidirectional sync)
+    private var commandListener: ((clientId: String, command: SyncCommand) -> Unit)? = null
+
     // Jetty server for WebSocket connections
     private var jettyServer: Server? = null
     private var currentPort: Int = DEFAULT_PORT
@@ -225,6 +228,15 @@ class SyncCommandServer {
     }
 
     /**
+     * Set listener for client commands (for bidirectional sync).
+     *
+     * @param listener Callback invoked when a command is received from a client
+     */
+    fun setCommandListener(listener: (clientId: String, command: SyncCommand) -> Unit) {
+        this.commandListener = listener
+    }
+
+    /**
      * Handle incoming message from a client.
      * Called internally when a message is received.
      *
@@ -233,11 +245,22 @@ class SyncCommandServer {
      */
     internal fun handleClientMessage(clientId: String, message: String) {
         try {
+            // Try to parse as SyncCommand first (for bidirectional sync)
+            try {
+                val command = SyncCommand.fromJson(message)
+                commandListener?.invoke(clientId, command)
+                Log.d(TAG, "Received command from $clientId: action=${command.action}")
+                return
+            } catch (e: Exception) {
+                // Not a command, try parsing as response
+            }
+
+            // Parse as SyncResponse
             val response = SyncResponse.fromJson(message)
             responseListener?.invoke(clientId, response)
             Log.d(TAG, "Received response from $clientId: pos=${response.videoPosition}, drift=${response.drift}ms")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to parse response from $clientId", e)
+            Log.e(TAG, "Failed to parse message from $clientId", e)
         }
     }
 

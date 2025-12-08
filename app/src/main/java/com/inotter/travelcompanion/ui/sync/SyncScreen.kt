@@ -52,6 +52,7 @@ fun SyncScreen(
 	    currentVideo: VideoItem? = null,
 		    autoCreateOnEnter: Boolean = false,
 	    onJoinedSession: () -> Unit = {},
+	    onCreatedSession: () -> Unit = {},
 	    modifier: Modifier = Modifier,
 ) {
     val currentSession by syncViewModel.currentSession.collectAsState()
@@ -61,10 +62,12 @@ fun SyncScreen(
 
 	    val scope = rememberCoroutineScope()
 
-    // Navigate to player when successfully joined as client
+    // Navigate to appropriate player when sync mode changes
     LaunchedEffect(syncMode) {
-        if (syncMode == SyncViewModel.SyncMode.CLIENT) {
-            onJoinedSession()
+        when (syncMode) {
+            SyncViewModel.SyncMode.CLIENT -> onJoinedSession()
+            SyncViewModel.SyncMode.MASTER -> onCreatedSession()
+            else -> {}
         }
     }
 

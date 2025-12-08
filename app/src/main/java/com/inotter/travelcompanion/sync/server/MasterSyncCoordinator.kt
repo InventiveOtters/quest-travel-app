@@ -125,7 +125,12 @@ class MasterSyncCoordinator(
             syncSrv.setResponseListener { clientId, response ->
                 handleClientResponse(clientId, response)
             }
-            
+
+            // Set up command listener for bidirectional sync
+            syncSrv.setCommandListener { clientId, command ->
+                handleClientCommand(clientId, command)
+            }
+
             syncServer = syncSrv
             
             // Create session info
@@ -300,6 +305,34 @@ class MasterSyncCoordinator(
         }
 
         Log.d(TAG, "Client $clientId: pos=${response.videoPosition}, drift=${response.drift}ms, ready=${response.isReady}")
+    }
+
+    /**
+     * Handle command from a client (for bidirectional sync).
+     * Rebroadcasts the command to all other clients and applies it locally.
+     */
+    private fun handleClientCommand(clientId: String, command: SyncCommand) {
+        Log.i(TAG, "Received command from client $clientId: ${command.action}")
+
+        when (command.action) {
+            SyncCommand.ACTION_PLAY -> {
+                // Rebroadcast play command to all clients
+                val position = command.videoPosition ?: 0L
+                broadcastPlay(position)
+            }
+            SyncCommand.ACTION_PAUSE -> {
+                // Rebroadcast pause command to all clients
+                broadcastPause()
+            }
+            SyncCommand.ACTION_SEEK -> {
+                // Rebroadcast seek command to all clients
+                val position = command.seekPosition ?: 0L
+                broadcastSeek(position)
+            }
+            else -> {
+                Log.w(TAG, "Unknown command from client: ${command.action}")
+            }
+        }
     }
 
     /**
