@@ -87,6 +87,12 @@ fun PlayerScreen(
     onBack()
   }
 
+  // Handler for host session button - pauses playback before navigating to hosting screen
+  val handleHostSession: () -> Unit = {
+    viewModel.pause()
+    onHostSession()
+  }
+
   Surface(
       modifier = modifier.fillMaxSize(),
       color = MaterialTheme.colorScheme.background,
@@ -263,7 +269,7 @@ fun PlayerScreen(
                 )
               }
 	            	      // Host multi-device sync session
-	            	      IconButton(onClick = { onHostSession() }) {
+	            	      IconButton(onClick = handleHostSession) {
 	            	        Icon(
 	            	            imageVector = Icons.Default.Sync,
 	            	            contentDescription = "Host Sync Session",

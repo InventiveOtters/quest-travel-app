@@ -35,9 +35,20 @@ fun SyncClientPlayerScreen(
 ) {
     val currentSession by syncViewModel.currentSession.collectAsState()
     val connectedDevices by syncViewModel.connectedDevices.collectAsState()
-    
+
     var showControls by remember { mutableStateOf(true) }
-    
+
+    // Track if playback has started
+    var isPlaying by remember { mutableStateOf(false) }
+
+    // Check playback state periodically
+    LaunchedEffect(Unit) {
+        while (true) {
+            isPlaying = syncViewModel.getPlaybackCore().isPlaying()
+            delay(500)
+        }
+    }
+
     // Auto-hide controls after 3 seconds
     LaunchedEffect(showControls) {
         if (showControls) {
@@ -45,7 +56,7 @@ fun SyncClientPlayerScreen(
             showControls = false
         }
     }
-    
+
     // Handler for back button - leave session and navigate back
     val handleBack: () -> Unit = {
         syncViewModel.leaveSession()
@@ -145,6 +156,38 @@ fun SyncClientPlayerScreen(
                                 color = Color.White.copy(alpha = 0.8f)
                             )
                         }
+                    }
+                }
+            }
+
+            // Waiting for host message - shown when connected but not playing
+            if (!isPlaying) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            modifier = Modifier.size(64.dp),
+                            strokeWidth = 6.dp,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Connected",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Waiting for host to start the movie...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.8f),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
                     }
                 }
             }

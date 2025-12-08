@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -133,6 +134,7 @@ fun SyncControlsSection(
     onCreateSession: () -> Unit,
     onJoinSession: (String) -> Unit,
     modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
 ) {
     var showJoinDialog by remember { mutableStateOf(false) }
 
@@ -155,7 +157,8 @@ fun SyncControlsSection(
                     onClick = onCreateSession,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = LocalColorScheme.current.primaryButton
+                        containerColor = LocalColorScheme.current.primaryButton,
+                        contentColor = LocalColorScheme.current.primaryOpaqueButton
                     )
                 ) {
                     Text("Create Session")
@@ -166,7 +169,8 @@ fun SyncControlsSection(
                 onClick = { showJoinDialog = true },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = QuestThemeExtras.colors.secondary
+                    containerColor = QuestThemeExtras.colors.secondary,
+                    contentColor = QuestThemeExtras.colors.secondaryButtonText
                 )
             ) {
                 Text("Join Session")
@@ -180,7 +184,8 @@ fun SyncControlsSection(
             onJoin = { pinCode ->
                 onJoinSession(pinCode)
                 showJoinDialog = false
-            }
+            },
+            isLoading = isLoading
         )
     }
 }
@@ -189,60 +194,98 @@ fun SyncControlsSection(
 private fun JoinSessionDialog(
     onDismiss: () -> Unit,
     onJoin: (String) -> Unit,
+    isLoading: Boolean = false,
 ) {
     var pinCode by remember { mutableStateOf("") }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = if (isLoading) { {} } else onDismiss,
         title = {
             Text(
-                text = "Join Sync Session",
+                text = if (isLoading) "Connecting..." else "Join Sync Session",
                 style = QuestTypography.titleLarge,
                 color = QuestThemeExtras.colors.primaryText
             )
         },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Enter the 6-digit PIN code from the master device:",
-                    style = QuestTypography.bodyMedium,
-                    color = QuestThemeExtras.colors.secondaryText
-                )
-
-                OutlinedTextField(
-                    value = pinCode,
-                    onValueChange = { if (it.length <= 6 && it.all { c -> c.isDigit() }) pinCode = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("000000") },
-                    singleLine = true,
-                    textStyle = QuestTypography.headlineMedium.copy(
-                        letterSpacing = 4.sp,
+                if (isLoading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp),
+                        strokeWidth = 4.dp,
+                        color = LocalColorScheme.current.primaryButton
+                    )
+                    Text(
+                        text = "Connecting to session...",
+                        style = QuestTypography.bodyMedium,
+                        color = QuestThemeExtras.colors.secondaryText,
                         textAlign = TextAlign.Center
                     )
-                )
+                } else {
+                    Text(
+                        text = "Enter the 6-digit PIN code from the master device:",
+                        style = QuestTypography.bodyMedium,
+                        color = QuestThemeExtras.colors.secondaryText
+                    )
+
+                    OutlinedTextField(
+                        value = pinCode,
+                        onValueChange = { if (it.length <= 6 && it.all { c -> c.isDigit() }) pinCode = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(
+                                text = "000000",
+                                color = QuestThemeExtras.colors.secondaryText
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = QuestTypography.headlineMedium.copy(
+                            letterSpacing = 4.sp,
+                            textAlign = TextAlign.Center,
+                            color = QuestThemeExtras.colors.primaryText
+                        ),
+                        colors = androidx.compose.material3.TextFieldDefaults.colors(
+                            focusedTextColor = QuestThemeExtras.colors.primaryText,
+                            unfocusedTextColor = QuestThemeExtras.colors.primaryText,
+                            focusedContainerColor = QuestColors.surfaceContainerDark,
+                            unfocusedContainerColor = QuestColors.surfaceContainerDark,
+                            focusedIndicatorColor = LocalColorScheme.current.primaryButton,
+                            unfocusedIndicatorColor = QuestThemeExtras.colors.secondaryText
+                        )
+                    )
+                }
             }
         },
         confirmButton = {
-            Button(
-                onClick = { if (pinCode.length == 6) onJoin(pinCode) },
-                enabled = pinCode.length == 6,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LocalColorScheme.current.primaryButton
-                )
-            ) {
-                Text("Join")
+            if (!isLoading) {
+                Button(
+                    onClick = { if (pinCode.length == 6) onJoin(pinCode) },
+                    enabled = pinCode.length == 6,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LocalColorScheme.current.primaryButton,
+                        contentColor = LocalColorScheme.current.primaryOpaqueButton,
+                        disabledContainerColor = LocalColorScheme.current.primaryButton.copy(alpha = 0.5f),
+                        disabledContentColor = LocalColorScheme.current.primaryOpaqueButton.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Text("Join")
+                }
             }
         },
         dismissButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = QuestThemeExtras.colors.secondary
-                )
-            ) {
-                Text("Cancel")
+            if (!isLoading) {
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = QuestThemeExtras.colors.secondary,
+                        contentColor = QuestThemeExtras.colors.secondaryButtonText
+                    )
+                ) {
+                    Text("Cancel")
+                }
             }
         },
         containerColor = QuestColors.surfaceDark,

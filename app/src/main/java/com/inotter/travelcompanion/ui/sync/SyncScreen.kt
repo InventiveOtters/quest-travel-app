@@ -26,6 +26,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.inotter.travelcompanion.data.datasources.videolibrary.models.VideoItem
 import com.inotter.travelcompanion.playback.PlaybackCore
@@ -33,6 +34,8 @@ import com.inotter.travelcompanion.spatial.sync.SyncViewModel
 import com.inotter.travelcompanion.ui.theme.QuestDimensions
 import com.inotter.travelcompanion.ui.theme.QuestDivider
 import com.inotter.travelcompanion.ui.theme.QuestIconButton
+import com.inotter.travelcompanion.ui.theme.QuestLoadingContent
+import com.inotter.travelcompanion.ui.theme.QuestPrimaryButton
 import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
 import com.inotter.travelcompanion.ui.theme.QuestTypography
 import com.meta.spatial.uiset.theme.LocalColorScheme
@@ -54,6 +57,7 @@ fun SyncScreen(
     val currentSession by syncViewModel.currentSession.collectAsState()
     val connectedDevices by syncViewModel.connectedDevices.collectAsState()
     val syncMode by syncViewModel.syncMode.collectAsState()
+    val isLoading by syncViewModel.isLoading.collectAsState()
 
 	    val scope = rememberCoroutineScope()
 
@@ -125,44 +129,92 @@ fun SyncScreen(
 	            val pinCode = currentSession?.pinCode
 	            val connectedCount = connectedDevices.size
 
-	            SyncStatusSection(
-	                state = SyncUiState(
-	                    isInSyncMode = isInSyncMode,
-	                    isSyncMaster = isMaster,
-	                    syncPinCode = pinCode,
-	                    connectedDeviceCount = connectedCount,
-	                ),
-	                onLeaveSession = {
-	                    if (syncViewModel.isMaster()) {
+	            // Show loading indicator when configuring session in auto-create mode
+	            if (autoCreateOnEnter && isLoading && !isInSyncMode) {
+	                QuestLoadingContent(
+	                    message = "Configuring session...",
+	                    modifier = Modifier.fillMaxWidth()
+	                )
+	            } else if (autoCreateOnEnter && isInSyncMode && isMaster) {
+	                // Auto-create mode: Show session info and "Start watching together" button
+	                SyncStatusSection(
+	                    state = SyncUiState(
+	                        isInSyncMode = isInSyncMode,
+	                        isSyncMaster = isMaster,
+	                        syncPinCode = pinCode,
+	                        connectedDeviceCount = connectedCount,
+	                    ),
+	                    onLeaveSession = {
 	                        syncViewModel.closeSession()
-	                    } else {
-	                        syncViewModel.leaveSession()
 	                    }
+	                )
+
+	                Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
+
+	                // "Start watching together" button - enabled only when at least 1 device is connected
+	                QuestPrimaryButton(
+	                    text = "Start watching together",
+	                    onClick = {
+	                        // TODO: Start synchronized playback
+	                        // For now, just navigate back to player
+	                        onBack()
+	                    },
+	                    enabled = connectedCount > 0,
+	                    expanded = true
+	                )
+
+	                if (connectedCount == 0) {
+	                    Spacer(modifier = Modifier.height(8.dp))
+	                    Text(
+	                        text = "Waiting for devices to connect...",
+	                        style = QuestTypography.bodyMedium,
+	                        color = QuestThemeExtras.colors.secondaryText,
+	                        textAlign = TextAlign.Center,
+	                        modifier = Modifier.fillMaxWidth()
+	                    )
 	                }
-	            )
-
-	            Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
-
-	            Text(
-	                text = "Join a session hosted from your phone or another headset using the 6-digit PIN.",
-	                style = QuestTypography.bodyMedium,
-	                color = QuestThemeExtras.colors.secondaryText,
-	            )
-
-	            SyncControlsSection(
-	                showCreateButton = currentVideo != null,
-	                onCreateSession = {
-	                    currentVideo?.let { video ->
-	                        syncViewModel.createSession(
-	                            videoUri = video.fileUri,
-	                            movieId = video.id.toString()
-	                        )
+	            } else {
+	                // Normal mode: Show status and controls
+	                SyncStatusSection(
+	                    state = SyncUiState(
+	                        isInSyncMode = isInSyncMode,
+	                        isSyncMaster = isMaster,
+	                        syncPinCode = pinCode,
+	                        connectedDeviceCount = connectedCount,
+	                    ),
+	                    onLeaveSession = {
+	                        if (syncViewModel.isMaster()) {
+	                            syncViewModel.closeSession()
+	                        } else {
+	                            syncViewModel.leaveSession()
+	                        }
 	                    }
-	                },
-	                onJoinSession = { pinCodeJoin ->
-	                    syncViewModel.joinSessionByPin(pinCodeJoin)
-	                }
-	            )
+	                )
+
+	                Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
+
+	                Text(
+	                    text = "Join a session hosted from your phone or another headset using the 6-digit PIN.",
+	                    style = QuestTypography.bodyMedium,
+	                    color = QuestThemeExtras.colors.secondaryText,
+	                )
+
+	                SyncControlsSection(
+	                    showCreateButton = currentVideo != null,
+	                    onCreateSession = {
+	                        currentVideo?.let { video ->
+	                            syncViewModel.createSession(
+	                                videoUri = video.fileUri,
+	                                movieId = video.id.toString()
+	                            )
+	                        }
+	                    },
+	                    onJoinSession = { pinCodeJoin ->
+	                        syncViewModel.joinSessionByPin(pinCodeJoin)
+	                    },
+	                    isLoading = isLoading
+	                )
+	            }
         }
     }
 }
