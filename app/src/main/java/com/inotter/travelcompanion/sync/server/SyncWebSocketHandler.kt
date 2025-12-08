@@ -61,17 +61,22 @@ class SyncWebSocketHandler(
     /**
      * Wrapper class to adapt Jetty WebSocket Session to OkHttp WebSocket interface.
      * This allows the existing SyncCommandServer code to work without changes.
+     *
+     * Note: This wrapper uses blocking send methods. The caller (MasterSyncCoordinator)
+     * must ensure these methods are called from a background thread to avoid
+     * NetworkOnMainThreadException.
      */
     private class JettyWebSocketWrapper(
         private val session: Session
     ) : WebSocket {
-        
+
         override fun request() = throw UnsupportedOperationException("Not used in server mode")
-        
+
         override fun queueSize(): Long = 0L
-        
+
         override fun send(text: String): Boolean {
             return try {
+                // Blocking send - must be called from background thread
                 session.remote.sendString(text)
                 true
             } catch (e: Exception) {
@@ -79,9 +84,10 @@ class SyncWebSocketHandler(
                 false
             }
         }
-        
+
         override fun send(bytes: ByteString): Boolean {
             return try {
+                // Blocking send - must be called from background thread
                 session.remote.sendBytes(java.nio.ByteBuffer.wrap(bytes.toByteArray()))
                 true
             } catch (e: Exception) {
@@ -89,7 +95,7 @@ class SyncWebSocketHandler(
                 false
             }
         }
-        
+
         override fun close(code: Int, reason: String?): Boolean {
             return try {
                 session.close(code, reason)
@@ -99,7 +105,7 @@ class SyncWebSocketHandler(
                 false
             }
         }
-        
+
         override fun cancel() {
             try {
                 session.disconnect()

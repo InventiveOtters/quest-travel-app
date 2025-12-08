@@ -198,8 +198,11 @@ class MasterSyncCoordinator(
             senderId = deviceId
         )
 
-        syncServer?.broadcastCommand(command)
-        Log.i(TAG, "Broadcast play: position=$position, startTime=$targetStartTime")
+        // Launch on IO dispatcher to avoid NetworkOnMainThreadException
+        scope.launch {
+            syncServer?.broadcastCommand(command)
+            Log.i(TAG, "Broadcast play: position=$position, startTime=$targetStartTime")
+        }
     }
 
     /**
@@ -218,8 +221,11 @@ class MasterSyncCoordinator(
             senderId = deviceId
         )
 
-        syncServer?.broadcastCommand(command)
-        Log.i(TAG, "Broadcast pause")
+        // Launch on IO dispatcher to avoid NetworkOnMainThreadException
+        scope.launch {
+            syncServer?.broadcastCommand(command)
+            Log.i(TAG, "Broadcast pause")
+        }
     }
 
     /**
@@ -241,8 +247,11 @@ class MasterSyncCoordinator(
             senderId = deviceId
         )
 
-        syncServer?.broadcastCommand(command)
-        Log.i(TAG, "Broadcast seek: position=$position")
+        // Launch on IO dispatcher to avoid NetworkOnMainThreadException
+        scope.launch {
+            syncServer?.broadcastCommand(command)
+            Log.i(TAG, "Broadcast seek: position=$position")
+        }
     }
 
     /**
