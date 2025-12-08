@@ -24,6 +24,7 @@ import com.inotter.travelcompanion.ui.settings.SettingsViewModel
 import com.inotter.travelcompanion.ui.transfer.IncompleteUploadsViewModel
 import com.inotter.travelcompanion.ui.transfer.TransferViewModel
 import com.inotter.travelcompanion.ui.transfer.WiFiTransferScreen
+import com.inotter.travelcompanion.ui.sync.SyncScreen
 
 /**
  * Navigation host for VR UI.
@@ -99,6 +100,7 @@ fun VRNavigationHost(
           onManageSources = { navController.navigate("manageSources") },
           onSettings = { navController.navigate("settings") },
           onWifiTransfer = { navController.navigate("wifiTransfer") },
+	          onSync = { navController.navigate("sync") },
       )
     }
 
@@ -132,6 +134,12 @@ fun VRNavigationHost(
           onBack = { navController.popBackStack() },
       )
     }
+
+	    composable("sync") {
+	      SyncScreen(
+	          onBack = { navController.popBackStack() },
+	      )
+	    }
 
     composable(
         route = "player/{videoId}",

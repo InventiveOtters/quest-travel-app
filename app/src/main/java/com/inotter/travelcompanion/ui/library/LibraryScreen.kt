@@ -55,6 +55,7 @@ fun LibraryScreen(
     onManageSources: () -> Unit = {},
     onSettings: () -> Unit = {},
     onWifiTransfer: () -> Unit = {},
+    onSync: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val videos by viewModel.videos.collectAsState()
@@ -71,7 +72,8 @@ fun LibraryScreen(
                 onSettings = onSettings,
                 onManageSources = onManageSources,
                 onWifiTransfer = onWifiTransfer,
-                onAddFolder = onAddFolder
+                onAddFolder = onAddFolder,
+                onSync = onSync,
             )
 
             QuestDivider()
@@ -107,6 +109,7 @@ private fun LibraryHeader(
     onManageSources: () -> Unit,
     onWifiTransfer: () -> Unit,
     onAddFolder: () -> Unit,
+    onSync: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -130,6 +133,7 @@ private fun LibraryHeader(
             QuestSecondaryButton(text = "Settings", onClick = onSettings)
             QuestSecondaryButton(text = "Manage Sources", onClick = onManageSources)
             QuestSecondaryButton(text = "WiFi Transfer", onClick = onWifiTransfer)
+            QuestSecondaryButton(text = "Sync", onClick = onSync)
             QuestPrimaryButton(text = "Add Folder", onClick = onAddFolder)
         }
     }
