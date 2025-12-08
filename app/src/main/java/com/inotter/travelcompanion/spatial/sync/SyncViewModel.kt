@@ -285,6 +285,7 @@ class SyncViewModel(
 
     /**
      * Broadcast play command (master only).
+     * Also controls the local PlaybackCore.
      */
     fun play(position: Long) {
         if (_syncMode.value != SyncMode.MASTER) {
@@ -292,11 +293,17 @@ class SyncViewModel(
             return
         }
 
+        // Control local playback
+        playbackCore.seekTo(position)
+        playbackCore.play()
+
+        // Broadcast to clients
         connectionManager?.getMasterCoordinator()?.broadcastPlay(position)
     }
 
     /**
      * Broadcast pause command (master only).
+     * Also controls the local PlaybackCore.
      */
     fun pause() {
         if (_syncMode.value != SyncMode.MASTER) {
@@ -304,11 +311,16 @@ class SyncViewModel(
             return
         }
 
+        // Control local playback
+        playbackCore.pause()
+
+        // Broadcast to clients
         connectionManager?.getMasterCoordinator()?.broadcastPause()
     }
 
     /**
      * Broadcast seek command (master only).
+     * Also controls the local PlaybackCore.
      */
     fun seekTo(position: Long) {
         if (_syncMode.value != SyncMode.MASTER) {
@@ -316,6 +328,10 @@ class SyncViewModel(
             return
         }
 
+        // Control local playback
+        playbackCore.seekTo(position)
+
+        // Broadcast to clients
         connectionManager?.getMasterCoordinator()?.broadcastSeek(position)
     }
 

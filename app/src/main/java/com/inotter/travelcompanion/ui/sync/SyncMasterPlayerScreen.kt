@@ -51,6 +51,13 @@ fun SyncMasterPlayerScreen(
     var isSeeking by remember { mutableStateOf(false) }
     var seekPosition by remember { mutableStateOf(0f) }
 
+    // Load video when screen is first displayed
+    LaunchedEffect(video.id) {
+        val playbackCore = syncViewModel.getPlaybackCore()
+        playbackCore.prepare(android.net.Uri.parse(video.fileUri), startPositionMs = 0L)
+        // Don't auto-play - wait for user to press play
+    }
+
     // Check playback state periodically
     LaunchedEffect(Unit) {
         while (true) {

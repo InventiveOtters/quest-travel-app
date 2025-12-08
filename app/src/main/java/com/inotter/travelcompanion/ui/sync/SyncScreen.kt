@@ -62,11 +62,12 @@ fun SyncScreen(
 
 	    val scope = rememberCoroutineScope()
 
-    // Navigate to appropriate player when sync mode changes
+    // Navigate to player when client joins (automatic)
+    // For master, navigation happens manually via "Start watching together" button
     LaunchedEffect(syncMode) {
         when (syncMode) {
             SyncViewModel.SyncMode.CLIENT -> onJoinedSession()
-            SyncViewModel.SyncMode.MASTER -> onCreatedSession()
+            // MASTER mode: Don't auto-navigate, wait for user to press "Start watching together"
             else -> {}
         }
     }
@@ -158,9 +159,8 @@ fun SyncScreen(
 	                QuestPrimaryButton(
 	                    text = "Start watching together",
 	                    onClick = {
-	                        // TODO: Start synchronized playback
-	                        // For now, just navigate back to player
-	                        onBack()
+	                        // Navigate to master player screen
+	                        onCreatedSession()
 	                    },
 	                    enabled = connectedCount > 0,
 	                    expanded = true
@@ -196,27 +196,52 @@ fun SyncScreen(
 
 	                Spacer(modifier = Modifier.height(QuestDimensions.ItemSpacing.dp))
 
-	                Text(
-	                    text = "Join a session hosted from your phone or another headset using the 6-digit PIN.",
-	                    style = QuestTypography.bodyMedium,
-	                    color = QuestThemeExtras.colors.secondaryText,
-	                )
+	                // If hosting, show "Start watching together" button
+	                if (isMaster) {
+	                    QuestPrimaryButton(
+	                        text = "Start watching together",
+	                        onClick = {
+	                            // Navigate to master player screen
+	                            onCreatedSession()
+	                        },
+	                        enabled = connectedCount > 0,
+	                        expanded = true
+	                    )
 
-	                SyncControlsSection(
-	                    showCreateButton = currentVideo != null,
-	                    onCreateSession = {
-	                        currentVideo?.let { video ->
-	                            syncViewModel.createSession(
-	                                videoUri = video.fileUri,
-	                                movieId = video.id.toString()
-	                            )
-	                        }
-	                    },
-	                    onJoinSession = { pinCodeJoin ->
-	                        syncViewModel.joinSessionByPin(pinCodeJoin)
-	                    },
-	                    isLoading = isLoading
-	                )
+	                    if (connectedCount == 0) {
+	                        Spacer(modifier = Modifier.height(8.dp))
+	                        Text(
+	                            text = "Waiting for devices to connect...",
+	                            style = QuestTypography.bodyMedium,
+	                            color = QuestThemeExtras.colors.secondaryText,
+	                            textAlign = TextAlign.Center,
+	                            modifier = Modifier.fillMaxWidth()
+	                        )
+	                    }
+	                } else {
+	                    // Not hosting: Show join controls
+	                    Text(
+	                        text = "Join a session hosted from your phone or another headset using the 6-digit PIN.",
+	                        style = QuestTypography.bodyMedium,
+	                        color = QuestThemeExtras.colors.secondaryText,
+	                    )
+
+	                    SyncControlsSection(
+	                        showCreateButton = currentVideo != null,
+	                        onCreateSession = {
+	                            currentVideo?.let { video ->
+	                                syncViewModel.createSession(
+	                                    videoUri = video.fileUri,
+	                                    movieId = video.id.toString()
+	                                )
+	                            }
+	                        },
+	                        onJoinSession = { pinCodeJoin ->
+	                            syncViewModel.joinSessionByPin(pinCodeJoin)
+	                        },
+	                        isLoading = isLoading
+	                    )
+	                }
 	            }
         }
     }

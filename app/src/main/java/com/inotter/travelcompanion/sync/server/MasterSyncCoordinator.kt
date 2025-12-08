@@ -290,16 +290,19 @@ class MasterSyncCoordinator(
         if (response.isReady) {
             _readyClients.value = _readyClients.value + clientId
 
-            // Auto-play when first client becomes ready
-            if (!hasAutoPlayed && !wasReady) {
-                hasAutoPlayed = true
-                Log.i(TAG, "First client ready, auto-starting playback")
-                scope.launch {
-                    // Give client a moment to fully initialize
-                    delay(500)
-                    broadcastPlay(position = 0L)
-                }
-            }
+            // DISABLED: Auto-play when first client becomes ready
+            // This was causing the client to auto-play without waiting for the host to manually start
+            // if (!hasAutoPlayed && !wasReady) {
+            //     hasAutoPlayed = true
+            //     Log.i(TAG, "First client ready, auto-starting playback")
+            //     scope.launch {
+            //         // Give client a moment to fully initialize
+            //         delay(500)
+            //         broadcastPlay(position = 0L)
+            //     }
+            // }
+
+            Log.i(TAG, "Client $clientId is ready (total ready: ${_readyClients.value.size})")
         } else {
             _readyClients.value = _readyClients.value - clientId
         }
