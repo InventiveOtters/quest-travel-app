@@ -204,8 +204,10 @@ class ClientSyncCoordinator(
      * Handle pause command.
      */
     private fun handlePauseCommand(command: SyncCommand) {
-        playbackCore.pause()
-        Log.i(TAG, "Paused playback")
+        scope.launch(Dispatchers.Main) {
+            playbackCore.pause()
+            Log.i(TAG, "Paused playback")
+        }
     }
 
     /**
@@ -218,8 +220,10 @@ class ClientSyncCoordinator(
             return
         }
 
-        playbackCore.seekTo(seekPosition)
-        Log.i(TAG, "Seeked to position $seekPosition")
+        scope.launch(Dispatchers.Main) {
+            playbackCore.seekTo(seekPosition)
+            Log.i(TAG, "Seeked to position $seekPosition")
+        }
     }
 
     /**

@@ -238,8 +238,9 @@ class SyncCommandClient(
     private fun handleMessage(message: String) {
         try {
             val command = SyncCommand.fromJson(message)
+            Log.i(TAG, "Parsed command: ${command.action}")
             commandListener?.invoke(command)
-            Log.d(TAG, "Received command: ${command.action}")
+            Log.d(TAG, "Command listener invoked for: ${command.action}")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to parse command", e)
         }
