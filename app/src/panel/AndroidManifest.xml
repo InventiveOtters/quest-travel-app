@@ -18,7 +18,7 @@
   <application>
     <!-- MainActivity is the launcher - handles onboarding and routes to correct mode -->
     <activity
-      android:name="com.inotter.travelcompanion.MainActivity"
+      android:name="com.inotter.onthegovr.MainActivity"
       android:exported="true"
       tools:replace="android:exported"
     >
@@ -35,7 +35,7 @@
 
     <!-- ImmersiveActivity can be launched when user switches to Immersive mode -->
     <activity
-      android:name="com.inotter.travelcompanion.ImmersiveActivity"
+      android:name="com.inotter.onthegovr.ImmersiveActivity"
       android:exported="true"
       tools:replace="android:exported"
     >

@@ -8,12 +8,12 @@ plugins {
 }
 
 android {
-  namespace = "com.inotter.travelcompanion"
+  namespace = "com.inotter.onthegovr"
   // compileSdk 35 required for Media3 1.9.0-rc01 and FFmpeg extension AARs
   compileSdk = 35
 
   defaultConfig {
-    applicationId = "com.inotter.travelcompanion"
+    applicationId = "com.inotter.onthegovr"
     minSdk = 34
     // HorizonOS is Android 14 (API level 34)
     //noinspection OldTargetApi,ExpiredTargetSdkVersion
@@ -199,7 +199,7 @@ spatial {
       }
     }
     hotReload {
-      appPackage.set("com.inotter.travelcompanion")
+      appPackage.set("com.inotter.onthegovr")
       appMainActivity.set(".ImmersiveActivity")
       assetsDir.set(File("src/main/assets"))
     }
