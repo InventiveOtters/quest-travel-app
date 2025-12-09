@@ -30,6 +30,7 @@ import com.meta.spatial.toolkit.Mesh
 import com.meta.spatial.toolkit.MeshCollision
 import com.meta.spatial.toolkit.PanelRegistration
 import com.meta.spatial.toolkit.PanelStyleOptions
+import com.meta.spatial.toolkit.PanelInputOptions
 import com.meta.spatial.toolkit.QuadShapeOptions
 import com.meta.spatial.toolkit.Grabbable
 import com.meta.spatial.toolkit.GrabbableType
@@ -328,6 +329,8 @@ class ImmersiveActivity : AppSystemActivity() {
                         width = SpatialConstants.LIBRARY_PANEL_DP_WIDTH,
                         height = SpatialConstants.LIBRARY_PANEL_DP_HEIGHT
                     ),
+                    // Enable input to allow button clicks and interactions
+                    input = PanelInputOptions(),
                 )
             },
         )
@@ -351,6 +354,8 @@ class ImmersiveActivity : AppSystemActivity() {
                     display = DpPerMeterDisplayOptions(
                         dpPerMeter = SpatialConstants.CONTROLS_PANEL_DP_PER_METER
                     ),
+                    // Enable input to allow button clicks and interactions
+                    input = PanelInputOptions(),
                 )
             },
         )

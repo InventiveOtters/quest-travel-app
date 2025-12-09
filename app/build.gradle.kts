@@ -14,7 +14,7 @@ android {
 
   defaultConfig {
     applicationId = "com.inotter.onthegovr"
-    minSdk = 34
+    minSdk = 32
     // HorizonOS is Android 14 (API level 34)
     //noinspection OldTargetApi,ExpiredTargetSdkVersion
     targetSdk = 34
@@ -23,8 +23,10 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    // Update the ndkVersion to the right version for your app
-    // ndkVersion = "27.0.12077973"
+    // Target 64-bit only to reduce APK size
+    ndk {
+      abiFilters.add("arm64-v8a")
+    }
   }
 
   packaging {

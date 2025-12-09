@@ -22,11 +22,6 @@
     android:required="false"
   />
   <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
-  <!-- Experimental extensions are optional for 2D panel apps -->
-  <uses-feature
-    android:name="com.oculus.experimental.enabled"
-    android:required="false"
-  />
   <!-- Tell the system this app can render passthrough -->
   <uses-feature
     android:name="com.oculus.feature.PASSTHROUGH"
@@ -100,6 +95,7 @@
       android:excludeFromRecents="false"
       android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
       android:exported="false"
+      android:screenOrientation="landscape"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
     />
 
@@ -111,6 +107,7 @@
       android:excludeFromRecents="false"
       android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
       android:exported="false"
+      android:screenOrientation="landscape"
       android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
     />
 
@@ -127,6 +124,7 @@
       android:allowEmbedded="true"
       android:exported="false"
       android:process=":library_panel"
+      android:screenOrientation="landscape"
       android:theme="@style/PanelAppThemeTransparent"
     />
     <activity
@@ -134,6 +132,7 @@
       android:allowEmbedded="true"
       android:exported="false"
       android:process=":controls_panel"
+      android:screenOrientation="landscape"
       android:theme="@style/PanelAppThemeTransparent"
     />
   </application>
