@@ -17,6 +17,7 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.LoadControl
 import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -82,7 +83,7 @@ class PlaybackCore(context: Context) {
           /* minBufferMs= */ 15000,         // 15 seconds minimum buffer
           /* maxBufferMs= */ 120000,        // 2 minutes maximum buffer (increased for better sync)
           /* bufferForPlaybackMs= */ 5000,  // 5 seconds to start playback (increased for sync)
-          /* bufferForPlaybackAfterRebufferMs= */ 7000 // 7 seconds after rebuffer (increased for sync)
+          /* bufferForPlaybackAfterRebufferMs= */ 2500 // 2.5 seconds after rebuffer (reduced for faster drift correction)
       )
       .setTargetBufferBytes(DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES)
       .setPrioritizeTimeOverSizeThresholds(true)
@@ -116,6 +117,7 @@ class PlaybackCore(context: Context) {
       .setTrackSelector(trackSelector)
       .setLoadControl(loadControl)
       .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+      .setSeekParameters(SeekParameters.CLOSEST_SYNC) // Use closest sync point for faster seeks
       .build()
 
   init {
@@ -204,6 +206,23 @@ class PlaybackCore(context: Context) {
    * @param positionMs Target position in milliseconds
    */
   fun seekTo(positionMs: Long) { player.seekTo(positionMs) }
+
+  /**
+   * Set playback speed for drift correction.
+   * Use values slightly above/below 1.0 to gradually correct drift without seeking.
+   *
+   * @param speed Playback speed (0.5 to 2.0, where 1.0 is normal speed)
+   */
+  fun setPlaybackSpeed(speed: Float) {
+    player.setPlaybackSpeed(speed.coerceIn(0.5f, 2.0f))
+  }
+
+  /**
+   * Get current playback speed.
+   *
+   * @return Current playback speed
+   */
+  fun getPlaybackSpeed(): Float = player.playbackParameters.speed
 
   /**
    * Get the current playback position. No allocations in this hot path.
