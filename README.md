@@ -1,3 +1,5 @@
+![https://i.imgur.com/UaulKaN.gif](https://i.imgur.com/UaulKaN.gif)
+
 # 🎮 Inspiration & Context
 Long trips, cramped seats, and the classic struggle of holding a phone between two people make watching movies while traveling a hassle. Earbuds get shared, arms get tired, and if friends are seated far apart, staying in sync becomes impossible. 
 
