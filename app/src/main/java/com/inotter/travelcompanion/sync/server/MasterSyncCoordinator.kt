@@ -212,8 +212,18 @@ class MasterSyncCoordinator(
 
         // Launch on IO dispatcher to avoid NetworkOnMainThreadException
         scope.launch {
-            syncServer?.broadcastCommand(command)
-            Log.i(TAG, "Broadcast start: position=$position, startTime=$targetStartTime")
+            try {
+                val server = syncServer
+                if (server == null) {
+                    Log.e(TAG, "Cannot broadcast start: sync server is null")
+                    return@launch
+                }
+
+                val clientCount = server.broadcastCommand(command)
+                Log.i(TAG, "Broadcast start: position=$position, startTime=$targetStartTime, clients=$clientCount")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error broadcasting start command", e)
+            }
         }
     }
 
@@ -241,8 +251,18 @@ class MasterSyncCoordinator(
 
         // Launch on IO dispatcher to avoid NetworkOnMainThreadException
         scope.launch {
-            syncServer?.broadcastCommand(command)
-            Log.i(TAG, "Broadcast play: position=$position, startTime=$targetStartTime")
+            try {
+                val server = syncServer
+                if (server == null) {
+                    Log.e(TAG, "Cannot broadcast play: sync server is null")
+                    return@launch
+                }
+
+                val clientCount = server.broadcastCommand(command)
+                Log.i(TAG, "Broadcast play: position=$position, startTime=$targetStartTime, clients=$clientCount")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error broadcasting play command", e)
+            }
         }
     }
 
@@ -264,8 +284,18 @@ class MasterSyncCoordinator(
 
         // Launch on IO dispatcher to avoid NetworkOnMainThreadException
         scope.launch {
-            syncServer?.broadcastCommand(command)
-            Log.i(TAG, "Broadcast pause")
+            try {
+                val server = syncServer
+                if (server == null) {
+                    Log.e(TAG, "Cannot broadcast pause: sync server is null")
+                    return@launch
+                }
+
+                val clientCount = server.broadcastCommand(command)
+                Log.i(TAG, "Broadcast pause: clients=$clientCount")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error broadcasting pause command", e)
+            }
         }
     }
 
@@ -290,8 +320,18 @@ class MasterSyncCoordinator(
 
         // Launch on IO dispatcher to avoid NetworkOnMainThreadException
         scope.launch {
-            syncServer?.broadcastCommand(command)
-            Log.i(TAG, "Broadcast seek: position=$position")
+            try {
+                val server = syncServer
+                if (server == null) {
+                    Log.e(TAG, "Cannot broadcast seek: sync server is null")
+                    return@launch
+                }
+
+                val clientCount = server.broadcastCommand(command)
+                Log.i(TAG, "Broadcast seek: position=$position, clients=$clientCount")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error broadcasting seek command", e)
+            }
         }
     }
 

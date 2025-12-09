@@ -202,21 +202,26 @@ class ClientSyncCoordinator(
         // Update sync manager for drift correction
         syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = true)
 
+        // Control playback on Main thread
         scope.launch(Dispatchers.Main) {
-            // Calculate delay until target start time
-            val currentTime = System.currentTimeMillis()
-            val delayMs = targetStartTime - currentTime
+            try {
+                // Calculate delay until target start time
+                val currentTime = System.currentTimeMillis()
+                val delayMs = targetStartTime - currentTime
 
-            if (delayMs > 0) {
-                Log.d(TAG, "Waiting ${delayMs}ms before starting initial playback")
-                delay(delayMs)
+                if (delayMs > 0) {
+                    Log.d(TAG, "Waiting ${delayMs}ms before starting initial playback")
+                    delay(delayMs)
+                }
+
+                // Seek to position and start playback
+                playbackCore.seekTo(videoPosition)
+                playbackCore.play()
+
+                Log.i(TAG, "Started initial playback at position $videoPosition")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error starting initial playback", e)
             }
-
-            // Seek to position and start playback
-            playbackCore.seekTo(videoPosition)
-            playbackCore.play()
-
-            Log.i(TAG, "Started initial playback at position $videoPosition")
         }
     }
 
@@ -239,21 +244,26 @@ class ClientSyncCoordinator(
         // Update sync manager for drift correction
         syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = true)
 
+        // Control playback on Main thread
         scope.launch(Dispatchers.Main) {
-            // Calculate delay until target start time
-            val currentTime = System.currentTimeMillis()
-            val delayMs = targetStartTime - currentTime
+            try {
+                // Calculate delay until target start time
+                val currentTime = System.currentTimeMillis()
+                val delayMs = targetStartTime - currentTime
 
-            if (delayMs > 0) {
-                Log.d(TAG, "Waiting ${delayMs}ms before starting playback")
-                delay(delayMs)
+                if (delayMs > 0) {
+                    Log.d(TAG, "Waiting ${delayMs}ms before starting playback")
+                    delay(delayMs)
+                }
+
+                // Seek to position and start playback
+                playbackCore.seekTo(videoPosition)
+                playbackCore.play()
+
+                Log.i(TAG, "Started playback at position $videoPosition")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error starting playback", e)
             }
-
-            // Seek to position and start playback
-            playbackCore.seekTo(videoPosition)
-            playbackCore.play()
-
-            Log.i(TAG, "Started playback at position $videoPosition")
         }
     }
 
@@ -261,13 +271,18 @@ class ClientSyncCoordinator(
      * Handle pause command.
      */
     private fun handlePauseCommand(command: SyncCommand) {
+        // Control playback on Main thread
         scope.launch(Dispatchers.Main) {
-            // Update sync manager - master is now paused
-            val videoPosition = command.videoPosition ?: playbackCore.getCurrentPosition()
-            syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = false)
+            try {
+                // Update sync manager - master is now paused
+                val videoPosition = command.videoPosition ?: playbackCore.getCurrentPosition()
+                syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = false)
 
-            playbackCore.pause()
-            Log.i(TAG, "Paused playback")
+                playbackCore.pause()
+                Log.i(TAG, "Paused playback")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error pausing playback", e)
+            }
         }
     }
 
@@ -281,13 +296,18 @@ class ClientSyncCoordinator(
             return
         }
 
+        // Control playback on Main thread
         scope.launch(Dispatchers.Main) {
-            // Update sync manager with new position
-            val isPlaying = playbackCore.isPlaying()
-            syncManager.updateMasterPosition(seekPosition, command.timestamp, isPlaying = isPlaying)
+            try {
+                // Update sync manager with new position
+                val isPlaying = playbackCore.isPlaying()
+                syncManager.updateMasterPosition(seekPosition, command.timestamp, isPlaying = isPlaying)
 
-            playbackCore.seekTo(seekPosition)
-            Log.i(TAG, "Seeked to position $seekPosition")
+                playbackCore.seekTo(seekPosition)
+                Log.i(TAG, "Seeked to position $seekPosition")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error seeking playback", e)
+            }
         }
     }
 

@@ -319,7 +319,6 @@ class SyncViewModel(
             // Get the predictive delay (default 100ms for local network)
             val predictiveDelayMs = 100L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
 
-            Log.d(TAG, "Master waiting ${predictiveDelayMs}ms before starting playback")
             delay(predictiveDelayMs)
 
             // Wait for clients to be ready (with timeout)
@@ -358,7 +357,6 @@ class SyncViewModel(
             // Get the predictive delay (default 100ms for local network)
             val predictiveDelayMs = 100L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
 
-            Log.d(TAG, "Master waiting ${predictiveDelayMs}ms before resuming playback")
             delay(predictiveDelayMs)
 
             // Wait for clients to be ready (with timeout)
@@ -441,67 +439,111 @@ class SyncViewModel(
 
         when (command.action) {
             SyncCommand.ACTION_PLAY -> {
-                // Client wants to play - ALWAYS use the master's current position
-                // This ensures all clients sync to where the host is, not where the client was
-                val masterPosition = playbackCore.getCurrentPosition()
+                try {
+                    // This callback is invoked from WebSocket handler thread (Jetty)
+                    // ExoPlayer REQUIRES Main thread access, so we must dispatch everything to Main
 
-                // Set loading state
-                _isPlaybackLoading.value = true
+                    val masterCoordinator = connectionManager?.getMasterCoordinator()
 
-                // Broadcast play command to all clients with master's position
-                val masterCoordinator = connectionManager?.getMasterCoordinator()
-                masterCoordinator?.broadcastPlay(masterPosition)
+                    if (masterCoordinator == null) {
+                        Log.e(TAG, "Cannot handle play command: master coordinator is null")
+                        return
+                    }
 
-                scope.launch(kotlinx.coroutines.Dispatchers.Main) {
-                    // Get the predictive delay (default 100ms for local network)
-                    val predictiveDelayMs = 100L
+                    // Set loading state (StateFlow is thread-safe)
+                    _isPlaybackLoading.value = true
 
-                    Log.d(TAG, "Master waiting ${predictiveDelayMs}ms before resuming playback (client-initiated)")
-                    delay(predictiveDelayMs)
+                    // Dispatch to Main thread to get position and broadcast
+                    scope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                        try {
+                            // Get master's current position (MUST be on Main thread for ExoPlayer)
+                            val masterPosition = playbackCore.getCurrentPosition()
 
-                    // Wait for clients to be ready (with timeout)
-                    masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
+                            // Broadcast play command to all clients with master's position
+                            // This launches on IO dispatcher internally, safe to call from any thread
+                            masterCoordinator.broadcastPlay(masterPosition)
 
-                    // Now resume local playback synchronized with clients
-                    playbackCore.seekTo(masterPosition)
-                    playbackCore.play()
+                            // Get the predictive delay (default 100ms for local network)
+                            val predictiveDelayMs = 100L
 
-                    Log.i(TAG, "Master resumed playback at position $masterPosition (client-initiated)")
+                            delay(predictiveDelayMs)
 
-                    // Clear loading state
+                            // Wait for clients to be ready (with timeout)
+                            // This is a suspend function, safe to call from coroutine
+                            masterCoordinator.waitForClientsReady(timeoutMs = 5000)
+
+                            // Now resume local playback synchronized with clients
+                            // PlaybackCore operations on Main thread
+                            playbackCore.seekTo(masterPosition)
+                            playbackCore.play()
+
+                            Log.i(TAG, "Master resumed playback at position $masterPosition (client-initiated)")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error handling play command", e)
+                        } finally {
+                            // Clear loading state
+                            _isPlaybackLoading.value = false
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "CRITICAL ERROR in handleClientCommand ACTION_PLAY", e)
                     _isPlaybackLoading.value = false
                 }
             }
             SyncCommand.ACTION_PAUSE -> {
-                // Client wants to pause - pause immediately
-                // Note: MasterSyncCoordinator already broadcasts pause to all clients
-                _isPlaybackLoading.value = true
+                try {
+                    // This callback is invoked from WebSocket handler thread (Jetty)
+                    // Note: MasterSyncCoordinator already broadcasts pause to all clients
 
-                // Pause on Main dispatcher to ensure thread safety
-                scope.launch(kotlinx.coroutines.Dispatchers.Main) {
-                    playbackCore.pause()
-                    Log.i(TAG, "Master paused playback (client-initiated)")
+                    // Set loading state (StateFlow is thread-safe)
+                    _isPlaybackLoading.value = true
 
-                    // Pause is immediate, clear loading state after a short delay
-                    delay(100)
+                    // Pause on Main dispatcher to ensure thread safety
+                    scope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                        try {
+                            playbackCore.pause()
+                            Log.i(TAG, "Master paused playback (client-initiated)")
+
+                            // Pause is immediate, clear loading state after a short delay
+                            delay(100)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error pausing playback", e)
+                        } finally {
+                            _isPlaybackLoading.value = false
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "CRITICAL ERROR in handleClientCommand ACTION_PAUSE", e)
                     _isPlaybackLoading.value = false
                 }
             }
             SyncCommand.ACTION_SEEK -> {
-                // Client wants to seek
-                val position = command.seekPosition ?: 0L
+                try {
+                    // This callback is invoked from WebSocket handler thread (Jetty)
+                    // Note: MasterSyncCoordinator already broadcasts seek to all clients
 
-                _isPlaybackLoading.value = true
+                    val position = command.seekPosition ?: 0L
 
-                // Seek on Main dispatcher to ensure thread safety
-                scope.launch(kotlinx.coroutines.Dispatchers.Main) {
-                    playbackCore.seekTo(position)
-                    Log.i(TAG, "Master seeked to position $position (client-initiated)")
+                    // Set loading state (StateFlow is thread-safe)
+                    _isPlaybackLoading.value = true
 
-                    // Wait for clients to buffer at new position
-                    val masterCoordinator = connectionManager?.getMasterCoordinator()
-                    masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
+                    // Seek on Main dispatcher to ensure thread safety
+                    scope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                        try {
+                            playbackCore.seekTo(position)
+                            Log.i(TAG, "Master seeked to position $position (client-initiated)")
 
+                            // Wait for clients to buffer at new position
+                            val masterCoordinator = connectionManager?.getMasterCoordinator()
+                            masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error seeking playback", e)
+                        } finally {
+                            _isPlaybackLoading.value = false
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "CRITICAL ERROR in handleClientCommand ACTION_SEEK", e)
                     _isPlaybackLoading.value = false
                 }
             }
