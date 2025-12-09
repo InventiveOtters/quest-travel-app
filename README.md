@@ -1,26 +1,30 @@
-## Starter Template
+# 🎮 Inspiration & Context
+Long trips, cramped seats, and the classic struggle of holding a phone between two people make watching movies while traveling a hassle. Earbuds get shared, arms get tired, and if friends are seated far apart, staying in sync becomes impossible. 
 
-This template is a starting point for creating a new Meta Spatial SDK project. It includes a skybox, an environment entity, and two panels.
-The skybox is created at runtime with a call to Entity.create().
-The environment entity and both panels are created by the glXFManager.inflateGLXF() function. This loads the composition created by Meta Spatial Editor.
+*OnTheGoVR* transforms this messy experience into a private shared cinema you can step into anywhere, entirely offline.
 
-## Meta Spatial Editor
+# 🚀 Features
+- Offline Shared Cinema: You can start a session, share a simple code, and enjoy perfectly synced playback with friends on the same local network, without the need of internet.  
+- 2D and Immersive Modes: You can pick between a traditional flat-screen view or a fully spatial VR theatre.  
+- Smart Local Discovery: The app automatically searches for movie files on your device, helping you find what you need quickly.  
+- Easy File Upload: At home, you can use OnTheGoVR directly to assist you with uploading your movies to the headset;
+- Personalized Environments: Each user can explore their preferred VR space, adjust lighting, and relax independently while still watching together.  
+- Synchronized Controls: Whenever one user pauses or plays the movie, changes reflect to the other clients in sync.
 
-This template requires you to install [Meta Spatial Editor](https://developers.meta.com/horizon/documentation/spatial-sdk/spatial-editor-overview).
-Edit the scene by opening app/scenes/Main.metaspatial with Meta Spatial Editor.
+# ⚙️ Meta Spatial SDK Integration
+The immersive experience is built using the Meta Spatial SDK, combining spatial rendering, scene management, and Kotlin-based interactions to create a comfortable virtual cinema.  
+The offline streaming system works by placing all participants on the same Wi-Fi network or hotspot. The host exposes a direct local stream, and clients connect to it to receive synchronized playback without relying on external connectivity.
 
-## Spatial SDK Gradle Plugin
+# 🔨 Timeframe & Tools
+- Kotlin  
+- Android Studio  
+- Meta Spatial SDK  
+- Local network streaming architecture  
+Created specifically for the Meta Horizon Start Developer Competition. All the scenes are uniquely built for the competitions.
 
-This template includes the Spatial SDK Gradle Plugin in its build files. This plugin is used for the [Spatial Editor integration](https://developers.meta.com/horizon/documentation/spatial-sdk/spatial-sdk-editor#use-the-spatial-sdk-gradle-plugin) and for build-related features like [custom shaders](https://developers.meta.com/horizon/documentation/spatial-sdk/spatial-sdk-custom-shaders).
-
-Meta collects telemetry data from the Spatial SDK Gradle Plugin to help improve MPT Products. You can read the [Supplemental Meta Platforms Technologies Privacy Policy](https://www.meta.com/legal/privacy-policy/) to learn more.
-
-## License
-
-The Meta Spatial SDK Templates package is multi-licensed.
-
-The majority of the project is licensed under the [Zero-Clause BSD License](https://github.com/meta-quest/Meta-Spatial-SDK-Templates/tree/main/LICENSE), as found in the Github where these files are hosted.
-
-The [Meta Platform Technologies SDK license](https://developer.oculus.com/licenses/oculussdk/) applies to the Meta Spatial SDK and supporting material, and to the assets used in the Meta Spatial SDK Templates package. The [MPT SDK license](https://github.com/meta-quest/Meta-Spatial-SDK-Templates/tree/main/StarterTemplate/app/src/main/assets/LICENSE.md) can be found in the asset folder of each sample.
-
-Specifically, all the supporting materials in each template's `app/src/main/assets` folders including 3D models, videos, sounds, and others, are licensed under the [MPT SDK license](https://developer.oculus.com/licenses/oculussdk/).
+# 🎯 Accomplishments
+- Delivered a fully functional offline shared cinema experience from end to end.
+- Achieved seamless playback synchronization without any internet access;
+- Built multiple immersive environments with individualized lighting controls.
+- Implemented local file discovery and an intuitive drag-and-drop upload system.
+- Demonstrated how spatial computing can elevate everyday entertainment while traveling!
