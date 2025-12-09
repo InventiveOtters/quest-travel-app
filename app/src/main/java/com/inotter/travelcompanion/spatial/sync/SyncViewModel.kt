@@ -8,6 +8,7 @@ import com.inotter.travelcompanion.sync.discovery.ConnectionManager
 import com.inotter.travelcompanion.sync.discovery.ConnectionState
 import com.inotter.travelcompanion.sync.discovery.ResolvedService
 import com.inotter.travelcompanion.sync.models.DeviceInfo
+import com.inotter.travelcompanion.sync.models.SyncCommand
 import com.inotter.travelcompanion.sync.models.SyncSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -134,9 +135,16 @@ class SyncViewModel(
 	                    movieId = movieId,
 	                    deviceName = deviceName
 	                )
-	                
+
 	                if (session != null) {
 	                    _syncMode.value = SyncMode.MASTER
+
+	                    // Set up listener for client commands to control local playback
+	                    val masterCoordinator = manager.getMasterCoordinator()
+	                    masterCoordinator?.setClientCommandListener { clientId, command ->
+	                        handleClientCommand(clientId, command)
+	                    }
+
 	                    Log.i(TAG, "Session created with PIN: ${session.pinCode}")
 	                } else {
 	                    _errorMessage.value = "Failed to create session"
@@ -308,8 +316,8 @@ class SyncViewModel(
 
         // Master also waits for the same targetStartTime as clients
         scope.launch {
-            // Get the predictive delay (default 500ms)
-            val predictiveDelayMs = 500L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
+            // Get the predictive delay (default 100ms for local network)
+            val predictiveDelayMs = 100L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
 
             Log.d(TAG, "Master waiting ${predictiveDelayMs}ms before starting playback")
             delay(predictiveDelayMs)
@@ -347,8 +355,8 @@ class SyncViewModel(
 
         // Master also waits for the same targetStartTime as clients
         scope.launch {
-            // Get the predictive delay (default 500ms)
-            val predictiveDelayMs = 500L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
+            // Get the predictive delay (default 100ms for local network)
+            val predictiveDelayMs = 100L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
 
             Log.d(TAG, "Master waiting ${predictiveDelayMs}ms before resuming playback")
             delay(predictiveDelayMs)
@@ -421,6 +429,79 @@ class SyncViewModel(
 
             // Clear loading state
             _isPlaybackLoading.value = false
+        }
+    }
+
+    /**
+     * Handle command from a client (for bidirectional sync).
+     * Controls the local PlaybackCore when clients send commands.
+     */
+    private fun handleClientCommand(clientId: String, command: SyncCommand) {
+        Log.i(TAG, "Handling client command from $clientId: ${command.action}")
+
+        when (command.action) {
+            SyncCommand.ACTION_PLAY -> {
+                // Client wants to play - ALWAYS use the master's current position
+                // This ensures all clients sync to where the host is, not where the client was
+                val masterPosition = playbackCore.getCurrentPosition()
+
+                // Set loading state
+                _isPlaybackLoading.value = true
+
+                // Broadcast play command to all clients with master's position
+                val masterCoordinator = connectionManager?.getMasterCoordinator()
+                masterCoordinator?.broadcastPlay(masterPosition)
+
+                scope.launch {
+                    // Get the predictive delay (default 100ms for local network)
+                    val predictiveDelayMs = 100L
+
+                    Log.d(TAG, "Master waiting ${predictiveDelayMs}ms before resuming playback (client-initiated)")
+                    delay(predictiveDelayMs)
+
+                    // Wait for clients to be ready (with timeout)
+                    masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
+
+                    // Now resume local playback synchronized with clients
+                    playbackCore.seekTo(masterPosition)
+                    playbackCore.play()
+
+                    Log.i(TAG, "Master resumed playback at position $masterPosition (client-initiated)")
+
+                    // Clear loading state
+                    _isPlaybackLoading.value = false
+                }
+            }
+            SyncCommand.ACTION_PAUSE -> {
+                // Client wants to pause - pause immediately
+                _isPlaybackLoading.value = true
+
+                playbackCore.pause()
+                Log.i(TAG, "Master paused playback (client-initiated)")
+
+                // Pause is immediate, clear loading state after a short delay
+                scope.launch {
+                    delay(100)
+                    _isPlaybackLoading.value = false
+                }
+            }
+            SyncCommand.ACTION_SEEK -> {
+                // Client wants to seek
+                val position = command.seekPosition ?: 0L
+
+                _isPlaybackLoading.value = true
+
+                playbackCore.seekTo(position)
+                Log.i(TAG, "Master seeked to position $position (client-initiated)")
+
+                // Wait for clients to buffer at new position
+                scope.launch {
+                    val masterCoordinator = connectionManager?.getMasterCoordinator()
+                    masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
+
+                    _isPlaybackLoading.value = false
+                }
+            }
         }
     }
 

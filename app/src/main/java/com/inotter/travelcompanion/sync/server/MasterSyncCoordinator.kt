@@ -44,7 +44,7 @@ class MasterSyncCoordinator(
 ) {
     companion object {
         private const val TAG = "MasterSyncCoordinator"
-        private const val PREDICTIVE_SYNC_DELAY_MS = 500L // Start playback 500ms in future
+        private const val PREDICTIVE_SYNC_DELAY_MS = 100L // Start playback 100ms in future (local network)
     }
     
     private val scope = CoroutineScope(Dispatchers.IO + Job())
@@ -72,7 +72,18 @@ class MasterSyncCoordinator(
 
     // Auto-play state
     private var hasAutoPlayed = false
-    
+
+    // Callback for client commands (to notify SyncViewModel to control local playback)
+    private var clientCommandListener: ((clientId: String, command: SyncCommand) -> Unit)? = null
+
+    /**
+     * Set listener for client commands.
+     * This allows the SyncViewModel to control local playback when clients send commands.
+     */
+    fun setClientCommandListener(listener: (clientId: String, command: SyncCommand) -> Unit) {
+        clientCommandListener = listener
+    }
+
     /**
      * Start a sync session.
      * 
@@ -353,25 +364,33 @@ class MasterSyncCoordinator(
 
     /**
      * Handle command from a client (for bidirectional sync).
-     * Rebroadcasts the command to all other clients and applies it locally.
+     * Notifies the listener to control local playback and rebroadcast with correct position.
+     * For PLAY commands, the listener should get the master's position and call broadcastPlay.
+     * For PAUSE and SEEK, we rebroadcast immediately.
      */
     private fun handleClientCommand(clientId: String, command: SyncCommand) {
         Log.i(TAG, "Received command from client $clientId: ${command.action}")
 
         when (command.action) {
             SyncCommand.ACTION_PLAY -> {
-                // Rebroadcast play command to all clients
-                val position = command.videoPosition ?: 0L
-                broadcastPlay(position)
+                // For PLAY, notify listener first - it will get master's position and broadcast
+                // This ensures all clients sync to the master's current position, not the client's
+                clientCommandListener?.invoke(clientId, command)
             }
             SyncCommand.ACTION_PAUSE -> {
                 // Rebroadcast pause command to all clients
                 broadcastPause()
+
+                // Notify listener to control local playback
+                clientCommandListener?.invoke(clientId, command)
             }
             SyncCommand.ACTION_SEEK -> {
                 // Rebroadcast seek command to all clients
                 val position = command.seekPosition ?: 0L
                 broadcastSeek(position)
+
+                // Notify listener to control local playback
+                clientCommandListener?.invoke(clientId, command)
             }
             else -> {
                 Log.w(TAG, "Unknown command from client: ${command.action}")
