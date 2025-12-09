@@ -23,6 +23,7 @@ import com.inotter.travelcompanion.ui.theme.QuestColors
 import com.inotter.travelcompanion.ui.theme.QuestDimensions
 import com.inotter.travelcompanion.ui.theme.QuestDivider
 import com.inotter.travelcompanion.ui.theme.QuestIconButton
+import com.inotter.travelcompanion.ui.theme.QuestPrimaryButton
 import com.inotter.travelcompanion.ui.theme.QuestSecondaryButton
 import com.inotter.travelcompanion.ui.theme.QuestSelectableCard
 import com.inotter.travelcompanion.ui.theme.QuestThemeExtras
@@ -43,6 +44,8 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onSwitchToImmersive: () -> Unit = {},
     onSwitchToPanel: () -> Unit = {},
+    onManageSources: () -> Unit = {},
+    onAddFolder: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
   val settings by viewModel.settings.collectAsState()
@@ -141,6 +144,18 @@ fun SettingsScreen(
       }
 
       QuestDivider()
+
+      // Library Management Section
+      Text(
+          text = "Library Management",
+          style = QuestTypography.titleLarge,
+          color = QuestThemeExtras.colors.primaryText,
+      )
+
+      LibraryManagementCard(
+          onManageSources = onManageSources,
+          onAddFolder = onAddFolder
+      )
 
       // Viewing Mode Section
       Text(
@@ -460,6 +475,49 @@ private fun ViewingModeOption(
         selected = isSelected,
         onClick = null,
     )
+  }
+}
+
+/**
+ * Quest-styled library management card with navigation to Manage Sources and Add Folder.
+ */
+@Composable
+private fun LibraryManagementCard(
+    onManageSources: () -> Unit,
+    onAddFolder: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+  Surface(
+      modifier = modifier.fillMaxWidth(),
+      color = QuestThemeExtras.colors.secondary,
+      shape = RoundedCornerShape(QuestDimensions.CardCornerRadius.dp),
+  ) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(QuestDimensions.ContentPadding.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+      Text(
+          text = "Manage your video library sources and folders",
+          style = QuestTypography.bodyMedium,
+          color = QuestThemeExtras.colors.secondaryText,
+      )
+
+      // Manage Sources Button
+      QuestPrimaryButton(
+          text = "Manage Sources",
+          onClick = onManageSources,
+          expanded = true
+      )
+
+      // Add Folder Button
+      QuestSecondaryButton(
+          text = "Add Folder",
+          onClick = onAddFolder,
+          expanded = true
+      )
+    }
   }
 }
 

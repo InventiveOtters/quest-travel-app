@@ -219,7 +219,7 @@ fun SyncScreen(
 	                        )
 	                    }
 	                } else {
-	                    // Not hosting: Show join controls
+	                    // Not hosting: Show join controls only (no create button when coming from library)
 	                    Text(
 	                        text = "Join a session hosted from your phone or another headset using the 6-digit PIN.",
 	                        style = QuestTypography.bodyMedium,
@@ -227,15 +227,8 @@ fun SyncScreen(
 	                    )
 
 	                    SyncControlsSection(
-	                        showCreateButton = currentVideo != null,
-	                        onCreateSession = {
-	                            currentVideo?.let { video ->
-	                                syncViewModel.createSession(
-	                                    videoUri = video.fileUri,
-	                                    movieId = video.id.toString()
-	                                )
-	                            }
-	                        },
+	                        showCreateButton = false,  // Never show create button from library - only join
+	                        onCreateSession = {},
 	                        onJoinSession = { pinCodeJoin ->
 	                            syncViewModel.joinSessionByPin(pinCodeJoin)
 	                        },

@@ -70,9 +70,7 @@ fun LibraryScreen(
             // Header with Quest-styled buttons
             LibraryHeader(
                 onSettings = onSettings,
-                onManageSources = onManageSources,
                 onWifiTransfer = onWifiTransfer,
-                onAddFolder = onAddFolder,
                 onSync = onSync,
             )
 
@@ -102,13 +100,15 @@ fun LibraryScreen(
 
 /**
  * Quest-styled header with proper hit targets and spacing.
+ * Following Meta Horizon OS design guidelines:
+ * - Primary button for the main action (Watch Together)
+ * - Secondary buttons for supporting actions (Transfer Videos, Settings)
+ * - Maximum 3 buttons to avoid clutter and maintain VR usability
  */
 @Composable
 private fun LibraryHeader(
     onSettings: () -> Unit,
-    onManageSources: () -> Unit,
     onWifiTransfer: () -> Unit,
-    onAddFolder: () -> Unit,
     onSync: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -126,15 +126,15 @@ private fun LibraryHeader(
         )
 
         // Wrap buttons in a Row with intrinsic size to prevent stretching
+        // Following Meta Horizon guidelines: Primary action first, then secondary actions
+        // Using compact=true to match the visual size of secondary buttons when side-by-side
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            QuestPrimaryButton(text = "Watch Together", onClick = onSync, compact = true)
+            QuestSecondaryButton(text = "Transfer Videos", onClick = onWifiTransfer)
             QuestSecondaryButton(text = "Settings", onClick = onSettings)
-            QuestSecondaryButton(text = "Manage Sources", onClick = onManageSources)
-            QuestSecondaryButton(text = "WiFi Transfer", onClick = onWifiTransfer)
-            QuestSecondaryButton(text = "Sync", onClick = onSync)
-            QuestPrimaryButton(text = "Add Folder", onClick = onAddFolder)
         }
     }
 }

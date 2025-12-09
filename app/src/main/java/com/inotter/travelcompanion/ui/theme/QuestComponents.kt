@@ -102,6 +102,7 @@ fun QuestCard(
 
 /**
  * Quest-styled primary button with proper 60dp hit target.
+ * @param compact If true, uses 48dp height to match secondary buttons when placed side-by-side
  */
 @Composable
 fun QuestPrimaryButton(
@@ -109,12 +110,13 @@ fun QuestPrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    expanded: Boolean = false
+    expanded: Boolean = false,
+    compact: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isPressed by interactionSource.collectIsPressedAsState()
-    
+
     val scale by animateFloatAsState(
         targetValue = when {
             isPressed -> 0.97f
@@ -124,17 +126,19 @@ fun QuestPrimaryButton(
         animationSpec = tween(100),
         label = "button_scale"
     )
-    
+
     val backgroundColor = when {
         !enabled -> LocalColorScheme.current.primaryButton.copy(alpha = 0.5f)
         isHovered -> LocalColorScheme.current.hover
         else -> LocalColorScheme.current.primaryButton
     }
-    
+
+    val buttonHeight = if (compact) QuestDimensions.SmallButtonHeight.dp else QuestDimensions.ButtonHeight.dp
+
     Surface(
         modifier = modifier
             .scale(scale)
-            .height(QuestDimensions.ButtonHeight.dp)
+            .height(buttonHeight)
             .then(if (expanded) Modifier.fillMaxWidth() else Modifier.wrapContentWidth())
             .clip(SpatialTheme.shapes.medium)
             .hoverable(interactionSource)
@@ -151,12 +155,12 @@ fun QuestPrimaryButton(
         Box(
             modifier = Modifier
                 .then(if (expanded) Modifier.fillMaxWidth() else Modifier.wrapContentWidth())
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = if (compact) 20.dp else 24.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = text,
-                style = QuestTypography.button,
+                style = if (compact) QuestTypography.labelLarge else QuestTypography.button,
                 color = if (enabled) LocalColorScheme.current.primaryOpaqueButton
                        else LocalColorScheme.current.primaryOpaqueButton.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,

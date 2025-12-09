@@ -132,6 +132,8 @@ fun VRNavigationHost(
           onBack = { navController.popBackStack() },
           onSwitchToImmersive = onLaunchImmersive,
           onSwitchToPanel = onLaunchPanel,
+          onManageSources = { navController.navigate("manageSources") },
+          onAddFolder = { navController.navigate("addFolder") },
       )
     }
 
