@@ -4,6 +4,7 @@ import android.util.Log
 import com.inotter.travelcompanion.playback.PlaybackCore
 import com.inotter.travelcompanion.sync.models.SyncCommand
 import com.inotter.travelcompanion.sync.models.SyncResponse
+import com.inotter.travelcompanion.sync.protocol.PlaybackSyncManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -50,22 +51,25 @@ class ClientSyncCoordinator(
     }
     
     private val scope = CoroutineScope(Dispatchers.Main + Job())
-    
+
     // Clients
     private var httpClient: HttpMovieClient? = null
     private var syncClient: SyncCommandClient? = null
-    
+
+    // Drift correction manager
+    private val syncManager: PlaybackSyncManager = PlaybackSyncManager(playbackCore)
+
     // Session state
     private val _isInSession = MutableStateFlow(false)
     val isInSession: StateFlow<Boolean> = _isInSession.asStateFlow()
-    
+
     private val _isReady = MutableStateFlow(false)
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
-    
+
     // Status update job
     private var statusUpdateJob: Job? = null
-    
-    // Last known master position (for drift calculation)
+
+    // Last known master position (for drift calculation - kept for status reporting)
     private var lastMasterPosition: Long = 0L
     private var lastMasterTimestamp: Long = 0L
     
@@ -111,6 +115,10 @@ class ClientSyncCoordinator(
 
             _isInSession.value = true
 
+            // Start drift monitoring for automatic correction
+            syncManager.startMonitoring()
+            Log.i(TAG, "Started drift monitoring")
+
             // Start sending periodic status updates
             startStatusUpdates()
 
@@ -138,6 +146,10 @@ class ClientSyncCoordinator(
      */
     fun leaveSession() {
         try {
+            // Stop drift monitoring
+            syncManager.stopMonitoring()
+            Log.i(TAG, "Stopped drift monitoring")
+
             statusUpdateJob?.cancel()
             syncClient?.disconnect()
             httpClient?.disconnect()
@@ -183,9 +195,12 @@ class ClientSyncCoordinator(
             return
         }
 
-        // Update last known master position
+        // Update last known master position (for status reporting)
         lastMasterPosition = videoPosition
         lastMasterTimestamp = command.timestamp
+
+        // Update sync manager for drift correction
+        syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = true)
 
         scope.launch {
             // Calculate delay until target start time
@@ -217,9 +232,12 @@ class ClientSyncCoordinator(
             return
         }
 
-        // Update last known master position
+        // Update last known master position (for status reporting)
         lastMasterPosition = videoPosition
         lastMasterTimestamp = command.timestamp
+
+        // Update sync manager for drift correction
+        syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = true)
 
         scope.launch {
             // Calculate delay until target start time
@@ -243,6 +261,10 @@ class ClientSyncCoordinator(
      * Handle pause command.
      */
     private fun handlePauseCommand(command: SyncCommand) {
+        // Update sync manager - master is now paused
+        val videoPosition = command.videoPosition ?: playbackCore.getCurrentPosition()
+        syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = false)
+
         scope.launch(Dispatchers.Main) {
             playbackCore.pause()
             Log.i(TAG, "Paused playback")
@@ -258,6 +280,9 @@ class ClientSyncCoordinator(
             Log.w(TAG, "Invalid seek command: missing seekPosition")
             return
         }
+
+        // Update sync manager with new position
+        syncManager.updateMasterPosition(seekPosition, command.timestamp, isPlaying = playbackCore.isPlaying())
 
         scope.launch(Dispatchers.Main) {
             playbackCore.seekTo(seekPosition)

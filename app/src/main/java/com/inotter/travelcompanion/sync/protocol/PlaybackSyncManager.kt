@@ -35,39 +35,48 @@ class PlaybackSyncManager(
 ) {
     companion object {
         private const val TAG = "PlaybackSyncManager"
-        
+
         // Drift thresholds
-        const val DRIFT_THRESHOLD_GOOD_MS = 50L // Green: < 50ms
-        const val DRIFT_THRESHOLD_WARNING_MS = 100L // Yellow: 50-100ms
-        const val DRIFT_THRESHOLD_CRITICAL_MS = 200L // Red: > 100ms, auto-correct
-        
+        const val DRIFT_THRESHOLD_GOOD_MS = 100L // Green: < 100ms
+        const val DRIFT_THRESHOLD_WARNING_MS = 300L // Yellow: 100-300ms
+        const val DRIFT_THRESHOLD_CRITICAL_MS = 500L // Red: > 500ms, auto-correct
+
         // Monitoring interval
         private const val MONITOR_INTERVAL_MS = 5000L // Check every 5 seconds
+
+        // Cooldown periods
+        private const val INITIAL_PLAYBACK_COOLDOWN_MS = 15000L // Wait 15 seconds after initial playback starts
+        private const val CORRECTION_COOLDOWN_MS = 10000L // Wait 10 seconds after each correction
     }
     
     // Sync quality levels
     enum class SyncQuality {
-        EXCELLENT, // < 50ms drift
-        GOOD,      // 50-100ms drift
-        POOR,      // 100-200ms drift
-        CRITICAL   // > 200ms drift
+        EXCELLENT, // < 100ms drift
+        GOOD,      // 100-300ms drift
+        POOR,      // 300-500ms drift
+        CRITICAL   // > 500ms drift
     }
     
     private val scope = CoroutineScope(Dispatchers.Main + Job())
-    
+
     // Last known master state
     private var lastMasterPosition: Long = 0L
     private var lastMasterTimestamp: Long = 0L
     private var isMasterPlaying: Boolean = false
-    
+
+    // Cooldown tracking
+    private var lastCorrectionTime: Long = 0L
+    private var playbackStartTime: Long = 0L // Track when playback first started
+    private var isInitialPlayback: Boolean = true // Flag for initial playback period
+
     // Current drift
     private val _currentDrift = MutableStateFlow(0L)
     val currentDrift: StateFlow<Long> = _currentDrift.asStateFlow()
-    
+
     // Sync quality
     private val _syncQuality = MutableStateFlow(SyncQuality.EXCELLENT)
     val syncQuality: StateFlow<SyncQuality> = _syncQuality.asStateFlow()
-    
+
     // Monitoring
     private var monitorJob: Job? = null
     private val _isMonitoring = MutableStateFlow(false)
@@ -99,12 +108,18 @@ class PlaybackSyncManager(
         _isMonitoring.value = false
         monitorJob?.cancel()
         monitorJob = null
+
+        // Reset cooldown state
+        lastCorrectionTime = 0L
+        playbackStartTime = 0L
+        isInitialPlayback = true
+
         Log.i(TAG, "Stopped drift monitoring")
     }
     
     /**
      * Update master position for drift calculation.
-     * 
+     *
      * @param position Master's video position in milliseconds
      * @param timestamp When this position was recorded
      * @param isPlaying Whether master is currently playing
@@ -112,7 +127,17 @@ class PlaybackSyncManager(
     fun updateMasterPosition(position: Long, timestamp: Long, isPlaying: Boolean = true) {
         lastMasterPosition = position
         lastMasterTimestamp = timestamp
+
+        // Track when playback starts for initial cooldown
+        val wasPlaying = isMasterPlaying
         isMasterPlaying = isPlaying
+
+        if (isPlaying && !wasPlaying) {
+            // Playback just started - begin initial cooldown period
+            playbackStartTime = System.currentTimeMillis()
+            isInitialPlayback = true
+            Log.i(TAG, "Playback started - initial cooldown period begins (${INITIAL_PLAYBACK_COOLDOWN_MS}ms)")
+        }
     }
     
     /**
@@ -150,7 +175,7 @@ class PlaybackSyncManager(
     private fun checkAndCorrectDrift() {
         val drift = getCurrentDrift()
         _currentDrift.value = drift
-        
+
         // Update sync quality
         _syncQuality.value = when {
             abs(drift) < DRIFT_THRESHOLD_GOOD_MS -> SyncQuality.EXCELLENT
@@ -158,10 +183,39 @@ class PlaybackSyncManager(
             abs(drift) < DRIFT_THRESHOLD_CRITICAL_MS -> SyncQuality.POOR
             else -> SyncQuality.CRITICAL
         }
-        
-        // Auto-correct if drift is too high
-        if (abs(drift) > DRIFT_THRESHOLD_CRITICAL_MS) {
+
+        val currentTime = System.currentTimeMillis()
+
+        // Check if we're in initial playback cooldown
+        if (isInitialPlayback) {
+            val timeSincePlaybackStart = currentTime - playbackStartTime
+            if (timeSincePlaybackStart < INITIAL_PLAYBACK_COOLDOWN_MS) {
+                Log.d(TAG, "In initial playback cooldown (${timeSincePlaybackStart}ms/${INITIAL_PLAYBACK_COOLDOWN_MS}ms) - drift: ${drift}ms")
+                return
+            } else {
+                // Initial cooldown period has ended
+                isInitialPlayback = false
+                Log.i(TAG, "Initial playback cooldown ended - drift correction now active")
+            }
+        }
+
+        // Check if we're in post-correction cooldown
+        val timeSinceLastCorrection = currentTime - lastCorrectionTime
+        val isInCorrectionCooldown = lastCorrectionTime > 0 && timeSinceLastCorrection < CORRECTION_COOLDOWN_MS
+
+        if (isInCorrectionCooldown) {
+            Log.d(TAG, "In correction cooldown (${timeSinceLastCorrection}ms/${CORRECTION_COOLDOWN_MS}ms) - drift: ${drift}ms")
+            return
+        }
+
+        // Only auto-correct if:
+        // 1. Drift is too high (> 500ms)
+        // 2. Master is playing (don't correct during pause)
+        // 3. Not in any cooldown period
+        if (abs(drift) > DRIFT_THRESHOLD_CRITICAL_MS && isMasterPlaying) {
             correctDrift(drift)
+        } else if (abs(drift) > DRIFT_THRESHOLD_CRITICAL_MS) {
+            Log.d(TAG, "Drift is high (${drift}ms) but master is paused - skipping correction")
         }
     }
 
@@ -177,6 +231,9 @@ class PlaybackSyncManager(
 
         // Seek to correct position
         playbackCore.seekTo(expectedPosition)
+
+        // Update last correction time for cooldown
+        lastCorrectionTime = System.currentTimeMillis()
 
         // Reset drift after correction
         _currentDrift.value = 0L
