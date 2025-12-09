@@ -315,7 +315,7 @@ class SyncViewModel(
         masterCoordinator?.broadcastStart(position)
 
         // Master also waits for the same targetStartTime as clients
-        scope.launch {
+        scope.launch(kotlinx.coroutines.Dispatchers.Main) {
             // Get the predictive delay (default 100ms for local network)
             val predictiveDelayMs = 100L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
 
@@ -354,7 +354,7 @@ class SyncViewModel(
         masterCoordinator?.broadcastPlay(position)
 
         // Master also waits for the same targetStartTime as clients
-        scope.launch {
+        scope.launch(kotlinx.coroutines.Dispatchers.Main) {
             // Get the predictive delay (default 100ms for local network)
             val predictiveDelayMs = 100L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
 
@@ -388,14 +388,14 @@ class SyncViewModel(
         // Set loading state
         _isPlaybackLoading.value = true
 
-        // Control local playback
-        playbackCore.pause()
-
         // Broadcast to clients
         connectionManager?.getMasterCoordinator()?.broadcastPause()
 
-        // Pause is immediate, clear loading state after a short delay
-        scope.launch {
+        // Control local playback on Main thread
+        scope.launch(kotlinx.coroutines.Dispatchers.Main) {
+            playbackCore.pause()
+
+            // Pause is immediate, clear loading state after a short delay
             delay(100) // Small delay to show the loading indicator
             _isPlaybackLoading.value = false
         }
@@ -414,14 +414,14 @@ class SyncViewModel(
         // Set loading state
         _isPlaybackLoading.value = true
 
-        // Control local playback
-        playbackCore.seekTo(position)
-
         // Broadcast to clients
         connectionManager?.getMasterCoordinator()?.broadcastSeek(position)
 
-        // Wait for clients to buffer at new position
-        scope.launch {
+        // Control local playback on Main thread
+        scope.launch(kotlinx.coroutines.Dispatchers.Main) {
+            playbackCore.seekTo(position)
+
+            // Wait for clients to buffer at new position
             val masterCoordinator = connectionManager?.getMasterCoordinator()
 
             // Wait for clients to be ready (with timeout)
@@ -452,7 +452,7 @@ class SyncViewModel(
                 val masterCoordinator = connectionManager?.getMasterCoordinator()
                 masterCoordinator?.broadcastPlay(masterPosition)
 
-                scope.launch {
+                scope.launch(kotlinx.coroutines.Dispatchers.Main) {
                     // Get the predictive delay (default 100ms for local network)
                     val predictiveDelayMs = 100L
 
@@ -474,13 +474,15 @@ class SyncViewModel(
             }
             SyncCommand.ACTION_PAUSE -> {
                 // Client wants to pause - pause immediately
+                // Note: MasterSyncCoordinator already broadcasts pause to all clients
                 _isPlaybackLoading.value = true
 
-                playbackCore.pause()
-                Log.i(TAG, "Master paused playback (client-initiated)")
+                // Pause on Main dispatcher to ensure thread safety
+                scope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                    playbackCore.pause()
+                    Log.i(TAG, "Master paused playback (client-initiated)")
 
-                // Pause is immediate, clear loading state after a short delay
-                scope.launch {
+                    // Pause is immediate, clear loading state after a short delay
                     delay(100)
                     _isPlaybackLoading.value = false
                 }
@@ -491,11 +493,12 @@ class SyncViewModel(
 
                 _isPlaybackLoading.value = true
 
-                playbackCore.seekTo(position)
-                Log.i(TAG, "Master seeked to position $position (client-initiated)")
+                // Seek on Main dispatcher to ensure thread safety
+                scope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                    playbackCore.seekTo(position)
+                    Log.i(TAG, "Master seeked to position $position (client-initiated)")
 
-                // Wait for clients to buffer at new position
-                scope.launch {
+                    // Wait for clients to buffer at new position
                     val masterCoordinator = connectionManager?.getMasterCoordinator()
                     masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
 
