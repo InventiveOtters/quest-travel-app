@@ -202,7 +202,7 @@ class ClientSyncCoordinator(
         // Update sync manager for drift correction
         syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = true)
 
-        scope.launch {
+        scope.launch(Dispatchers.Main) {
             // Calculate delay until target start time
             val currentTime = System.currentTimeMillis()
             val delayMs = targetStartTime - currentTime
@@ -239,7 +239,7 @@ class ClientSyncCoordinator(
         // Update sync manager for drift correction
         syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = true)
 
-        scope.launch {
+        scope.launch(Dispatchers.Main) {
             // Calculate delay until target start time
             val currentTime = System.currentTimeMillis()
             val delayMs = targetStartTime - currentTime
@@ -261,11 +261,11 @@ class ClientSyncCoordinator(
      * Handle pause command.
      */
     private fun handlePauseCommand(command: SyncCommand) {
-        // Update sync manager - master is now paused
-        val videoPosition = command.videoPosition ?: playbackCore.getCurrentPosition()
-        syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = false)
-
         scope.launch(Dispatchers.Main) {
+            // Update sync manager - master is now paused
+            val videoPosition = command.videoPosition ?: playbackCore.getCurrentPosition()
+            syncManager.updateMasterPosition(videoPosition, command.timestamp, isPlaying = false)
+
             playbackCore.pause()
             Log.i(TAG, "Paused playback")
         }
@@ -281,10 +281,11 @@ class ClientSyncCoordinator(
             return
         }
 
-        // Update sync manager with new position
-        syncManager.updateMasterPosition(seekPosition, command.timestamp, isPlaying = playbackCore.isPlaying())
-
         scope.launch(Dispatchers.Main) {
+            // Update sync manager with new position
+            val isPlaying = playbackCore.isPlaying()
+            syncManager.updateMasterPosition(seekPosition, command.timestamp, isPlaying = isPlaying)
+
             playbackCore.seekTo(seekPosition)
             Log.i(TAG, "Seeked to position $seekPosition")
         }
@@ -358,26 +359,28 @@ class ClientSyncCoordinator(
             return
         }
 
-        val currentPosition = playbackCore.getCurrentPosition()
-        val isPlaying = playbackCore.isPlaying()
+        scope.launch(Dispatchers.Main) {
+            val currentPosition = playbackCore.getCurrentPosition()
+            val isPlaying = playbackCore.isPlaying()
 
-        // Calculate drift from master
-        val drift = calculateDrift(currentPosition)
+            // Calculate drift from master
+            val drift = calculateDrift(currentPosition)
 
-        // Get actual buffer percentage
-        val bufferPercentage = playbackCore.getBufferPercentage()
+            // Get actual buffer percentage
+            val bufferPercentage = playbackCore.getBufferPercentage()
 
-        val response = SyncResponse(
-            clientId = clientId,
-            videoPosition = currentPosition,
-            isPlaying = isPlaying,
-            drift = drift,
-            bufferPercentage = bufferPercentage,
-            isReady = isReady,
-            timestamp = System.currentTimeMillis()
-        )
+            val response = SyncResponse(
+                clientId = clientId,
+                videoPosition = currentPosition,
+                isPlaying = isPlaying,
+                drift = drift,
+                bufferPercentage = bufferPercentage,
+                isReady = isReady,
+                timestamp = System.currentTimeMillis()
+            )
 
-        client.sendResponse(response)
+            client.sendResponse(response)
+        }
     }
 
     /**
