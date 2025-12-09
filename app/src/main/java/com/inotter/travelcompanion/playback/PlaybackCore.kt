@@ -75,14 +75,14 @@ class PlaybackCore(context: Context) {
       .build()
 
   // Custom load control for network streaming
-  // Reduces buffer sizes to prevent massive range requests over network
+  // Optimized for synchronized playback across multiple devices
   private val loadControl: LoadControl = DefaultLoadControl.Builder()
       .setAllocator(DefaultAllocator(true, 16 * 1024)) // 16KB allocation size
       .setBufferDurationsMs(
-          /* minBufferMs= */ 15000,        // 15 seconds minimum buffer
-          /* maxBufferMs= */ 30000,        // 30 seconds maximum buffer (reduced from default 50s)
-          /* bufferForPlaybackMs= */ 2500, // 2.5 seconds to start playback
-          /* bufferForPlaybackAfterRebufferMs= */ 5000 // 5 seconds after rebuffer
+          /* minBufferMs= */ 15000,         // 15 seconds minimum buffer
+          /* maxBufferMs= */ 120000,        // 2 minutes maximum buffer (increased for better sync)
+          /* bufferForPlaybackMs= */ 5000,  // 5 seconds to start playback (increased for sync)
+          /* bufferForPlaybackAfterRebufferMs= */ 7000 // 7 seconds after rebuffer (increased for sync)
       )
       .setTargetBufferBytes(DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES)
       .setPrioritizeTimeOverSizeThresholds(true)
@@ -286,6 +286,37 @@ class PlaybackCore(context: Context) {
    * @return Current volume level from 0.0 to 1.0
    */
   fun getVolume(): Float = player.volume
+
+  /**
+   * Get the current buffer percentage.
+   *
+   * @return Buffer percentage (0-100), or 0 if no media is loaded
+   */
+  fun getBufferPercentage(): Int {
+    val duration = player.duration
+    if (duration <= 0) return 0
+
+    val bufferedPosition = player.bufferedPosition
+    return ((bufferedPosition.toFloat() / duration.toFloat()) * 100f).toInt().coerceIn(0, 100)
+  }
+
+  /**
+   * Get the buffered position in milliseconds.
+   *
+   * @return Buffered position in milliseconds
+   */
+  fun getBufferedPosition(): Long = player.bufferedPosition
+
+  /**
+   * Check if the player has buffered enough to start playback.
+   * Based on the bufferForPlaybackMs setting (5 seconds).
+   *
+   * @return true if ready to play, false if still buffering
+   */
+  fun isReadyToPlay(): Boolean {
+    val bufferedDuration = player.bufferedPosition - player.currentPosition
+    return bufferedDuration >= 5000L // Match bufferForPlaybackMs setting
+  }
 
   fun release() { player.release() }
 }

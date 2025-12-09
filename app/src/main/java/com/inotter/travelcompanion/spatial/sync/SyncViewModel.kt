@@ -12,6 +12,7 @@ import com.inotter.travelcompanion.sync.models.SyncSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,7 +64,11 @@ class SyncViewModel(
     
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-    
+
+    // Playback loading state (for play/pause/seek operations)
+    private val _isPlaybackLoading = MutableStateFlow(false)
+    val isPlaybackLoading: StateFlow<Boolean> = _isPlaybackLoading.asStateFlow()
+
     init {
         // Initialize connection manager
         connectionManager = ConnectionManager(
@@ -286,7 +291,7 @@ class SyncViewModel(
     /**
      * Broadcast start command for initial playback (master only).
      * This should be called when the host first starts playback.
-     * Also controls the local PlaybackCore.
+     * Also controls the local PlaybackCore with predictive sync delay.
      */
     fun start(position: Long = 0L) {
         if (_syncMode.value != SyncMode.MASTER) {
@@ -294,17 +299,38 @@ class SyncViewModel(
             return
         }
 
-        // Control local playback
-        playbackCore.seekTo(position)
-        playbackCore.play()
+        // Set loading state
+        _isPlaybackLoading.value = true
 
-        // Broadcast start command to clients
-        connectionManager?.getMasterCoordinator()?.broadcastStart(position)
+        // Broadcast start command to clients first
+        val masterCoordinator = connectionManager?.getMasterCoordinator()
+        masterCoordinator?.broadcastStart(position)
+
+        // Master also waits for the same targetStartTime as clients
+        scope.launch {
+            // Get the predictive delay (default 500ms)
+            val predictiveDelayMs = 500L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
+
+            Log.d(TAG, "Master waiting ${predictiveDelayMs}ms before starting playback")
+            delay(predictiveDelayMs)
+
+            // Wait for clients to be ready (with timeout)
+            masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
+
+            // Now start local playback synchronized with clients
+            playbackCore.seekTo(position)
+            playbackCore.play()
+
+            Log.i(TAG, "Master started playback at position $position")
+
+            // Clear loading state
+            _isPlaybackLoading.value = false
+        }
     }
 
     /**
      * Broadcast play command (master only).
-     * Also controls the local PlaybackCore.
+     * Also controls the local PlaybackCore with predictive sync delay.
      */
     fun play(position: Long) {
         if (_syncMode.value != SyncMode.MASTER) {
@@ -312,12 +338,33 @@ class SyncViewModel(
             return
         }
 
-        // Control local playback
-        playbackCore.seekTo(position)
-        playbackCore.play()
+        // Set loading state
+        _isPlaybackLoading.value = true
 
-        // Broadcast to clients
-        connectionManager?.getMasterCoordinator()?.broadcastPlay(position)
+        // Broadcast play command to clients first
+        val masterCoordinator = connectionManager?.getMasterCoordinator()
+        masterCoordinator?.broadcastPlay(position)
+
+        // Master also waits for the same targetStartTime as clients
+        scope.launch {
+            // Get the predictive delay (default 500ms)
+            val predictiveDelayMs = 500L // Same as PREDICTIVE_SYNC_DELAY_MS in MasterSyncCoordinator
+
+            Log.d(TAG, "Master waiting ${predictiveDelayMs}ms before resuming playback")
+            delay(predictiveDelayMs)
+
+            // Wait for clients to be ready (with timeout)
+            masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
+
+            // Now resume local playback synchronized with clients
+            playbackCore.seekTo(position)
+            playbackCore.play()
+
+            Log.i(TAG, "Master resumed playback at position $position")
+
+            // Clear loading state
+            _isPlaybackLoading.value = false
+        }
     }
 
     /**
@@ -330,11 +377,20 @@ class SyncViewModel(
             return
         }
 
+        // Set loading state
+        _isPlaybackLoading.value = true
+
         // Control local playback
         playbackCore.pause()
 
         // Broadcast to clients
         connectionManager?.getMasterCoordinator()?.broadcastPause()
+
+        // Pause is immediate, clear loading state after a short delay
+        scope.launch {
+            delay(100) // Small delay to show the loading indicator
+            _isPlaybackLoading.value = false
+        }
     }
 
     /**
@@ -347,11 +403,25 @@ class SyncViewModel(
             return
         }
 
+        // Set loading state
+        _isPlaybackLoading.value = true
+
         // Control local playback
         playbackCore.seekTo(position)
 
         // Broadcast to clients
         connectionManager?.getMasterCoordinator()?.broadcastSeek(position)
+
+        // Wait for clients to buffer at new position
+        scope.launch {
+            val masterCoordinator = connectionManager?.getMasterCoordinator()
+
+            // Wait for clients to be ready (with timeout)
+            masterCoordinator?.waitForClientsReady(timeoutMs = 5000)
+
+            // Clear loading state
+            _isPlaybackLoading.value = false
+        }
     }
 
     /**

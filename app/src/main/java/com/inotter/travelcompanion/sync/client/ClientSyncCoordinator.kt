@@ -45,6 +45,8 @@ class ClientSyncCoordinator(
     companion object {
         private const val TAG = "ClientSyncCoordinator"
         private const val STATUS_UPDATE_INTERVAL_MS = 5000L // Send status every 5 seconds
+        private const val BUFFER_CHECK_INTERVAL_MS = 500L // Check buffer every 500ms
+        private const val MIN_BUFFER_PERCENTAGE = 10 // Minimum 10% buffer before ready
     }
     
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -106,23 +108,24 @@ class ClientSyncCoordinator(
                 return false
             }
             syncClient = syncCli
-            
+
             _isInSession.value = true
-            
+
             // Start sending periodic status updates
             startStatusUpdates()
-            
-            // Wait for video to buffer, then send ready status
+
+            // Start buffering immediately and wait for readiness
             scope.launch {
-                delay(2000) // Wait 2 seconds for buffering
+                Log.i(TAG, "Starting buffering...")
+                waitForBufferReadiness()
                 _isReady.value = true
                 sendStatusUpdate(isReady = true)
-                Log.i(TAG, "Client ready")
+                Log.i(TAG, "Client ready - buffering complete")
             }
-            
+
             Log.i(TAG, "Joined session: HTTP=$httpUrl, WS=$wsUrl")
             return true
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "Failed to join session", e)
             leaveSession()
@@ -291,6 +294,37 @@ class ClientSyncCoordinator(
     }
 
     /**
+     * Wait for video to buffer before marking as ready.
+     * Monitors buffer percentage and readiness state.
+     */
+    private suspend fun waitForBufferReadiness() {
+        var bufferPercentage = 0
+        var checkCount = 0
+        val maxChecks = 60 // Maximum 30 seconds (60 * 500ms)
+
+        while (checkCount < maxChecks) {
+            bufferPercentage = playbackCore.getBufferPercentage()
+            val isReady = playbackCore.isReadyToPlay()
+
+            Log.d(TAG, "Buffer check: $bufferPercentage%, ready=$isReady")
+
+            // Ready when either:
+            // 1. Player reports ready (5+ seconds buffered), OR
+            // 2. At least MIN_BUFFER_PERCENTAGE buffered
+            if (isReady || bufferPercentage >= MIN_BUFFER_PERCENTAGE) {
+                Log.i(TAG, "Buffer ready: $bufferPercentage%")
+                return
+            }
+
+            delay(BUFFER_CHECK_INTERVAL_MS)
+            checkCount++
+        }
+
+        // Timeout - proceed anyway but log warning
+        Log.w(TAG, "Buffer readiness timeout after 30s (buffer: $bufferPercentage%)")
+    }
+
+    /**
      * Send status update to master.
      */
     private fun sendStatusUpdate(isReady: Boolean = _isReady.value) {
@@ -305,12 +339,15 @@ class ClientSyncCoordinator(
         // Calculate drift from master
         val drift = calculateDrift(currentPosition)
 
+        // Get actual buffer percentage
+        val bufferPercentage = playbackCore.getBufferPercentage()
+
         val response = SyncResponse(
             clientId = clientId,
             videoPosition = currentPosition,
             isPlaying = isPlaying,
             drift = drift,
-            bufferPercentage = 0, // TODO: Get actual buffer percentage
+            bufferPercentage = bufferPercentage,
             isReady = isReady,
             timestamp = System.currentTimeMillis()
         )

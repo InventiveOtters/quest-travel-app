@@ -39,6 +39,7 @@ fun SyncMasterPlayerScreen(
 ) {
     val currentSession by syncViewModel.currentSession.collectAsState()
     val connectedDevices by syncViewModel.connectedDevices.collectAsState()
+    val isPlaybackLoading by syncViewModel.isPlaybackLoading.collectAsState()
 
     var showControls by remember { mutableStateOf(true) }
 
@@ -74,6 +75,13 @@ fun SyncMasterPlayerScreen(
                 duration = dur
             }
             delay(250)
+        }
+    }
+
+    // Clear seeking state when playback loading completes
+    LaunchedEffect(isPlaybackLoading) {
+        if (!isPlaybackLoading && isSeeking) {
+            isSeeking = false
         }
     }
 
@@ -229,7 +237,7 @@ fun SyncMasterPlayerScreen(
                             onValueChangeFinished = {
                                 // Broadcast seek command to all clients
                                 syncViewModel.seekTo(seekPosition.toLong())
-                                isSeeking = false
+                                // Keep isSeeking = true, it will be cleared when loading completes
                             },
                             valueRange = 0f..duration.toFloat(),
                             modifier = Modifier
@@ -281,30 +289,43 @@ fun SyncMasterPlayerScreen(
 
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        // Play/Pause
-                        IconButton(
-                            onClick = {
-                                if (isPlaying) {
-                                    syncViewModel.pause()
-                                } else {
-                                    // First time: send "start" command
-                                    // Subsequent times: send "play" command
-                                    if (!hasStartedPlayback) {
-                                        hasStartedPlayback = true
-                                        syncViewModel.start(currentPosition)
-                                    } else {
-                                        syncViewModel.play(currentPosition)
-                                    }
-                                }
-                            },
+                        // Play/Pause or Loading Indicator
+                        Box(
                             modifier = Modifier.size(64.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (isPlaying) "Pause" else "Play",
-                                modifier = Modifier.size(48.dp),
-                                tint = Color.White
-                            )
+                            if (isPlaybackLoading || isSeeking) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(48.dp),
+                                    color = Color.White,
+                                    strokeWidth = 4.dp
+                                )
+                            } else {
+                                IconButton(
+                                    onClick = {
+                                        if (isPlaying) {
+                                            syncViewModel.pause()
+                                        } else {
+                                            // First time: send "start" command
+                                            // Subsequent times: send "play" command
+                                            if (!hasStartedPlayback) {
+                                                hasStartedPlayback = true
+                                                syncViewModel.start(currentPosition)
+                                            } else {
+                                                syncViewModel.play(currentPosition)
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.size(64.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                        contentDescription = if (isPlaying) "Pause" else "Play",
+                                        modifier = Modifier.size(48.dp),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(8.dp))

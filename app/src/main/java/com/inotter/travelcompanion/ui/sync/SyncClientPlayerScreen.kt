@@ -39,6 +39,7 @@ fun SyncClientPlayerScreen(
 ) {
     val currentSession by syncViewModel.currentSession.collectAsState()
     val connectedDevices by syncViewModel.connectedDevices.collectAsState()
+    val isPlaybackLoading by syncViewModel.isPlaybackLoading.collectAsState()
 
     var showControls by remember { mutableStateOf(true) }
 
@@ -55,11 +56,20 @@ fun SyncClientPlayerScreen(
     var isSeeking by remember { mutableStateOf(false) }
     var seekPosition by remember { mutableStateOf(0f) }
 
+    // Track local loading state for client-initiated commands
+    var isClientLoading by remember { mutableStateOf(false) }
+
     // Check playback state periodically
     LaunchedEffect(Unit) {
         while (true) {
             val playbackCore = syncViewModel.getPlaybackCore()
             val currentlyPlaying = playbackCore.isPlaying()
+
+            // Clear client loading state when playback state changes
+            if (isClientLoading && currentlyPlaying != isPlaying) {
+                isClientLoading = false
+            }
+
             isPlaying = currentlyPlaying
 
             // Mark that playback has started once we detect playing state for the first time
@@ -68,7 +78,14 @@ fun SyncClientPlayerScreen(
                 hasPlaybackStarted = true
             }
 
-            currentPosition = playbackCore.getCurrentPosition()
+            val newPosition = playbackCore.getCurrentPosition()
+
+            // Clear seeking state if position has changed significantly (seek completed)
+            if (isSeeking && kotlin.math.abs(newPosition - seekPosition.toLong()) < 1000) {
+                isSeeking = false
+            }
+
+            currentPosition = newPosition
             val dur = playbackCore.getDuration()
             if (dur > 0) {
                 duration = dur
@@ -218,7 +235,7 @@ fun SyncClientPlayerScreen(
                                 // Get client coordinator and send seek command
                                 val connectionManager = syncViewModel.getConnectionManager()
                                 connectionManager?.getClientCoordinator()?.sendSeekCommand(seekPosition.toLong())
-                                isSeeking = false
+                                // Keep isSeeking = true, it will be cleared when position updates
                             },
                             valueRange = 0f..duration.toFloat(),
                             modifier = Modifier
@@ -271,25 +288,42 @@ fun SyncClientPlayerScreen(
 
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        // Play/Pause
-                        IconButton(
-                            onClick = {
-                                val connectionManager = syncViewModel.getConnectionManager()
-                                val clientCoordinator = connectionManager?.getClientCoordinator()
-                                if (isPlaying) {
-                                    clientCoordinator?.sendPauseCommand()
-                                } else {
-                                    clientCoordinator?.sendPlayCommand(currentPosition)
-                                }
-                            },
+                        // Play/Pause or Loading Indicator
+                        Box(
                             modifier = Modifier.size(64.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (isPlaying) "Pause" else "Play",
-                                modifier = Modifier.size(48.dp),
-                                tint = Color.White
-                            )
+                            if (isPlaybackLoading || isSeeking || isClientLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(48.dp),
+                                    color = Color.White,
+                                    strokeWidth = 4.dp
+                                )
+                            } else {
+                                IconButton(
+                                    onClick = {
+                                        val connectionManager = syncViewModel.getConnectionManager()
+                                        val clientCoordinator = connectionManager?.getClientCoordinator()
+
+                                        // Set loading state
+                                        isClientLoading = true
+
+                                        if (isPlaying) {
+                                            clientCoordinator?.sendPauseCommand()
+                                        } else {
+                                            clientCoordinator?.sendPlayCommand(currentPosition)
+                                        }
+                                    },
+                                    modifier = Modifier.size(64.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                        contentDescription = if (isPlaying) "Pause" else "Play",
+                                        modifier = Modifier.size(48.dp),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(8.dp))

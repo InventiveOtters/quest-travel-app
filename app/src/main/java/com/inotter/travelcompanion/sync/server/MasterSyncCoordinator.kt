@@ -341,12 +341,14 @@ class MasterSyncCoordinator(
             //     }
             // }
 
-            Log.i(TAG, "Client $clientId is ready (total ready: ${_readyClients.value.size})")
+            if (!wasReady) {
+                Log.i(TAG, "Client $clientId is ready (buffer: ${response.bufferPercentage}%, total ready: ${_readyClients.value.size})")
+            }
         } else {
             _readyClients.value = _readyClients.value - clientId
         }
 
-        Log.d(TAG, "Client $clientId: pos=${response.videoPosition}, drift=${response.drift}ms, ready=${response.isReady}")
+        Log.d(TAG, "Client $clientId: pos=${response.videoPosition}, drift=${response.drift}ms, buffer=${response.bufferPercentage}%, ready=${response.isReady}")
     }
 
     /**
@@ -398,6 +400,66 @@ class MasterSyncCoordinator(
         val session = _currentSession.value ?: return null
         return "ws://$serverIp:${session.wsPort}/sync"
     }
+
+    /**
+     * Get the number of connected clients.
+     */
+    fun getConnectedClientCount(): Int {
+        return syncServer?.getClientCount() ?: 0
+    }
+
+    /**
+     * Get the number of ready clients.
+     */
+    fun getReadyClientCount(): Int {
+        return _readyClients.value.size
+    }
+
+    /**
+     * Get all client states.
+     */
+    fun getClientStates(): Map<String, SyncResponse> {
+        return clientStates.toMap()
+    }
+
+    /**
+     * Get minimum buffer percentage across all clients.
+     * Useful for determining if all clients have sufficient buffer.
+     *
+     * @return Minimum buffer percentage, or 100 if no clients connected
+     */
+    fun getMinimumClientBuffer(): Int {
+        if (clientStates.isEmpty()) return 100
+        return clientStates.values.minOfOrNull { it.bufferPercentage } ?: 0
+    }
+
+    /**
+     * Check if all clients have sufficient buffer for playback.
+     *
+     * @param minBufferPercentage Minimum required buffer percentage (default: 10%)
+     * @return true if all clients have sufficient buffer
+     */
+    fun allClientsBuffered(minBufferPercentage: Int = 10): Boolean {
+        if (clientStates.isEmpty()) return false
+        return clientStates.values.all { it.bufferPercentage >= minBufferPercentage }
+    }
+
+    /**
+     * Check if session is active.
+     */
+    fun isSessionActive(): Boolean {
+        return _currentSession.value != null
+    }
+
+    /**
+     * Get the device ID.
+     */
+    fun getDeviceId(): String = deviceId
+
+    /**
+     * Get the HTTP server.
+     */
+    fun getHttpServer(): HttpMovieServer? = httpServer
 
     /**
      * Get the sync server instance for observing connected clients.
